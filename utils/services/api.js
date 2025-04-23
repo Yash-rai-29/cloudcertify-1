@@ -1,20 +1,19 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-// Get API base URL from environment variables or use default
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://base-service-6070296894.us-central1.run.app';
+// API base URL
+const API_BASE_URL = 'https://base-service-6070296894.us-central1.run.app';
 
 // Create axios instance with default config
-const api = axios.create({
+const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add request interceptor to add auth token to all requests
-api.interceptors.request.use(
+// Request interceptor to add auth token to requests
+apiClient.interceptors.request.use(
   (config) => {
     const token = Cookies.get('auth_token');
     if (token) {
@@ -27,56 +26,59 @@ api.interceptors.request.use(
   }
 );
 
-// Add response interceptor for error handling
-api.interceptors.response.use(
+// Response interceptor to handle common errors
+apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
   (error) => {
-    const errorResponse = {
-      message: 'An unexpected error occurred',
-      status: 500,
-      data: null,
-    };
-
-    if (error.response) {
-      // Server responded with an error status code
-      errorResponse.message = error.response.data?.message || 'Server error';
-      errorResponse.status = error.response.status;
-      errorResponse.data = error.response.data;
-    } else if (error.request) {
-      // Request was made but no response received
-      errorResponse.message = 'No response from server. Please check your connection.';
-      errorResponse.status = 0;
-    } else {
-      // Something happened in setting up the request
-      errorResponse.message = error.message;
+    // Handle token expiration, network errors, etc.
+    if (error.response?.status === 401) {
+      // Optionally redirect to login page or refresh token
+      console.error('Authentication error:', error);
+      Cookies.remove('auth_token');
+      window.location.href = '/auth/login';
     }
-
-    return Promise.reject(errorResponse);
+    
+    return Promise.reject(error);
   }
 );
 
-// Wrapper function for making API requests with error handling
+/**
+ * Make API requests with standard format
+ * 
+ * @param {string} method - HTTP method (get, post, put, delete)
+ * @param {string} url - API endpoint
+ * @param {object} data - Request body data (for POST, PUT)
+ * @param {object} params - URL query parameters
+ * @returns {Promise} - Promise with standardized response format
+ */
 export const apiRequest = async (method, url, data = null, params = null) => {
   try {
-    const response = await api({
+    const response = await apiClient({
       method,
       url,
       data,
-      params,
+      params
     });
-    return { success: true, data: response.data };
+    
+    return {
+      success: true,
+      data: response.data,
+      status: response.status
+    };
   } catch (error) {
-    return { 
-      success: false, 
+    console.error(`API ${method.toUpperCase()} request to ${url} failed:`, error);
+    
+    return {
+      success: false,
       error: {
-        message: error.message || 'Request failed',
-        status: error.status || 500,
-        data: error.data
-      } 
+        message: error.response?.data?.detail || error.message || 'An unexpected error occurred',
+        status: error.response?.status || 500,
+        data: error.response?.data || null
+      }
     };
   }
 };
 
-export default api;
+export default apiClient;

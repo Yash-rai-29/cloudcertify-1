@@ -1,11 +1,11 @@
 import { initializeApp } from 'firebase/app';
 import { 
   getAuth, 
-  signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
-  createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
-  signInWithPopup as firebaseSignInWithPopup,
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signInWithPopup,
   GoogleAuthProvider,
-  onAuthStateChanged as firebaseOnAuthStateChanged,
+  onAuthStateChanged,
   signOut as firebaseSignOut
 } from 'firebase/auth';
 
@@ -24,13 +24,17 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-// Export Firebase auth functions
+// Configure Google Auth provider
+googleProvider.setCustomParameters({
+  prompt: 'select_account' // Force account selection even when one account is available
+});
+
 export {
   auth,
   googleProvider,
-  firebaseSignInWithEmailAndPassword as signInWithEmailAndPassword,
-  firebaseCreateUserWithEmailAndPassword as createUserWithEmailAndPassword,
-  firebaseSignInWithPopup as signInWithPopup,
-  firebaseOnAuthStateChanged as onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  onAuthStateChanged,
   firebaseSignOut
 };
