@@ -30,15 +30,15 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/dashboard.js"
     ],
+    "/dashboard/history": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/dashboard/history.js"
+    ],
     "/dashboard/profile": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/dashboard/profile.js"
-    ],
-    "/dashboard/resources": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/dashboard/resources.js"
     ],
     "/dashboard/tests": [
       "static/chunks/webpack.js",

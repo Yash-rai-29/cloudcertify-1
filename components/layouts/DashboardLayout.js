@@ -66,8 +66,8 @@ export default function DashboardLayout({
               ></div>
               
               {/* Sidebar */}
-              <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
-                <div className="absolute top-0 right-0 -mr-12 pt-2">
+              <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white z-50">
+                <div className="absolute top-0 right-0 -mr-12 pt-2 z-50">
                   <button
                     className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
                     onClick={() => setSidebarOpen(false)}
@@ -78,17 +78,17 @@ export default function DashboardLayout({
                 </div>
                 
                 <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-                  <div className="flex-shrink-0 flex items-center px-4">
-                    <Link href="/" className="text-xl font-bold text-blue-600">
+                  <div className="flex-shrink-0 flex items-center px-4 relative">
+                    <Link href="/" className="text-xl font-bold text-blue-600 z-20">
                       Cloud Certify
                     </Link>
                   </div>
-                  <nav className="mt-5 px-2 space-y-1">
+                  <nav className="mt-5 px-2 space-y-1 relative">
                     {navigation.map((item) => (
                       <Link
                         key={item.name}
                         href={item.href}
-                        className={`group flex items-center px-2 py-2 text-base font-medium rounded-md relative ${
+                        className={`group flex items-center px-2 py-2 text-base font-medium rounded-md z-20 ${
                           (item.exact ? router.pathname === item.href : 
                            router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
                             ? 'bg-gray-100 text-blue-600'
@@ -103,32 +103,41 @@ export default function DashboardLayout({
                               : 'text-gray-400 group-hover:text-gray-500'
                           }`}
                         />
-                        {item.name}
+                        <span className="relative">{item.name}</span>
                       </Link>
                     ))}
                   </nav>
                 </div>
                 
-                <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+                <div className="flex-shrink-0 flex border-t border-gray-200 p-4 relative z-20">
                   <div className="flex items-center">
-                    <div>
+                    <div className="relative">
                       <Avatar 
                         src={user?.photoURL}
                         initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
                         size="md"
                       />
                     </div>
-                    <div className="ml-3">
+                    <div className="ml-3 relative">
                       <p className="text-base font-medium text-gray-700 truncate">
                         {user?.displayName || user?.email}
                       </p>
-                      <button
-                        onClick={handleSignOut}
-                        className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center"
-                      >
-                        <IconLogout className="mr-1 h-3 w-3" />
-                        Sign out
-                      </button>
+                      <div className="flex mt-1">
+                        <Link
+                          href="/dashboard/profile"
+                          className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center mr-3 z-20"
+                        >
+                          <IconUser className="mr-1 h-3 w-3" />
+                          Profile
+                        </Link>
+                        <button
+                          onClick={handleSignOut}
+                          className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center z-20"
+                        >
+                          <IconLogout className="mr-1 h-3 w-3" />
+                          Sign out
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -142,19 +151,19 @@ export default function DashboardLayout({
         </div>
 
         {/* Static sidebar for desktop */}
-        <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:bg-white">
+        <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:bg-white lg:z-30">
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-            <div className="flex-shrink-0 flex items-center px-4">
+            <div className="flex-shrink-0 flex items-center px-4 relative">
               <Link href="/" className="text-xl font-bold text-blue-600">
                 Cloud Certify
               </Link>
             </div>
-            <nav className="mt-8 flex-1 px-4 space-y-1">
+            <nav className="mt-8 flex-1 px-4 space-y-1 relative">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md relative ${
+                  className={`group z-20 flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                     (item.exact ? router.pathname === item.href : 
                      router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
                       ? 'bg-gray-100 text-blue-600'
@@ -169,36 +178,36 @@ export default function DashboardLayout({
                         : 'text-gray-400 group-hover:text-gray-500'
                     }`}
                   />
-                  {item.name}
+                  <span className="relative">{item.name}</span>
                 </Link>
               ))}
             </nav>
           </div>
           
-          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+          <div className="flex-shrink-0 flex border-t border-gray-200 p-4 relative z-20">
             <div className="flex items-center w-full">
-              <div>
+              <div className="relative">
                 <Avatar 
                   src={user?.photoURL}
                   initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
                   size="md"
                 />
               </div>
-              <div className="ml-3 flex-1">
+              <div className="ml-3 flex-1 relative">
                 <p className="text-sm font-medium text-gray-700 truncate">
                   {user?.displayName || user?.email}
                 </p>
                 <div className="flex mt-1">
                   <Link
                     href="/dashboard/profile"
-                    className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center mr-3"
+                    className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center mr-3 z-20"
                   >
                     <IconUser className="mr-1 h-3 w-3" />
                     Profile
                   </Link>
                   <button
                     onClick={handleSignOut}
-                    className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center"
+                    className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center z-20"
                   >
                     <IconLogout className="mr-1 h-3 w-3" />
                     Sign out
