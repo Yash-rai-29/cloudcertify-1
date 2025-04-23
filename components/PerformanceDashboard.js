@@ -217,14 +217,16 @@ const PerformanceDashboard = () => {
                           delay: 0.2
                         }}
                         d={activeChartTab === 'score' 
-                          ? "M0,320 C50,300 100,250 150,280 C200,310 250,280 300,200 C350,130 400,150 450,120 C500,100 550,110 600,100 C650,90 700,80 750,70 C800,60 850,50 900,40 C950,30 1000,20 1000,20" 
+                          // Exact path based on the example image provided
+                          ? "M0,380 C20,350 40,330 60,320 C100,300 120,260 140,240 C160,220 180,200 200,330 C220,350 240,340 260,320 C280,300 300,260 320,240 C340,220 360,200 380,180 C400,160 420,150 440,130 C460,120 480,110 500,140 C520,150 540,140 560,120 C580,110 600,100 620,110 C640,120 660,100 680,90 C700,80 720,75 740,70 C760,65 780,60 800,55 C820,50 840,45 860,40 C880,35 900,30 920,25 C940,20 960,15 980,10 C1000,5 1000,5 1000,5" 
+                          // Custom paths for other tabs
                           : activeChartTab === 'time'
-                            ? "M0,100 C50,120 100,150 150,140 C200,130 250,160 300,210 C350,250 400,230 450,190 C500,150 550,170 600,180 C650,190 700,170 750,160 C800,150 850,140 900,130 C950,120 1000,130 1000,130"
-                            : "M0,200 C50,180 100,160 150,190 C200,220 250,240 300,180 C350,120 400,150 450,210 C500,250 550,220 600,170 C650,130 700,150 750,160 C800,170 850,150 900,120 C950,100 1000,90 1000,90"
+                            ? "M0,100 C50,150 100,200 150,180 C200,160 250,200 300,240 C350,280 400,260 450,220 C500,180 550,200 600,210 C650,220 700,200 750,180 C800,160 850,140 900,120 C950,100 1000,80 1000,80"
+                            : "M0,200 C50,180 100,160 150,190 C200,220 250,240 300,180 C350,120 400,150 450,210 C500,270 550,240 600,190 C650,150 700,170 750,180 C800,190 850,170 900,140 C950,110 1000,90 1000,90"
                         }
                         fill="none"
                         stroke={activeChartTab === 'score' ? "#2563eb" : activeChartTab === 'time' ? "#10b981" : "#8b5cf6"}
-                        strokeWidth="4"
+                        strokeWidth="3"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
@@ -237,10 +239,11 @@ const PerformanceDashboard = () => {
                           delay: 0.2
                         }}
                         d={activeChartTab === 'score' 
-                          ? "M0,320 C50,300 100,250 150,280 C200,310 250,280 300,200 C350,130 400,150 450,120 C500,100 550,110 600,100 C650,90 700,80 750,70 C800,60 850,50 900,40 C950,30 1000,20 1000,20 L1000,400 L0,400 Z" 
+                          // Match the fill with the line path
+                          ? "M0,380 C20,350 40,330 60,320 C100,300 120,260 140,240 C160,220 180,200 200,330 C220,350 240,340 260,320 C280,300 300,260 320,240 C340,220 360,200 380,180 C400,160 420,150 440,130 C460,120 480,110 500,140 C520,150 540,140 560,120 C580,110 600,100 620,110 C640,120 660,100 680,90 C700,80 720,75 740,70 C760,65 780,60 800,55 C820,50 840,45 860,40 C880,35 900,30 920,25 C940,20 960,15 980,10 C1000,5 1000,5 1000,5 L1000,400 L0,400 Z" 
                           : activeChartTab === 'time'
-                            ? "M0,100 C50,120 100,150 150,140 C200,130 250,160 300,210 C350,250 400,230 450,190 C500,150 550,170 600,180 C650,190 700,170 750,160 C800,150 850,140 900,130 C950,120 1000,130 1000,130 L1000,400 L0,400 Z"
-                            : "M0,200 C50,180 100,160 150,190 C200,220 250,240 300,180 C350,120 400,150 450,210 C500,250 550,220 600,170 C650,130 700,150 750,160 C800,170 850,150 900,120 C950,100 1000,90 1000,90 L1000,400 L0,400 Z"
+                            ? "M0,100 C50,150 100,200 150,180 C200,160 250,200 300,240 C350,280 400,260 450,220 C500,180 550,200 600,210 C650,220 700,200 750,180 C800,160 850,140 900,120 C950,100 1000,80 1000,80 L1000,400 L0,400 Z"
+                            : "M0,200 C50,180 100,160 150,190 C200,220 250,240 300,180 C350,120 400,150 450,210 C500,270 550,240 600,190 C650,150 700,170 750,180 C800,190 850,170 900,140 C950,110 1000,90 1000,90 L1000,400 L0,400 Z"
                         }
                         fill={`url(#gradient-${activeChartTab})`}
                         strokeWidth="0"
@@ -253,26 +256,27 @@ const PerformanceDashboard = () => {
                       </defs>
                     </svg>
                     
-                    {/* Fixed Data points positions that match the example design */}
+                    {/* Fixed Data points positions that match the example image exactly */}
                     <div className="absolute top-5 left-12 right-5 bottom-8 pointer-events-none">
                       {activeChartTab === 'score' ? (
                         <>
-                          <motion.div key="p1" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5, duration: 0.3 }} className="absolute" style={{ left: '0%', top: '80%' }}>
+                          {/* Exact data points based on the example image provided */}
+                          <motion.div key="p1" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5, duration: 0.3 }} className="absolute" style={{ left: '2%', top: '86%' }}>
                             <div className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow-md"></div>
                           </motion.div>
-                          <motion.div key="p2" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6, duration: 0.3 }} className="absolute" style={{ left: '15%', top: '65%' }}>
+                          <motion.div key="p2" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6, duration: 0.3 }} className="absolute" style={{ left: '18%', top: '60%' }}>
                             <div className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow-md"></div>
                           </motion.div>
-                          <motion.div key="p3" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.7, duration: 0.3 }} className="absolute" style={{ left: '40%', top: '45%' }}>
+                          <motion.div key="p3" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.7, duration: 0.3 }} className="absolute" style={{ left: '40%', top: '50%' }}>
                             <div className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow-md"></div>
                           </motion.div>
-                          <motion.div key="p4" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.8, duration: 0.3 }} className="absolute" style={{ left: '55%', top: '35%' }}>
+                          <motion.div key="p4" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.8, duration: 0.3 }} className="absolute" style={{ left: '60%', top: '45%' }}>
                             <div className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow-md"></div>
                           </motion.div>
-                          <motion.div key="p5" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.9, duration: 0.3 }} className="absolute" style={{ left: '75%', top: '22%' }}>
+                          <motion.div key="p5" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.9, duration: 0.3 }} className="absolute" style={{ left: '78%', top: '35%' }}>
                             <div className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow-md"></div>
                           </motion.div>
-                          <motion.div key="p6" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.0, duration: 0.3 }} className="absolute" style={{ left: '95%', top: '12%' }}>
+                          <motion.div key="p6" initial={{ opacity: 0, scale: 0 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 1.0, duration: 0.3 }} className="absolute" style={{ left: '95%', top: '25%' }}>
                             <div className="w-3 h-3 rounded-full bg-blue-500 border-2 border-white shadow-md"></div>
                           </motion.div>
                         </>
