@@ -1,208 +1,53 @@
 "use client";
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FiBarChart2, FiClock, FiStar, FiArrowRight, FiAward, FiFilter } from "react-icons/fi";
-import { AnimatedCard } from "./ui/AnimatedCard";
+import React from "react";
+import { motion } from "framer-motion";
+import { FiCloud } from "react-icons/fi";
 import { GlowingBackground } from "./ui/GlowingBackground";
 
 const NewTestLibrary = () => {
-  const [activeTab, setActiveTab] = useState("all");
-  
-  const categories = [
-    { id: "all", name: "All Exams", color: "blue" },
-    { id: "architect", name: "Architect", color: "indigo" },
-    { id: "engineer", name: "Engineer", color: "green" },
-    { id: "security", name: "Security", color: "red" },
-    { id: "data", name: "Data", color: "purple" }
-  ];
-
-  const testItems = [
+  const certifications = [
     {
-      id: 1,
-      category: "architect",
-      title: "Professional Cloud Architect",
-      badge: "Popular",
-      badgeColor: "bg-orange-100 text-orange-700",
-      gradientColors: "from-blue-500 to-blue-600",
-      buttonText: "Start Test",
-      buttonIcon: <FiArrowRight />,
-      buttonBg: "bg-gradient-to-r from-blue-500 to-blue-600",
-      stats: [
-        { 
-          text: "60 Questions", 
-          icon: <FiBarChart2 />, 
-          bgColor: "bg-blue-50", 
-          textColor: "text-blue-700" 
-        },
-        { 
-          text: "2 Hours", 
-          icon: <FiClock />, 
-          bgColor: "bg-gray-100", 
-          textColor: "text-gray-700" 
-        },
-        { 
-          text: "Medium", 
-          icon: <FiStar />, 
-          bgColor: "bg-orange-50", 
-          textColor: "text-orange-700" 
-        }
-      ]
-    },
-    {
-      id: 2,
-      category: "engineer",
       title: "Associate Cloud Engineer",
-      gradientColors: "from-green-500 to-green-600",
-      buttonText: "Start Test",
-      buttonIcon: <FiArrowRight />,
-      buttonBg: "bg-gradient-to-r from-green-500 to-green-600",
-      stats: [
-        { 
-          text: "50 Questions", 
-          icon: <FiBarChart2 />, 
-          bgColor: "bg-blue-50", 
-          textColor: "text-blue-700" 
-        },
-        { 
-          text: "2 Hours", 
-          icon: <FiClock />, 
-          bgColor: "bg-gray-100", 
-          textColor: "text-gray-700" 
-        },
-        { 
-          text: "Easy", 
-          icon: <FiStar />, 
-          bgColor: "bg-green-50", 
-          textColor: "text-green-700" 
-        }
-      ]
+      description: "For individuals who deploy applications, monitor operations, and manage enterprise solutions",
+      color: "bg-green-500",
+      icon: <FiCloud />,
     },
     {
-      id: 3,
-      category: "data",
+      title: "Professional Cloud Architect",
+      description: "For professionals who design, develop, and manage robust, secure, scalable, highly available cloud solutions",
+      color: "bg-blue-500",
+      icon: <FiCloud />,
+    },
+    {
       title: "Professional Data Engineer",
-      gradientColors: "from-purple-500 to-purple-600",
-      buttonText: "Start Test",
-      buttonIcon: <FiArrowRight />,
-      buttonBg: "bg-gradient-to-r from-purple-500 to-purple-600",
-      stats: [
-        { 
-          text: "65 Questions", 
-          icon: <FiBarChart2 />, 
-          bgColor: "bg-blue-50", 
-          textColor: "text-blue-700" 
-        },
-        { 
-          text: "2 Hours", 
-          icon: <FiClock />, 
-          bgColor: "bg-gray-100", 
-          textColor: "text-gray-700" 
-        },
-        { 
-          text: "Hard", 
-          icon: <FiStar />, 
-          bgColor: "bg-red-50", 
-          textColor: "text-red-700" 
-        }
-      ]
+      description: "For professionals who design and build data processing systems and create machine learning models",
+      color: "bg-purple-500",
+      icon: <FiCloud />,
     },
     {
-      id: 4,
-      category: "security",
-      title: "Professional Cloud Security Engineer",
-      gradientColors: "from-red-500 to-red-600",
-      buttonText: "Start Test",
-      buttonIcon: <FiArrowRight />,
-      buttonBg: "bg-gradient-to-r from-red-500 to-red-600",
-      stats: [
-        { 
-          text: "55 Questions", 
-          icon: <FiBarChart2 />, 
-          bgColor: "bg-blue-50", 
-          textColor: "text-blue-700" 
-        },
-        { 
-          text: "2 Hours", 
-          icon: <FiClock />, 
-          bgColor: "bg-gray-100", 
-          textColor: "text-gray-700" 
-        },
-        { 
-          text: "Hard", 
-          icon: <FiStar />, 
-          bgColor: "bg-red-50", 
-          textColor: "text-red-700" 
-        }
-      ]
+      title: "Professional Cloud Developer",
+      description: "For developers who build scalable and highly available applications using Google Cloud technologies",
+      color: "bg-indigo-500",
+      icon: <FiCloud />,
     },
     {
-      id: 5,
-      category: "engineer",
-      title: "Professional Cloud DevOps Engineer",
-      gradientColors: "from-orange-500 to-orange-600",
-      buttonText: "Start Test",
-      buttonIcon: <FiArrowRight />,
-      buttonBg: "bg-gradient-to-r from-orange-500 to-orange-600",
-      stats: [
-        { 
-          text: "50 Questions", 
-          icon: <FiBarChart2 />, 
-          bgColor: "bg-blue-50", 
-          textColor: "text-blue-700" 
-        },
-        { 
-          text: "2 Hours", 
-          icon: <FiClock />, 
-          bgColor: "bg-gray-100", 
-          textColor: "text-gray-700" 
-        },
-        { 
-          text: "Medium", 
-          icon: <FiStar />, 
-          bgColor: "bg-orange-50", 
-          textColor: "text-orange-700" 
-        }
-      ]
-    },
-    {
-      id: 6,
-      category: "engineer",
       title: "Professional Cloud Network Engineer",
-      gradientColors: "from-blue-500 to-blue-600",
-      buttonText: "Start Test",
-      buttonIcon: <FiArrowRight />,
-      buttonBg: "bg-gradient-to-r from-blue-500 to-blue-600",
-      stats: [
-        { 
-          text: "55 Questions", 
-          icon: <FiBarChart2 />, 
-          bgColor: "bg-blue-50", 
-          textColor: "text-blue-700" 
-        },
-        { 
-          text: "2 Hours", 
-          icon: <FiClock />, 
-          bgColor: "bg-gray-100", 
-          textColor: "text-gray-700" 
-        },
-        { 
-          text: "Medium", 
-          icon: <FiStar />, 
-          bgColor: "bg-orange-50", 
-          textColor: "text-orange-700" 
-        }
-      ]
+      description: "For professionals who implement and manage network architectures in Google Cloud",
+      color: "bg-cyan-500",
+      icon: <FiCloud />,
+    },
+    {
+      title: "Professional Cloud Security Engineer",
+      description: "For security professionals who design and implement secure infrastructure on Google Cloud",
+      color: "bg-red-500",
+      icon: <FiCloud />,
     },
   ];
-
-  const filteredItems = activeTab === "all" 
-    ? testItems 
-    : testItems.filter(item => item.category === activeTab);
 
   return (
-    <section id="test-library" className="py-20 bg-gray-50">
+    <section id="test-library" className="py-20 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -210,7 +55,7 @@ const NewTestLibrary = () => {
             viewport={{ once: true }}
             className="inline-block px-4 py-1.5 mb-4 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
           >
-            Practice Tests
+            GCP Certifications
           </motion.div>
           
           <motion.h2
@@ -220,7 +65,7 @@ const NewTestLibrary = () => {
             viewport={{ once: true }}
             className="text-3xl md:text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700"
           >
-            Comprehensive Test Library
+            Google Cloud Platform Certifications
           </motion.h2>
           
           <motion.p
@@ -230,106 +75,43 @@ const NewTestLibrary = () => {
             viewport={{ once: true }}
             className="text-gray-600 max-w-2xl mx-auto mb-10"
           >
-            Choose from our wide range of practice tests designed to prepare you for your GCP certification exams.
+            We provide preparation materials for all the official Google Cloud Platform certifications
           </motion.p>
-
-          <div className="flex flex-wrap justify-center gap-2 mb-12">
-            {categories.map((category, index) => (
-              <motion.button
-                key={category.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -2 }}
-                whileTap={{ y: 0 }}
-                onClick={() => setActiveTab(category.id)}
-                className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-                  activeTab === category.id 
-                    ? `bg-${category.color}-600 text-white shadow-md` 
-                    : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {category.name}
-              </motion.button>
-            ))}
-          </div>
         </div>
 
         <GlowingBackground
-          containerClassName="mb-12"
+          containerClassName="relative mb-8"
           glowSize="250px"
           glowOpacity={0.2}
         >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <AnimatedCard items={filteredItems} />
-            </motion.div>
-          </AnimatePresence>
-        </GlowingBackground>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          viewport={{ once: true }}
-          className="text-center mt-12"
-        >
-          <div className="inline-flex gap-4">
-            <motion.button
-              whileHover={{ 
-                scale: 1.05, 
-                boxShadow: "0 15px 25px -5px rgba(37, 99, 235, 0.3)" 
-              }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-8 py-3.5 rounded-xl font-semibold shadow-lg transition-all flex items-center"
-            >
-              View All Tests <FiArrowRight className="ml-2" />
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 8px 15px rgba(0, 0, 0, 0.05)"
-              }}
-              whileTap={{ scale: 0.95 }}
-              className="px-8 py-3.5 rounded-xl font-medium text-blue-600 border-2 border-blue-600 flex items-center"
-            >
-              Random Test <FiShuffle className="ml-2" />
-            </motion.button>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {certifications.map((cert, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -8, transition: { duration: 0.3 } }}
+                className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100"
+              >
+                <div className={`h-2 w-full ${cert.color}`}></div>
+                <div className="p-6">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${cert.color} bg-opacity-10`}>
+                      <span className={`text-${cert.color.replace('bg-', '')}`}>{cert.icon}</span>
+                    </div>
+                    <h3 className="font-bold text-lg text-gray-800">{cert.title}</h3>
+                  </div>
+                  <p className="text-gray-600 text-sm">{cert.description}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
-        </motion.div>
+        </GlowingBackground>
       </div>
     </section>
   );
 };
-
-// Adding this icon component to avoid import error
-const FiShuffle = ({ className }) => (
-  <svg 
-    stroke="currentColor" 
-    fill="none" 
-    strokeWidth="2" 
-    viewBox="0 0 24 24" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className} 
-    height="1em" 
-    width="1em" 
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <polyline points="16 3 21 3 21 8"></polyline>
-    <line x1="4" y1="20" x2="21" y2="3"></line>
-    <polyline points="21 16 21 21 16 21"></polyline>
-    <line x1="15" y1="15" x2="21" y2="21"></line>
-    <line x1="4" y1="4" x2="9" y2="9"></line>
-  </svg>
-);
 
 export default NewTestLibrary;
