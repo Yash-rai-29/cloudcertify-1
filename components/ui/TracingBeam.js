@@ -38,7 +38,7 @@ export const TracingBeam = ({ children, className, containerClassName }) => {
         "relative w-full max-w-7xl mx-auto px-4", // Increased max width for consistency
         containerClassName,
       )}
-      style={{ position: "relative" }}
+      style={{ position: "relative", overflow: "hidden" }}
     >
       <motion.div 
         ref={contentRef} 

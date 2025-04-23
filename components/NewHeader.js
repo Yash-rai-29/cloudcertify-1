@@ -36,7 +36,7 @@ const NewHeader = () => {
       <span
         className={`font-bold text-xl ${
           scrolled
-            ? "bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-blue-600"
+            ? "bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent"
             : "text-white"
         }`}
       >
