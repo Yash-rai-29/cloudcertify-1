@@ -3,9 +3,9 @@
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
   "/": "pages/index.js",
-  "/dashboard/tests": "pages/dashboard/tests.js",
   "/login": "pages/login.js",
   "/dashboard": "pages/dashboard.js",
+  "/dashboard/resources": "pages/dashboard/resources.js",
   "/dashboard/profile": "pages/dashboard/profile.js",
-  "/dashboard/leaderboard": "pages/dashboard/leaderboard.js"
+  "/dashboard/tests": "pages/dashboard/tests.js"
 }

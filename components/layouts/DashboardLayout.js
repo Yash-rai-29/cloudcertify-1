@@ -34,12 +34,13 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: IconLayoutDashboard },
+    { name: 'Dashboard', href: '/dashboard', icon: IconLayoutDashboard, exact: true },
     { name: 'Test Library', href: '/dashboard/tests', icon: IconFileDescription },
     { name: 'Test History', href: '/dashboard/history', icon: IconCertificate },
     { name: 'Resources', href: '/dashboard/resources', icon: IconBookmarks },
     { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: IconTrophy },
     { name: 'AI Chatbot', href: '/dashboard/chat', icon: IconRobot },
+    { name: 'Profile', href: '/dashboard/profile', icon: IconUser },
   ];
 
   const handleSignOut = async () => {
@@ -49,7 +50,7 @@ export default function DashboardLayout({
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-gray-50 relative">
         <Head>
           <title>{title} | Cloud Certify</title>
         </Head>
@@ -87,15 +88,17 @@ export default function DashboardLayout({
                       <Link
                         key={item.name}
                         href={item.href}
-                        className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
-                          router.pathname === item.href || router.pathname.startsWith(`${item.href}/`)
+                        className={`group flex items-center px-2 py-2 text-base font-medium rounded-md relative ${
+                          (item.exact ? router.pathname === item.href : 
+                           router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
                             ? 'bg-gray-100 text-blue-600'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
                       >
                         <item.icon
                           className={`mr-4 flex-shrink-0 h-6 w-6 ${
-                            router.pathname === item.href || router.pathname.startsWith(`${item.href}/`)
+                            (item.exact ? router.pathname === item.href : 
+                             router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
                               ? 'text-blue-600'
                               : 'text-gray-400 group-hover:text-gray-500'
                           }`}
@@ -151,15 +154,17 @@ export default function DashboardLayout({
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                    router.pathname === item.href || router.pathname.startsWith(`${item.href}/`)
+                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md relative ${
+                    (item.exact ? router.pathname === item.href : 
+                     router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
                       ? 'bg-gray-100 text-blue-600'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
                   <item.icon
                     className={`mr-3 flex-shrink-0 h-5 w-5 ${
-                      router.pathname === item.href || router.pathname.startsWith(`${item.href}/`)
+                      (item.exact ? router.pathname === item.href : 
+                       router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
                         ? 'text-blue-600'
                         : 'text-gray-400 group-hover:text-gray-500'
                     }`}
@@ -205,9 +210,9 @@ export default function DashboardLayout({
         </div>
 
         {/* Main content */}
-        <div className="lg:pl-64 flex flex-col flex-1">
+        <div className="lg:pl-64 flex flex-col flex-1 relative">
           {/* Mobile top navigation */}
-          <div className="sticky top-0 z-10 lg:hidden flex items-center justify-between bg-white px-4 py-2 border-b border-gray-200 sm:px-6">
+          <div className="sticky top-0 z-10 lg:hidden flex items-center justify-between bg-white px-4 py-2 border-b border-gray-200 sm:px-6 relative">
             <button
               type="button"
               className="p-2 -ml-2 rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
@@ -216,10 +221,10 @@ export default function DashboardLayout({
               <span className="sr-only">Open sidebar</span>
               <IconMenu2 className="h-6 w-6" />
             </button>
-            <div className="text-lg font-bold text-blue-600">
+            <div className="text-lg font-bold text-blue-600 relative">
               Cloud Certify
             </div>
-            <Link href="/dashboard/profile">
+            <Link href="/dashboard/profile" className="relative">
               <Avatar 
                 src={user?.photoURL}
                 initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
@@ -229,7 +234,7 @@ export default function DashboardLayout({
           </div>
 
           {/* Page content */}
-          <main className="flex-1">
+          <main className="flex-1 relative">
             {children}
           </main>
         </div>
