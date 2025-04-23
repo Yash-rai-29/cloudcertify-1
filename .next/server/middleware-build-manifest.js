@@ -30,6 +30,21 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/dashboard.js"
     ],
+    "/dashboard/leaderboard": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/dashboard/leaderboard.js"
+    ],
+    "/dashboard/profile": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/dashboard/profile.js"
+    ],
+    "/dashboard/tests": [
+      "static/chunks/webpack.js",
+      "static/chunks/main.js",
+      "static/chunks/pages/dashboard/tests.js"
+    ],
     "/login": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",

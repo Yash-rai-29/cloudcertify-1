@@ -27,11 +27,11 @@ export default function Leaderboard() {
       const response = await getLeaderboard(20);
       
       if (response.success) {
-        // Extract data from response
-        const { rankings = [], user_rank = null } = response.data || {};
+        // Extract data from response based on the provided API structure
+        const { user_ranking = null, leaderboard = [] } = response.data || {};
         
-        setLeaderboardData(rankings);
-        setUserRanking(user_rank);
+        setLeaderboardData(leaderboard);
+        setUserRanking(user_ranking);
       } else {
         console.error('Failed to fetch leaderboard:', response.message);
         setError('Unable to load leaderboard data. Please try again later.');
@@ -93,25 +93,24 @@ export default function Leaderboard() {
         <Section 
           title="Your Ranking"
           description={`Your position on the ${timeFrame === 'weekly' ? 'weekly' : timeFrame === 'monthly' ? 'monthly' : 'all-time'} leaderboard`}
-          className="mt-8"
+          className="mt-8 relative"
         >
-          <div className="bg-white border border-blue-100 rounded-lg p-6 shadow-sm">
+          <div className="bg-white border border-blue-100 rounded-lg p-6 shadow-sm relative">
             <div className="flex items-center">
               <div className="flex-shrink-0">
                 <Avatar 
-                  src={userRanking.avatar_url}
-                  initials={`${userRanking.first_name?.[0] || ''}${userRanking.last_name?.[0] || ''}`}
+                  initials="ME"
                   size="lg"
                 />
               </div>
-              <div className="ml-4 flex-1">
+              <div className="ml-4 flex-1 relative">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {userRanking.first_name} {userRanking.last_name}
+                      Your Performance
                     </h3>
                     <p className="text-sm text-gray-500">
-                      {userRanking.certification_target || 'GCP Certification'}
+                      GCP Certification Prep
                     </p>
                   </div>
                   <div className="text-center">
@@ -121,16 +120,16 @@ export default function Leaderboard() {
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-4 text-center">
                   <div>
-                    <div className="text-lg font-semibold text-gray-900">{userRanking.points}</div>
-                    <p className="text-xs text-gray-500">Points</p>
+                    <div className="text-lg font-semibold text-gray-900">{userRanking.avg_score.toFixed(1)}</div>
+                    <p className="text-xs text-gray-500">Avg Score</p>
                   </div>
                   <div>
-                    <div className="text-lg font-semibold text-gray-900">{userRanking.tests_completed}</div>
-                    <p className="text-xs text-gray-500">Tests</p>
+                    <div className="text-lg font-semibold text-gray-900">{userRanking.tests_taken}</div>
+                    <p className="text-xs text-gray-500">Tests Taken</p>
                   </div>
                   <div>
-                    <div className="text-lg font-semibold text-gray-900">{userRanking.streak_days}</div>
-                    <p className="text-xs text-gray-500">Day Streak</p>
+                    <div className="text-lg font-semibold text-gray-900">{(userRanking.percentile * 100).toFixed(0)}%</div>
+                    <p className="text-xs text-gray-500">Percentile</p>
                   </div>
                 </div>
               </div>
@@ -171,26 +170,25 @@ export default function Leaderboard() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative">
             {leaderboardData.slice(0, 3).map((user, index) => (
               <div 
-                key={user.id}
+                key={user.uid}
                 className={`
-                  bg-white border rounded-lg p-6 text-center
+                  bg-white border rounded-lg p-6 text-center relative
                   ${index === 0 ? 'border-yellow-200 shadow-md order-2 md:order-1 md:-mt-4' : ''}
                   ${index === 1 ? 'border-gray-200 order-1 md:order-0' : ''}
                   ${index === 2 ? 'border-amber-200 order-3 md:order-2' : ''}
                 `}
               >
-                <div className="flex justify-center">
+                <div className="flex justify-center relative">
                   {index === 0 && (
                     <div className="absolute -top-4 bg-yellow-400 rounded-full p-2">
                       <IconCrown size={24} className="text-white" />
                     </div>
                   )}
                   <Avatar 
-                    src={user.avatar_url}
-                    initials={`${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`}
+                    initials={user.full_name?.substring(0,2) || 'GC'}
                     size="xl"
                     className={`
                       ${index === 0 ? 'ring-4 ring-yellow-200' : ''}
@@ -201,7 +199,7 @@ export default function Leaderboard() {
                 </div>
                 <div className="mt-4">
                   <h3 className="text-lg font-semibold text-gray-900">
-                    {user.first_name} {user.last_name}
+                    {user.full_name}
                   </h3>
                   <p className="text-sm text-gray-500">
                     {user.certification_target || 'GCP Certification'}
@@ -227,16 +225,16 @@ export default function Leaderboard() {
                   </div>
                 </div>
                 <div className="mt-4 text-2xl font-bold text-blue-600">
-                  {user.points} pts
+                  {user.avg_score.toFixed(1)} avg
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2 text-center">
                   <div>
-                    <div className="text-sm font-semibold text-gray-900">{user.tests_completed}</div>
+                    <div className="text-sm font-semibold text-gray-900">{user.tests_taken}</div>
                     <p className="text-xs text-gray-500">Tests</p>
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-gray-900">{user.streak_days}</div>
-                    <p className="text-xs text-gray-500">Streak</p>
+                    <div className="text-sm font-semibold text-gray-900">{(user.pass_rate * 100).toFixed(0)}%</div>
+                    <p className="text-xs text-gray-500">Pass Rate</p>
                   </div>
                 </div>
               </div>
@@ -266,7 +264,7 @@ export default function Leaderboard() {
             <p className="mt-1 text-sm text-gray-500">{error}</p>
           </div>
         ) : (
-          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden relative">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -281,44 +279,43 @@ export default function Leaderboard() {
                       Certification
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Points
+                      Avg Score
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Tests
                     </th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Streak
+                      Pass Rate
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {leaderboardData.length > 0 ? (
-                    leaderboardData.map((user, index) => (
+                    leaderboardData.map((user) => (
                       <tr 
-                        key={user.id}
+                        key={user.uid}
                         className={`
-                          hover:bg-gray-50
-                          ${user.id === userRanking?.id ? 'bg-blue-50' : ''}
+                          hover:bg-gray-50 relative
+                          ${user.uid === userRanking?.uid ? 'bg-blue-50' : ''}
                         `}
                       >
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {index + 1}
+                          {user.rank}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center">
                             <div className="flex-shrink-0 h-10 w-10">
                               <Avatar 
-                                src={user.avatar_url}
-                                initials={`${user.first_name?.[0] || ''}${user.last_name?.[0] || ''}`}
+                                initials={user.full_name?.substring(0,2) || 'GC'}
                                 size="md"
                               />
                             </div>
                             <div className="ml-4">
                               <div className="text-sm font-medium text-gray-900">
-                                {user.first_name} {user.last_name}
+                                {user.full_name}
                               </div>
                               <div className="text-sm text-gray-500">
-                                {user.id === userRanking?.id && (
+                                {userRanking?.uid === user.uid && (
                                   <Badge variant="blue" size="sm">You</Badge>
                                 )}
                               </div>
@@ -329,13 +326,13 @@ export default function Leaderboard() {
                           {user.certification_target || 'GCP Certification'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-bold text-gray-900">{user.points}</div>
+                          <div className="text-sm font-bold text-gray-900">{user.avg_score.toFixed(1)}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.tests_completed}
+                          {user.tests_taken}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {user.streak_days} days
+                          {(user.pass_rate * 100).toFixed(0)}%
                         </td>
                       </tr>
                     ))
