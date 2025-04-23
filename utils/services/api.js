@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 // API base URL configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cloudcertify.app/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://base-service-6070296894.us-central1.run.app';
 
 // Create axios instance
 export const apiClient = axios.create({

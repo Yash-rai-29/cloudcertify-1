@@ -1,17 +1,7 @@
 import { apiRequest } from './api';
-import { 
-  mockUserData, 
-  mockDailyQuestion, 
-  mockTestLibrary, 
-  mockTestHistory, 
-  mockRecommendations, 
-  mockActivities,
-  mockLeaderboard,
-  mockResources
-} from './mockData';
 
 // Flag to use mock data during development
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 /**
  * Get user dashboard data
@@ -31,7 +21,7 @@ export const getDashboardData = async () => {
     };
   }
   
-  return await apiRequest('get', '/dashboard');
+  return await apiRequest('get', '/b/dashboard');
 };
 
 /**
@@ -48,7 +38,7 @@ export const getUserProfile = async (userId) => {
     };
   }
   
-  return await apiRequest('get', `/users/${userId}/profile`);
+  return await apiRequest('get', `/b/users/${userId}/profile`);
 };
 
 /**
@@ -66,7 +56,7 @@ export const updateUserProfile = async (userId, profileData) => {
     };
   }
   
-  return await apiRequest('put', `/users/${userId}/profile`, profileData);
+  return await apiRequest('put', `/b/manage_user/users`, profileData);
 };
 
 /**
@@ -93,7 +83,7 @@ export const getTestHistory = async (userId, page = 1, limit = 10) => {
     };
   }
   
-  return await apiRequest('get', `/users/${userId}/test-history`, null, { page, limit });
+  return await apiRequest('get', `/b/users/${userId}/test-history`, null, { page, limit });
 };
 
 /**
@@ -121,7 +111,7 @@ export const getTestLibrary = async (filters = {}, page = 1, limit = 10) => {
     };
   }
   
-  return await apiRequest('get', '/tests', null, { ...filters, page, limit });
+  return await apiRequest('get', '/b/tests', null, { ...filters, page, limit });
 };
 
 /**
@@ -142,7 +132,7 @@ export const getLeaderboard = async (timeframe = 'week', limit = 10) => {
     };
   }
   
-  return await apiRequest('get', '/leaderboard', null, { timeframe, limit });
+  return await apiRequest('get', '/b/leaderboard', null, { timeframe, limit });
 };
 
 /**
@@ -169,7 +159,7 @@ export const getResources = async (filters = {}, page = 1, limit = 10) => {
     };
   }
   
-  return await apiRequest('get', '/resources', null, { ...filters, page, limit });
+  return await apiRequest('get', '/b/resources', null, { ...filters, page, limit });
 };
 
 /**
@@ -194,7 +184,7 @@ export const submitDailyAnswer = async (questionId, optionId) => {
     };
   }
   
-  return await apiRequest('post', `/questions/${questionId}/answer`, { option_id: optionId });
+  return await apiRequest('post', `/b/questions/${questionId}/answer`, { option_id: optionId });
 };
 
 /**
