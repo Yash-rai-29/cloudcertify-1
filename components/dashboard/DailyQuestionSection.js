@@ -84,15 +84,15 @@ export default function DailyQuestionSection({ question, className }) {
         </Badge>
       }
     >
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden relative">
         {/* Question header */}
-        <div className="p-5 border-b border-gray-200">
+        <div className="p-5 border-b border-gray-200 relative">
           <h3 className="font-medium text-gray-900">{question.question_text}</h3>
         </div>
         
         {/* Options */}
-        <div className="p-5">
-          <div className="space-y-3">
+        <div className="p-5 relative">
+          <div className="space-y-3 relative">
             {question.options && question.options.map((option) => {
               const isSelected = userAnswer === option.id;
               const isCorrect = correctAnswer === option.id;
@@ -167,28 +167,28 @@ function QuestionOption({
     <div
       onClick={disabled ? undefined : onClick}
       className={cn(
-        'p-4 border rounded-lg flex items-start cursor-pointer transition-colors',
+        'p-4 border rounded-lg flex items-start cursor-pointer transition-colors relative',
         disabled && !isSelected && 'opacity-70 cursor-default',
         className
       )}
     >
-      <div className="flex-1">
+      <div className="flex-1 relative">
         <p className="text-sm font-medium text-gray-900">{option.text}</p>
       </div>
       
-      <div className="ml-3">
+      <div className="ml-3 relative">
         {isCorrect && (
-          <div className="p-1 bg-green-100 rounded-full text-green-600">
+          <div className="p-1 bg-green-100 rounded-full text-green-600 relative">
             <IconCheck size={16} />
           </div>
         )}
         {isIncorrect && (
-          <div className="p-1 bg-red-100 rounded-full text-red-600">
+          <div className="p-1 bg-red-100 rounded-full text-red-600 relative">
             <IconX size={16} />
           </div>
         )}
         {isSelected && !isCorrect && !isIncorrect && (
-          <div className="p-1 bg-blue-100 rounded-full text-blue-600">
+          <div className="p-1 bg-blue-100 rounded-full text-blue-600 relative">
             <IconCheck size={16} />
           </div>
         )}
@@ -203,17 +203,17 @@ function QuestionOption({
 function QuestionExplanation({ isCorrect, explanation }) {
   return (
     <div className={cn(
-      'mt-6 p-4 rounded-lg',
+      'mt-6 p-4 rounded-lg relative',
       isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
     )}>
-      <div className="flex items-start">
+      <div className="flex items-start relative">
         <div className={cn(
-          'p-1 rounded-full mr-3',
+          'p-1 rounded-full mr-3 relative',
           isCorrect ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
         )}>
           {isCorrect ? <IconCheck size={16} /> : <IconAlertCircle size={16} />}
         </div>
-        <div>
+        <div className="relative">
           <p className={cn(
             'text-sm font-medium',
             isCorrect ? 'text-green-800' : 'text-red-800'
