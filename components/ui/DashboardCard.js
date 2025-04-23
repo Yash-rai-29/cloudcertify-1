@@ -22,12 +22,12 @@ export default function DashboardCard({
 }) {
   return (
     <div className={cn(
-      "bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden",
+      "bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative",
       className
     )}>
       {title && (
         <div className={cn(
-          "px-5 py-4 border-b border-gray-200 flex items-center justify-between",
+          "px-5 py-4 border-b border-gray-200 flex items-center justify-between relative",
           headerClassName
         )}>
           <h3 className="font-medium text-gray-800">
@@ -40,7 +40,7 @@ export default function DashboardCard({
           )}
         </div>
       )}
-      <div className={cn("p-5", contentClassName)}>
+      <div className={cn("p-5 relative", contentClassName)}>
         {children}
       </div>
     </div>

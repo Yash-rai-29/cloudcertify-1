@@ -21,8 +21,8 @@ export default function DashboardHeader({
   onViewProfile
 }) {
   return (
-    <div className="py-6 md:py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <div className="py-6 md:py-8 relative">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between relative">
         <div className="flex items-center">
           <Avatar 
             src={userData?.avatar_url || authUser?.photoURL}
@@ -34,7 +34,7 @@ export default function DashboardHeader({
             size="lg"
             className="mr-4"
           />
-          <div>
+          <div className="relative">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-900">
                 Welcome back, {userData?.first_name || authUser?.displayName?.split(' ')[0] || 'User'}!
@@ -57,7 +57,7 @@ export default function DashboardHeader({
             </p>
           </div>
         </div>
-        <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row sm:space-x-3 space-y-2 sm:space-y-0">
+        <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row sm:space-x-3 space-y-2 sm:space-y-0 relative">
           <Button
             variant="outline"
             leftIcon={<IconTrophy size={18} />}
@@ -76,11 +76,11 @@ export default function DashboardHeader({
       
       {/* Streak indicator */}
       {streak && (
-        <div className="mt-6 bg-white p-4 rounded-lg border border-gray-200 flex items-center">
+        <div className="mt-6 bg-white p-4 rounded-lg border border-gray-200 flex items-center relative">
           <div className="p-2 bg-amber-100 rounded-full text-amber-600">
             <IconCalendarEvent size={20} />
           </div>
-          <div className="ml-3">
+          <div className="ml-3 relative">
             <p className="text-sm font-medium text-gray-900">
               {streak.current === 0 
                 ? 'Start your learning streak today!'

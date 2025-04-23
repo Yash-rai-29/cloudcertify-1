@@ -21,11 +21,11 @@ export default function Section({
   headerClassName
 }) {
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn('space-y-4 relative', className)}>
       {/* Section Header */}
       {(title || description || headerContent) && (
         <div className={cn(
-          'flex flex-col md:flex-row md:items-center md:justify-between',
+          'flex flex-col md:flex-row md:items-center md:justify-between relative',
           headerClassName
         )}>
           {/* Title and Description */}
@@ -54,7 +54,7 @@ export default function Section({
       )}
       
       {/* Content */}
-      <div className={contentClassName}>
+      <div className={cn('relative', contentClassName)}>
         {children}
       </div>
     </div>

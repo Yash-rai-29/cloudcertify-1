@@ -23,18 +23,18 @@ export default function ActivityItem({
   return (
     <div 
       className={`
-        p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors
+        p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors relative
         ${className || ''}
       `}
     >
       <div className="flex items-start">
         {icon && (
-          <div className="p-2 bg-gray-100 rounded-md text-gray-500 mr-3">
+          <div className="p-2 bg-gray-100 rounded-md text-gray-500 mr-3 relative">
             {icon}
           </div>
         )}
         
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 relative">
           <p className="text-sm font-medium text-gray-900">{title}</p>
           {description && (
             <p className="text-sm text-gray-500 mt-1">{description}</p>
