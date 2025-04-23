@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiMenu, FiX, FiCloud, FiChevronDown } from 'react-icons/fi';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { FiMenu, FiX, FiCloud, FiChevronDown } from "react-icons/fi";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,7 +9,7 @@ const Header = () => {
 
   useEffect(() => {
     setIsClient(true);
-    
+
     const handleScroll = () => {
       if (window.scrollY > 20) {
         setScrolled(true);
@@ -18,31 +18,31 @@ const Header = () => {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, []);
 
   const navItems = [
-    { name: 'Home', href: '#' },
-    { name: 'Test Library', href: '#test-library' },
-    { name: 'Performance Dashboard', href: '#performance-dashboard' },
-    { name: 'Value Proposition', href: '#value-proposition' },
-    { name: 'Testimonials', href: '#testimonials' }
+    { name: "Home", href: "#" },
+    { name: "Test Library", href: "#test-library" },
+    { name: "Performance Dashboard", href: "#performance-dashboard" },
+    { name: "Value Proposition", href: "#value-proposition" },
+    { name: "Testimonials", href: "#testimonials" },
   ];
 
   // Animation variants
   const logoVariants = {
     hidden: { opacity: 0, y: -20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { 
+      transition: {
         duration: 0.5,
-        ease: "easeOut"
-      }
-    }
+        ease: "easeOut",
+      },
+    },
   };
 
   const navVariants = {
@@ -51,54 +51,54 @@ const Header = () => {
       opacity: 1,
       transition: {
         staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
+        delayChildren: 0.2,
+      },
+    },
   };
-  
+
   const navItemVariants = {
     hidden: { opacity: 0, y: -10 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { duration: 0.3 }
-    }
+      transition: { duration: 0.3 },
+    },
   };
 
   const mobileMenuVariants = {
     hidden: { opacity: 0, height: 0 },
-    visible: { 
-      opacity: 1, 
-      height: 'auto',
-      transition: { 
+    visible: {
+      opacity: 1,
+      height: "auto",
+      transition: {
         duration: 0.4,
-        ease: "easeInOut"
-      }
+        ease: "easeInOut",
+      },
     },
-    exit: { 
-      opacity: 0, 
+    exit: {
+      opacity: 0,
       height: 0,
-      transition: { 
+      transition: {
         duration: 0.3,
-        ease: "easeInOut"
-      }
-    }
+        ease: "easeInOut",
+      },
+    },
   };
 
   return (
-    <header className={`fixed w-full z-50 transition-all duration-300 backdrop-blur-sm ${
-      scrolled 
-        ? 'bg-white/95 shadow-md py-2' 
-        : 'bg-transparent py-4 md:py-5'
-    }`}>
+    <header
+      className={`fixed w-full z-50 transition-all duration-300 backdrop-blur-sm ${
+        scrolled ? "bg-white/95 shadow-md py-2" : "bg-transparent py-4 md:py-5"
+      }`}
+    >
       <div className="container mx-auto px-4 sm:px-6 flex justify-between items-center">
-        <motion.div 
+        <motion.div
           initial="hidden"
           animate="visible"
           variants={logoVariants}
           className="flex items-center"
         >
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
             className="flex items-center gap-1.5"
@@ -111,7 +111,7 @@ const Header = () => {
         </motion.div>
 
         {/* Desktop Navigation */}
-        <motion.nav 
+        <motion.nav
           className="hidden md:flex items-center gap-2 lg:gap-8"
           initial="hidden"
           animate="visible"
@@ -123,9 +123,9 @@ const Header = () => {
                 key={index}
                 href={item.href}
                 className={`font-medium text-sm lg:text-base px-3 py-2 rounded-md transition-all duration-300 ${
-                  scrolled 
-                    ? 'text-gray-700 hover:text-blue-600 hover:bg-blue-50' 
-                    : 'text-gray-800 hover:text-blue-600 hover:bg-blue-50/30'
+                  scrolled
+                    ? "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+                    : "text-gray-800 hover:text-blue-600 hover:bg-blue-50/30"
                 }`}
                 variants={navItemVariants}
                 whileHover={{ y: -2 }}
@@ -137,7 +137,10 @@ const Header = () => {
           </div>
           <motion.button
             variants={navItemVariants}
-            whileHover={{ scale: 1.05, boxShadow: "0 10px 15px -3px rgba(37, 99, 235, 0.25)" }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 10px 15px -3px rgba(37, 99, 235, 0.25)",
+            }}
             whileTap={{ scale: 0.95 }}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2.5 rounded-md font-medium text-sm shadow-md transition-all ml-2"
           >
@@ -147,20 +150,17 @@ const Header = () => {
 
         {/* Mobile menu button */}
         <div className="md:hidden flex items-center">
-          <motion.button 
+          <motion.button
             onClick={() => setIsOpen(!isOpen)}
             whileTap={{ scale: 0.9 }}
             className={`p-2 rounded-md ${
-              scrolled 
-                ? 'text-gray-700 hover:bg-gray-100' 
-                : 'text-gray-800 hover:bg-white/20'
+              scrolled
+                ? "text-gray-700 hover:bg-gray-100"
+                : "text-gray-800 hover:bg-white/20"
             } focus:outline-none transition-colors`}
             aria-label="Toggle menu"
           >
-            <motion.div
-              initial={false}
-              animate={isOpen ? "open" : "closed"}
-            >
+            <motion.div initial={false} animate={isOpen ? "open" : "closed"}>
               {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
             </motion.div>
           </motion.button>
@@ -191,14 +191,17 @@ const Header = () => {
                   {item.name}
                 </motion.a>
               ))}
-              <motion.button 
+              <motion.a
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
+                href="https://cloudcertify.web.app/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-full mt-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-md font-medium text-sm shadow-md transition-all flex justify-center items-center"
               >
                 Login
-              </motion.button>
+              </motion.a>
             </div>
           </motion.div>
         )}
