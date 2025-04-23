@@ -1,6 +1,5 @@
-import React from 'react';
-import { timeAgo } from '../../utils/services/dashboardService';
-import { cn } from '../../utils/cn';
+import { IconClock } from '@tabler/icons-react';
+import { timeAgo } from '../../utils/helpers';
 
 /**
  * ActivityItem component for displaying user activity in a consistent format
@@ -13,29 +12,42 @@ import { cn } from '../../utils/cn';
  * @param {number} props.timestamp - Activity timestamp (Unix timestamp in seconds)
  * @param {string} props.className - Additional CSS classes
  */
-const ActivityItem = ({
+export default function ActivityItem({
   id,
   icon,
   title,
   description,
   timestamp,
-  className = '',
-  ...props
-}) => {
+  className
+}) {
   return (
-    <div className={cn('pl-5 relative', className)} {...props}>
-      <div className="absolute left-0 top-1.5">
-        <div className="bg-white border border-gray-200 rounded-full p-1 shadow-sm">
-          {icon}
+    <div 
+      className={`
+        p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors
+        ${className || ''}
+      `}
+    >
+      <div className="flex items-start">
+        {icon && (
+          <div className="p-2 bg-gray-100 rounded-md text-gray-500 mr-3">
+            {icon}
+          </div>
+        )}
+        
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900">{title}</p>
+          {description && (
+            <p className="text-sm text-gray-500 mt-1">{description}</p>
+          )}
+          
+          {timestamp && (
+            <div className="mt-2 flex items-center text-xs text-gray-500">
+              <IconClock size={14} className="mr-1" />
+              {timeAgo(timestamp * 1000)}
+            </div>
+          )}
         </div>
-      </div>
-      <div>
-        <h3 className="text-gray-800 font-medium">{title}</h3>
-        {description && <p className="text-sm text-gray-600">{description}</p>}
-        {timestamp && <p className="text-xs text-gray-500 mt-1">{timeAgo(timestamp)}</p>}
       </div>
     </div>
   );
-};
-
-export default ActivityItem;
+}

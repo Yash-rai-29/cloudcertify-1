@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FiMenu, FiX, FiCloud, FiUser } from "react-icons/fi";
 import { FloatingNavbar } from "./common/ui/FloatingNavbar";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../contexts/AuthContext";
 import MobileMenu from "./landing/MobileMenu";
 
 /**

@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 import { Poppins } from 'next/font/google';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AuthProvider } from '../hooks/useAuth';
+import { AuthProvider } from '../contexts/AuthContext';
 import { Toaster } from 'react-hot-toast';
 import { getPublicLayout } from '../components/layouts/PublicLayout';
 

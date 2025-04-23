@@ -1,5 +1,4 @@
-import React from 'react';
-import { cn } from '../../utils/cn';
+import { cn } from '../../utils/helpers';
 
 /**
  * Dashboard section component with consistent spacing and styling
@@ -12,34 +11,40 @@ import { cn } from '../../utils/cn';
  * @param {string} props.contentClassName - Additional CSS classes for content area
  * @param {string} props.headerClassName - Additional CSS classes for header
  */
-const Section = ({
+export default function Section({
   title,
   description,
   headerContent,
-  children,
-  className = '',
-  contentClassName = '',
-  headerClassName = '',
-  ...props
-}) => {
+  className,
+  contentClassName,
+  headerClassName,
+  children
+}) {
   return (
-    <div className={cn('space-y-4', className)} {...props}>
-      {(title || headerContent) && (
-        <div className={cn('flex justify-between items-center', headerClassName)}>
+    <div className={cn('', className)}>
+      {(title || description || headerContent) && (
+        <div className={cn(
+          'flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:justify-between sm:items-center mb-4',
+          headerClassName
+        )}>
           <div>
-            {title && <h2 className="text-lg font-semibold text-gray-900">{title}</h2>}
-            {description && <p className="text-sm text-gray-500">{description}</p>}
+            {title && (
+              <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+            )}
+            {description && (
+              <p className="text-sm text-gray-500">{description}</p>
+            )}
           </div>
           {headerContent && (
-            <div>{headerContent}</div>
+            <div className="mt-2 sm:mt-0">
+              {headerContent}
+            </div>
           )}
         </div>
       )}
-      <div className={contentClassName}>
+      <div className={cn('', contentClassName)}>
         {children}
       </div>
     </div>
   );
-};
-
-export default Section;
+}

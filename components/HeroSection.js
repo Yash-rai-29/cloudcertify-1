@@ -5,7 +5,7 @@ import { FiArrowRight, FiCloud, FiUser } from "react-icons/fi";
 import { SparklesBackground } from "./ui/SparklesBackground";
 import { TextReveal } from "./ui/TextReveal";
 import { GlowingBackground } from "./ui/GlowingBackground";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../contexts/AuthContext";
 
 // Import reusable landing components
 import HeroButton from "./landing/HeroButton";

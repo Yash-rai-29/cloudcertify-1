@@ -1,13 +1,22 @@
-"use client";
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiHome, FiBook, FiBarChart2, FiUser, FiLogOut, FiMenu, FiX, FiCloud } from 'react-icons/fi';
-import { useAuth } from '../../hooks/useAuth';
+import { useRouter } from 'next/router';
+import { useAuth } from '../../contexts/AuthContext';
+import ProtectedRoute from '../common/ProtectedRoute';
 import Avatar from '../ui/Avatar';
-import { cn } from '../../utils/helpers';
+import {
+  IconLayoutDashboard,
+  IconFileDescription,
+  IconCertificate,
+  IconBookmarks,
+  IconTrophy,
+  IconRobot,
+  IconLogout,
+  IconMenu2,
+  IconX,
+  IconUser
+} from '@tabler/icons-react';
 
 /**
  * Dashboard layout component with sidebar navigation for authenticated users
@@ -17,264 +26,215 @@ import { cn } from '../../utils/helpers';
  * @param {string} props.title - Page title
  */
 export default function DashboardLayout({ 
-  children,
-  title = 'Dashboard - Cloud Certify'
+  children, 
+  title = 'Dashboard' 
 }) {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const router = useRouter();
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  
-  // Handle logout
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.push('/');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-  };
-  
-  // Close mobile sidebar on route change
-  useEffect(() => {
-    const handleRouteChange = () => {
-      setIsMobileSidebarOpen(false);
-    };
-    
-    router.events.on('routeChangeComplete', handleRouteChange);
-    
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange);
-    };
-  }, [router]);
-  
-  // Navigation items for the sidebar
-  const navItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: FiHome },
-    { name: 'Test Library', href: '/dashboard/test-library', icon: FiBook },
-    { name: 'Test History', href: '/dashboard/test-history', icon: FiBarChart2 },
-    { name: 'Profile', href: '/dashboard/profile', icon: FiUser },
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const navigation = [
+    { name: 'Dashboard', href: '/dashboard', icon: IconLayoutDashboard },
+    { name: 'Test Library', href: '/dashboard/tests', icon: IconFileDescription },
+    { name: 'Test History', href: '/dashboard/history', icon: IconCertificate },
+    { name: 'Resources', href: '/dashboard/resources', icon: IconBookmarks },
+    { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: IconTrophy },
+    { name: 'AI Chatbot', href: '/dashboard/chat', icon: IconRobot },
   ];
-  
-  // Get the current path for navigation highlighting
-  const currentPath = router.pathname;
-  
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
+
   return (
-    <>
-      <Head>
-        <title>{title}</title>
-        <meta name="description" content="Cloud Certify dashboard - Track your GCP certification progress" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      </Head>
-      
-      <div className="flex h-screen bg-gray-50">
-        {/* Desktop Sidebar */}
-        <aside className="hidden md:flex md:flex-col md:w-64 bg-white border-r border-gray-200">
-          <div className="flex flex-col h-full">
-            {/* Logo and Branding */}
-            <div className="flex items-center h-16 px-4 border-b border-gray-200">
-              <Link href="/dashboard" className="flex items-center space-x-2">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 w-8 h-8 rounded-md flex items-center justify-center">
-                  <FiCloud className="text-white text-xl" />
-                </div>
-                <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  Cloud Certify
-                </span>
-              </Link>
-            </div>
-            
-            {/* Navigation Menu */}
-            <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-              {navItems.map((item) => {
-                const isActive = currentPath === item.href;
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors",
-                      isActive 
-                        ? "bg-blue-50 text-blue-700" 
-                        : "text-gray-700 hover:bg-gray-100"
-                    )}
-                  >
-                    <item.icon className={cn(
-                      "mr-3 text-lg",
-                      isActive ? "text-blue-600" : "text-gray-500"
-                    )} />
-                    {item.name}
-                    {isActive && (
-                      <div className="ml-auto w-1.5 h-5 bg-blue-600 rounded-sm" />
-                    )}
-                  </Link>
-                );
-              })}
-            </nav>
-            
-            {/* User Profile and Logout */}
-            <div className="p-4 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Avatar 
-                    src={user?.photoURL}
-                    initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)}
-                    size="md"
-                  />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-900">
-                      {user?.displayName || user?.email}
-                    </span>
-                    <span className="text-xs text-gray-500 truncate max-w-[120px]">
-                      {user?.email}
-                    </span>
-                  </div>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="p-1.5 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
-                  aria-label="Logout"
-                >
-                  <FiLogOut className="text-lg" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </aside>
-        
-        {/* Mobile Sidebar */}
-        <AnimatePresence>
-          {isMobileSidebarOpen && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 md:hidden"
-            >
-              {/* Backdrop */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.5 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-gray-900"
-                onClick={() => setIsMobileSidebarOpen(false)}
-              />
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
+        <Head>
+          <title>{title} | Cloud Certify</title>
+        </Head>
+
+        {/* Mobile sidebar */}
+        <div className="lg:hidden">
+          {sidebarOpen && (
+            <div className="fixed inset-0 z-40 flex">
+              {/* Overlay */}
+              <div 
+                className="fixed inset-0 bg-gray-600 bg-opacity-75"
+                onClick={() => setSidebarOpen(false)}
+              ></div>
               
               {/* Sidebar */}
-              <motion.aside
-                initial={{ x: -280 }}
-                animate={{ x: 0 }}
-                exit={{ x: -280 }}
-                transition={{ type: 'spring', damping: 25 }}
-                className="absolute top-0 left-0 bottom-0 w-64 bg-white shadow-lg"
-              >
-                <div className="flex flex-col h-full">
-                  {/* Logo and Close Button */}
-                  <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
-                    <Link href="/dashboard" className="flex items-center space-x-2">
-                      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 w-8 h-8 rounded-md flex items-center justify-center">
-                        <FiCloud className="text-white text-xl" />
-                      </div>
-                      <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                        Cloud Certify
-                      </span>
+              <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white">
+                <div className="absolute top-0 right-0 -mr-12 pt-2">
+                  <button
+                    className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <span className="sr-only">Close sidebar</span>
+                    <IconX className="h-6 w-6 text-white" />
+                  </button>
+                </div>
+                
+                <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                  <div className="flex-shrink-0 flex items-center px-4">
+                    <Link href="/" className="text-xl font-bold text-blue-600">
+                      Cloud Certify
                     </Link>
-                    <button
-                      onClick={() => setIsMobileSidebarOpen(false)}
-                      className="p-1.5 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
-                      aria-label="Close sidebar"
-                    >
-                      <FiX className="text-lg" />
-                    </button>
                   </div>
-                  
-                  {/* Navigation Menu */}
-                  <nav className="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-                    {navItems.map((item) => {
-                      const isActive = currentPath === item.href;
-                      return (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          className={cn(
-                            "flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors",
-                            isActive 
-                              ? "bg-blue-50 text-blue-700" 
-                              : "text-gray-700 hover:bg-gray-100"
-                          )}
-                        >
-                          <item.icon className={cn(
-                            "mr-3 text-lg",
-                            isActive ? "text-blue-600" : "text-gray-500"
-                          )} />
-                          {item.name}
-                          {isActive && (
-                            <div className="ml-auto w-1.5 h-5 bg-blue-600 rounded-sm" />
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </nav>
-                  
-                  {/* User Profile and Logout */}
-                  <div className="p-4 border-t border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Avatar 
-                          src={user?.photoURL}
-                          initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)}
-                          size="md"
-                        />
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900">
-                            {user?.displayName || user?.email}
-                          </span>
-                          <span className="text-xs text-gray-500 truncate max-w-[120px]">
-                            {user?.email}
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={handleLogout}
-                        className="p-1.5 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
-                        aria-label="Logout"
+                  <nav className="mt-5 px-2 space-y-1">
+                    {navigation.map((item) => (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
+                          router.pathname === item.href || router.pathname.startsWith(`${item.href}/`)
+                            ? 'bg-gray-100 text-blue-600'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
                       >
-                        <FiLogOut className="text-lg" />
+                        <item.icon
+                          className={`mr-4 flex-shrink-0 h-6 w-6 ${
+                            router.pathname === item.href || router.pathname.startsWith(`${item.href}/`)
+                              ? 'text-blue-600'
+                              : 'text-gray-400 group-hover:text-gray-500'
+                          }`}
+                        />
+                        {item.name}
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+                
+                <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+                  <div className="flex items-center">
+                    <div>
+                      <Avatar 
+                        src={user?.photoURL}
+                        initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
+                        size="md"
+                      />
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-base font-medium text-gray-700 truncate">
+                        {user?.displayName || user?.email}
+                      </p>
+                      <button
+                        onClick={handleSignOut}
+                        className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center"
+                      >
+                        <IconLogout className="mr-1 h-3 w-3" />
+                        Sign out
                       </button>
                     </div>
                   </div>
                 </div>
-              </motion.aside>
-            </motion.div>
-          )}
-        </AnimatePresence>
-        
-        {/* Main Content Area */}
-        <div className="flex flex-col flex-1 overflow-hidden">
-          {/* Mobile Header */}
-          <header className="flex items-center h-16 px-4 bg-white border-b border-gray-200 md:hidden">
-            <button
-              onClick={() => setIsMobileSidebarOpen(true)}
-              className="mr-4 p-1.5 rounded-md text-gray-700 hover:bg-gray-100 transition-colors"
-              aria-label="Open sidebar"
-            >
-              <FiMenu className="text-xl" />
-            </button>
-            <Link href="/dashboard" className="flex items-center space-x-2">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 w-7 h-7 rounded-md flex items-center justify-center">
-                <FiCloud className="text-white text-lg" />
               </div>
-              <span className="font-bold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              
+              <div className="flex-shrink-0 w-14">
+                {/* Force sidebar to shrink to fit close icon */}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Static sidebar for desktop */}
+        <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:bg-white">
+          <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+            <div className="flex-shrink-0 flex items-center px-4">
+              <Link href="/" className="text-xl font-bold text-blue-600">
                 Cloud Certify
-              </span>
-            </Link>
-          </header>
+              </Link>
+            </div>
+            <nav className="mt-8 flex-1 px-4 space-y-1">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`group flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+                    router.pathname === item.href || router.pathname.startsWith(`${item.href}/`)
+                      ? 'bg-gray-100 text-blue-600'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                >
+                  <item.icon
+                    className={`mr-3 flex-shrink-0 h-5 w-5 ${
+                      router.pathname === item.href || router.pathname.startsWith(`${item.href}/`)
+                        ? 'text-blue-600'
+                        : 'text-gray-400 group-hover:text-gray-500'
+                    }`}
+                  />
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
+          </div>
           
-          {/* Page Content */}
-          <main className="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-6">
+          <div className="flex-shrink-0 flex border-t border-gray-200 p-4">
+            <div className="flex items-center w-full">
+              <div>
+                <Avatar 
+                  src={user?.photoURL}
+                  initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
+                  size="md"
+                />
+              </div>
+              <div className="ml-3 flex-1">
+                <p className="text-sm font-medium text-gray-700 truncate">
+                  {user?.displayName || user?.email}
+                </p>
+                <div className="flex mt-1">
+                  <Link
+                    href="/dashboard/profile"
+                    className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center mr-3"
+                  >
+                    <IconUser className="mr-1 h-3 w-3" />
+                    Profile
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center"
+                  >
+                    <IconLogout className="mr-1 h-3 w-3" />
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main content */}
+        <div className="lg:pl-64 flex flex-col flex-1">
+          {/* Mobile top navigation */}
+          <div className="sticky top-0 z-10 lg:hidden flex items-center justify-between bg-white px-4 py-2 border-b border-gray-200 sm:px-6">
+            <button
+              type="button"
+              className="p-2 -ml-2 rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <span className="sr-only">Open sidebar</span>
+              <IconMenu2 className="h-6 w-6" />
+            </button>
+            <div className="text-lg font-bold text-blue-600">
+              Cloud Certify
+            </div>
+            <Link href="/dashboard/profile">
+              <Avatar 
+                src={user?.photoURL}
+                initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
+                size="sm"
+              />
+            </Link>
+          </div>
+
+          {/* Page content */}
+          <main className="flex-1">
             {children}
           </main>
         </div>
       </div>
-    </>
+    </ProtectedRoute>
   );
 }
 

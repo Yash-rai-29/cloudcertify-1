@@ -1,5 +1,4 @@
-import React from 'react';
-import { cn } from '../../utils/cn';
+import { cn } from '../../utils/helpers';
 
 /**
  * Quick Action Card component
@@ -11,33 +10,37 @@ import { cn } from '../../utils/cn';
  * @param {string} props.description - Action description
  * @param {function} props.onClick - Click handler for the card
  */
-const QuickActionCard = ({
+export default function QuickActionCard({
   icon,
-  iconColor = 'bg-blue-100 text-blue-600',
+  iconColor,
   title,
   description,
   onClick,
-  className = '',
+  className,
   ...props
-}) => {
+}) {
   return (
-    <button
-      onClick={onClick}
+    <div
       className={cn(
-        "bg-white p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all flex items-center gap-3 w-full text-left",
+        'bg-white p-5 rounded-lg border border-gray-200 hover:shadow-md transition-shadow cursor-pointer',
         className
       )}
+      onClick={onClick}
       {...props}
     >
-      <div className={cn('p-3 rounded-lg', iconColor)}>
-        {icon}
+      <div className="flex items-start">
+        {icon && (
+          <div className={`p-2 rounded-md ${iconColor || 'bg-blue-100 text-blue-600'}`}>
+            {icon}
+          </div>
+        )}
+        <div className="ml-4">
+          <h3 className="font-medium text-gray-900">{title}</h3>
+          {description && (
+            <p className="mt-1 text-sm text-gray-500">{description}</p>
+          )}
+        </div>
       </div>
-      <div>
-        <h3 className="font-medium text-gray-800">{title}</h3>
-        <p className="text-xs text-gray-500">{description}</p>
-      </div>
-    </button>
+    </div>
   );
-};
-
-export default QuickActionCard;
+}

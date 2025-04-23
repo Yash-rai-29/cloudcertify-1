@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+import Image from 'next/image';
 import { cn } from '../../utils/helpers';
 
 /**
@@ -13,47 +14,60 @@ import { cn } from '../../utils/helpers';
  * @param {string} props.className - Additional CSS classes
  */
 export default function Avatar({
-  src = null,
-  alt = 'User avatar',
-  initials = '',
-  size = 'md',
+  src,
+  alt = "User",
+  initials = "U",
+  size = "md",
   className,
+  ...props
 }) {
   const [imageError, setImageError] = useState(false);
   
-  // Size mappings
+  // Size classes
   const sizeClasses = {
-    sm: 'w-8 h-8 text-xs',
-    md: 'w-10 h-10 text-sm',
-    lg: 'w-14 h-14 text-base',
-    xl: 'w-20 h-20 text-xl',
+    xs: 'h-6 w-6 text-xs',
+    sm: 'h-8 w-8 text-sm',
+    md: 'h-10 w-10 text-base',
+    lg: 'h-14 w-14 text-lg',
+    xl: 'h-20 w-20 text-xl',
   };
   
-  const avatarSize = sizeClasses[size] || sizeClasses.md;
+  // Determine the size class to use
+  const sizeClass = sizeClasses[size] || sizeClasses.md;
   
-  // Handle image error
-  const handleImageError = () => {
-    setImageError(true);
-  };
+  // If no src or image failed to load, render initials
+  if (!src || imageError) {
+    return (
+      <div 
+        className={cn(
+          'relative inline-flex items-center justify-center rounded-full bg-blue-100 text-blue-800 font-medium',
+          sizeClass,
+          className
+        )}
+        {...props}
+      >
+        {initials?.substring(0, 2).toUpperCase()}
+      </div>
+    );
+  }
   
+  // Otherwise, render the image
   return (
-    <div
+    <div 
       className={cn(
-        "rounded-full flex items-center justify-center overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium",
-        avatarSize,
+        'relative inline-flex rounded-full overflow-hidden',
+        sizeClass,
         className
       )}
+      {...props}
     >
-      {src && !imageError ? (
-        <img
-          src={src}
-          alt={alt}
-          className="w-full h-full object-cover"
-          onError={handleImageError}
-        />
-      ) : (
-        <span>{initials?.toUpperCase() || '?'}</span>
-      )}
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover"
+        onError={() => setImageError(true)}
+      />
     </div>
   );
 }

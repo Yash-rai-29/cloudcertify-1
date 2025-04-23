@@ -1,7 +1,7 @@
-import React from 'react';
-import { FiCalendar, FiAward, FiPlay, FiUser } from 'react-icons/fi';
-import Avatar from '../ui/Avatar';
+import { IconCalendarEvent, IconTrophy } from '@tabler/icons-react';
 import Button from '../ui/Button';
+import Avatar from '../ui/Avatar';
+import Badge from '../ui/Badge';
 
 /**
  * Dashboard Header component
@@ -13,64 +13,89 @@ import Button from '../ui/Button';
  * @param {Function} props.onStartTest - Handler for Start Practice Test button
  * @param {Function} props.onViewProfile - Handler for View Profile button
  */
-const DashboardHeader = ({
+export default function DashboardHeader({ 
   userData,
   streak,
   authUser,
   onStartTest,
   onViewProfile
-}) => {
-  // Get user name from userData or authUser fallback
-  const firstName = userData?.firstName || authUser?.displayName?.split(' ')[0] || 'User';
-  const avatarSrc = userData?.avatarUrl || null;
-  const avatarInitial = firstName.charAt(0);
-  const certificationTarget = userData?.certificationTarget || 'GCP Certification';
-  const streakCount = streak?.currentStreak || 0;
-
+}) {
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div className="flex items-center gap-4">
-        <Avatar 
-          src={avatarSrc}
-          initials={avatarInitial}
-          size="lg"
-        />
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Welcome, {firstName}
-          </h1>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span className="flex items-center">
-              <FiCalendar className="mr-1 text-blue-500" />
-              {streakCount} day streak
-            </span>
-            <span className="flex items-center">
-              <FiAward className="mr-1 text-amber-500" />
-              {certificationTarget}
-            </span>
+    <div className="py-6 md:py-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center">
+          <Avatar 
+            src={userData?.avatar_url || authUser?.photoURL}
+            initials={
+              userData?.first_name?.charAt(0) || 
+              authUser?.displayName?.charAt(0) || 
+              authUser?.email?.charAt(0)?.toUpperCase()
+            }
+            size="lg"
+            className="mr-4"
+          />
+          <div>
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-gray-900">
+                Welcome back, {userData?.first_name || authUser?.displayName?.split(' ')[0] || 'User'}!
+              </h1>
+              {userData?.certification_level && (
+                <Badge 
+                  variant="blue" 
+                  size="sm"
+                  className="ml-2"
+                >
+                  {userData.certification_level}
+                </Badge>
+              )}
+            </div>
+            <p className="mt-1 text-sm text-gray-500">
+              {userData?.certification_target 
+                ? `Preparing for ${userData.certification_target}`
+                : 'Preparing for Google Cloud certification'
+              }
+            </p>
           </div>
+        </div>
+        <div className="mt-4 sm:mt-0 flex flex-col sm:flex-row sm:space-x-3 space-y-2 sm:space-y-0">
+          <Button
+            variant="outline"
+            leftIcon={<IconTrophy size={18} />}
+            onClick={onViewProfile}
+          >
+            View Profile
+          </Button>
+          <Button
+            leftIcon={<IconCalendarEvent size={18} />}
+            onClick={onStartTest}
+          >
+            Start Practice Test
+          </Button>
         </div>
       </div>
       
-      <div className="flex gap-3">
-        <Button
-          variant="primary"
-          leftIcon={<FiPlay size={16} />}
-          onClick={onStartTest}
-        >
-          Start Practice Test
-        </Button>
-        
-        <Button
-          variant="secondary"
-          leftIcon={<FiUser size={16} />}
-          onClick={onViewProfile}
-        >
-          View Profile
-        </Button>
-      </div>
+      {/* Streak indicator */}
+      {streak && (
+        <div className="mt-6 bg-white p-4 rounded-lg border border-gray-200 flex items-center">
+          <div className="p-2 bg-amber-100 rounded-full text-amber-600">
+            <IconCalendarEvent size={20} />
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium text-gray-900">
+              {streak.current_streak === 0 
+                ? 'Start your learning streak today!'
+                : `${streak.current_streak} day${streak.current_streak !== 1 ? 's' : ''} streak! Keep going!`
+              }
+            </p>
+            <p className="text-xs text-gray-500">
+              {streak.current_streak === 0
+                ? 'Complete a test or answer the daily question to begin your streak'
+                : `Your longest streak is ${streak.longest_streak} day${streak.longest_streak !== 1 ? 's' : ''}`
+              }
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default DashboardHeader;
+}
