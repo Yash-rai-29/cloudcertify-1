@@ -14,9 +14,9 @@ import Badge from '../ui/Badge';
  * @param {Function} props.onViewProfile - Handler for View Profile button
  */
 export default function DashboardHeader({ 
-  userData,
-  streak,
-  authUser,
+  userData = {},
+  streak = { current: 0, longest: 0 },
+  authUser = {},
   onStartTest,
   onViewProfile
 }) {
@@ -82,15 +82,15 @@ export default function DashboardHeader({
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium text-gray-900">
-              {streak.current_streak === 0 
+              {streak.current === 0 
                 ? 'Start your learning streak today!'
-                : `${streak.current_streak} day${streak.current_streak !== 1 ? 's' : ''} streak! Keep going!`
+                : `${streak.current} day${streak.current !== 1 ? 's' : ''} streak! Keep going!`
               }
             </p>
             <p className="text-xs text-gray-500">
-              {streak.current_streak === 0
+              {streak.current === 0
                 ? 'Complete a test or answer the daily question to begin your streak'
-                : `Your longest streak is ${streak.longest_streak} day${streak.longest_streak !== 1 ? 's' : ''}`
+                : `Your longest streak is ${streak.longest} day${streak.longest !== 1 ? 's' : ''}`
               }
             </p>
           </div>
