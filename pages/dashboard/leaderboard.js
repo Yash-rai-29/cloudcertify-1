@@ -4,7 +4,7 @@ import { getDashboardLayout } from '../../components/layouts/DashboardLayout';
 import Section from '../../components/dashboard/Section';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
-import { getLeaderboard, getUserRanking } from '../../utils/services/dashboardService';
+import { getLeaderboard } from '../../utils/services/dashboardService';
 import Avatar from '../../components/ui/Avatar';
 
 /**
@@ -14,30 +14,37 @@ export default function Leaderboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [leaderboardData, setLeaderboardData] = useState([]);
   const [userRanking, setUserRanking] = useState(null);
-  const [timeFrame, setTimeFrame] = useState('weekly');
+  const [timeFrame, setTimeFrame] = useState('week');
+  const [error, setError] = useState(null);
+
+  // Define fetchLeaderboardData outside of useEffect to reuse it
+  const fetchLeaderboardData = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Fetch leaderboard data
+      const response = await getLeaderboard(20);
+      
+      if (response.success) {
+        // Extract data from response
+        const { rankings = [], user_rank = null } = response.data || {};
+        
+        setLeaderboardData(rankings);
+        setUserRanking(user_rank);
+      } else {
+        console.error('Failed to fetch leaderboard:', response.message);
+        setError('Unable to load leaderboard data. Please try again later.');
+      }
+    } catch (error) {
+      console.error('Error fetching leaderboard data:', error);
+      setError('An error occurred while fetching leaderboard data.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchLeaderboardData = async () => {
-      setIsLoading(true);
-      try {
-        // Fetch leaderboard rankings
-        const leaderboardResponse = await getLeaderboard(timeFrame, 20);
-        if (leaderboardResponse.success) {
-          setLeaderboardData(leaderboardResponse.data.rankings || []);
-        }
-
-        // Fetch user's ranking
-        const userRankingResponse = await getUserRanking();
-        if (userRankingResponse.success) {
-          setUserRanking(userRankingResponse.data);
-        }
-      } catch (error) {
-        console.error('Error fetching leaderboard data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchLeaderboardData();
   }, [timeFrame]);
 
@@ -142,6 +149,27 @@ export default function Leaderboard() {
           <div className="py-12 flex justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
           </div>
+        ) : error ? (
+          <div className="py-12 text-center">
+            <div className="text-red-500 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">Unable to load leaderboard</h3>
+            <p className="mt-1 text-sm text-gray-500">{error}</p>
+            <div className="mt-4">
+              <Button 
+                variant="primary" 
+                onClick={() => {
+                  setIsLoading(true);
+                  fetchLeaderboardData();
+                }}
+              >
+                Try Again
+              </Button>
+            </div>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {leaderboardData.slice(0, 3).map((user, index) => (
@@ -226,6 +254,16 @@ export default function Leaderboard() {
         {isLoading ? (
           <div className="py-12 flex justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        ) : error ? (
+          <div className="py-12 text-center">
+            <div className="text-red-500 mb-2">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900">Unable to load leaderboard data</h3>
+            <p className="mt-1 text-sm text-gray-500">{error}</p>
           </div>
         ) : (
           <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">

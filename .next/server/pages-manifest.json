@@ -3,5 +3,8 @@
   "/_app": "pages/_app.js",
   "/_document": "pages/_document.js",
   "/": "pages/index.js",
-  "/dashboard/tests": "pages/dashboard/tests.js"
+  "/dashboard/tests": "pages/dashboard/tests.js",
+  "/login": "pages/login.js",
+  "/signup": "pages/signup.js",
+  "/dashboard": "pages/dashboard.js"
 }
