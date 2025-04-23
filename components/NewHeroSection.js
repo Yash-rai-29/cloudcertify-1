@@ -1,0 +1,114 @@
+"use client";
+import React from "react";
+import { motion } from "framer-motion";
+import { FiArrowRight, FiCloud } from "react-icons/fi";
+import { SparklesBackground } from "./ui/SparklesBackground";
+import { TextReveal } from "./ui/TextReveal";
+
+const NewHeroSection = () => {
+  return (
+    <section id="hero" className="relative w-full overflow-hidden">
+      <SparklesBackground containerClassName="min-h-screen">
+        <div className="container mx-auto px-4 py-24 md:py-32 relative z-10">
+          <div className="max-w-5xl mx-auto text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-block mb-6"
+            >
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white">
+                <FiCloud className="text-lg" />
+                <span className="text-sm font-medium">
+                  Google Cloud Platform Certification
+                </span>
+              </div>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6"
+            >
+              Become a 
+              <span className="bg-gradient-to-r from-blue-200 to-white bg-clip-text text-transparent px-3">
+                certified
+              </span> 
+              GCP professional
+            </motion.h1>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <TextReveal
+                words={[
+                  "Interactive",
+                  "practice",
+                  "tests,",
+                  "performance",
+                  "analytics,",
+                  "and",
+                  "expert-curated",
+                  "content."
+                ]}
+                className="text-xl md:text-2xl font-medium text-blue-100"
+                containerClassName="justify-center mb-10 mt-4"
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex flex-col sm:flex-row gap-4 justify-center mt-10"
+            >
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
+              >
+                Start Free Trial <FiArrowRight className="ml-2" />
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-transparent border-2 border-white/30 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/10 transition-all flex items-center justify-center"
+              >
+                Explore Certifications
+              </motion.button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 text-white max-w-3xl mx-auto"
+            >
+              {[
+                { value: "15,000+", label: "Certified Professionals" },
+                { value: "94%", label: "Success Rate" },
+                { value: "2,500+", label: "Practice Questions" },
+                { value: "4 Weeks", label: "Avg. Prep Time" },
+              ].map((stat, index) => (
+                <div
+                  key={index}
+                  className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20"
+                >
+                  <div className="text-2xl md:text-3xl font-bold mb-1">
+                    {stat.value}
+                  </div>
+                  <div className="text-blue-100 text-sm">{stat.label}</div>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+      </SparklesBackground>
+    </section>
+  );
+};
+
+export default NewHeroSection;

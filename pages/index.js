@@ -1,9 +1,9 @@
 import Head from 'next/head';
-import Header from '../components/Header';
-import HeroSection from '../components/HeroSection';
+import NewHeader from '../components/NewHeader';
+import NewHeroSection from '../components/NewHeroSection';
 import Footer from '../components/Footer';
-import ValueProposition from '../components/ValueProposition';
-import TestLibrary from '../components/TestLibrary';
+import NewValueProposition from '../components/NewValueProposition';
+import NewTestLibrary from '../components/NewTestLibrary';
 import PerformanceDashboard from '../components/PerformanceDashboard';
 import Testimonials from '../components/Testimonials';
 
@@ -17,12 +17,12 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Header />
+      <NewHeader />
       
       <main>
-        <HeroSection />
-        <ValueProposition />
-        <TestLibrary />
+        <NewHeroSection />
+        <NewValueProposition />
+        <NewTestLibrary />
         <PerformanceDashboard />
         <Testimonials />
       </main>
