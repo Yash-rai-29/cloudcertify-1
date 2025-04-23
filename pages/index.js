@@ -5,7 +5,7 @@ import Footer from '../components/Footer';
 import NewValueProposition from '../components/NewValueProposition';
 import NewTestLibrary from '../components/NewTestLibrary';
 import PerformanceDashboard from '../components/PerformanceDashboard';
-import Testimonials from '../components/Testimonials';
+import NewTestimonials from '../components/NewTestimonials';
 
 export default function Home() {
   return (
@@ -24,7 +24,7 @@ export default function Home() {
         <NewValueProposition />
         <NewTestLibrary />
         <PerformanceDashboard />
-        <Testimonials />
+        <NewTestimonials />
       </main>
 
       <Footer />
