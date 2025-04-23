@@ -1,9 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiSearch, FiClock, FiBarChart2, FiStar, FiChevronRight } from 'react-icons/fi';
 
 const TestLibrary = () => {
-  const [activeTab, setActiveTab] = useState('all');
+  // Use null as initial state to avoid hydration mismatch
+  const [activeTab, setActiveTab] = useState(null);
+  const [isClient, setIsClient] = useState(false);
+  
+  // Use useEffect to set the initial state on the client side only
+  useEffect(() => {
+    setActiveTab('all');
+    setIsClient(true);
+  }, []);
   
   const testCategories = [
     { id: 'all', name: 'All Tests' },
@@ -183,15 +191,26 @@ const TestLibrary = () => {
                   <div>
                     <div className="text-xs text-gray-500 mb-1">Average Score</div>
                     <div className="flex items-center">
-                      <div className="w-24 h-2 rounded-full bg-gray-200 mr-2">
-                        <div 
-                          className={`h-2 rounded-full bg-${test.color}-500`} 
-                          style={{ width: `${Math.floor(Math.random() * 31) + 50}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {Math.floor(Math.random() * 31) + 50}%
-                      </span>
+                      {isClient ? (
+                        <>
+                          <div className="w-24 h-2 rounded-full bg-gray-200 mr-2">
+                            <div 
+                              className={`h-2 rounded-full bg-${test.color}-500`} 
+                              style={{ width: `${test.id * 10 + 30}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm font-medium">
+                            {test.id * 10 + 30}%
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-24 h-2 rounded-full bg-gray-200 mr-2">
+                            <div className={`h-2 rounded-full bg-${test.color}-500 w-3/5`}></div>
+                          </div>
+                          <span className="text-sm font-medium">60%</span>
+                        </>
+                      )}
                     </div>
                   </div>
                   <motion.button

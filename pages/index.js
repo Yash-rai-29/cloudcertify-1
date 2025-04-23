@@ -2,6 +2,10 @@ import Head from 'next/head';
 import Header from '../components/Header';
 import HeroSection from '../components/HeroSection';
 import Footer from '../components/Footer';
+import ValueProposition from '../components/ValueProposition';
+import TestLibrary from '../components/TestLibrary';
+import PerformanceDashboard from '../components/PerformanceDashboard';
+import Testimonials from '../components/Testimonials';
 
 export default function Home() {
   return (
@@ -17,6 +21,10 @@ export default function Home() {
       
       <main>
         <HeroSection />
+        <ValueProposition />
+        <TestLibrary />
+        <PerformanceDashboard />
+        <Testimonials />
       </main>
 
       <Footer />

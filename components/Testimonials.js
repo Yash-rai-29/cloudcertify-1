@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FiStar, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
@@ -46,7 +46,15 @@ const testimonials = [
 ];
 
 const Testimonials = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  // Initialize with null to avoid hydration mismatch
+  const [currentSlide, setCurrentSlide] = useState(null);
+  const [isClient, setIsClient] = useState(false);
+  
+  // Set initial state on client-side only
+  useEffect(() => {
+    setCurrentSlide(0);
+    setIsClient(true);
+  }, []);
   
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1));
@@ -92,7 +100,7 @@ const Testimonials = () => {
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              style={{ transform: isClient ? `translateX(-${currentSlide * 100}%)` : 'translateX(0%)' }}
             >
               {testimonials.map((testimonial) => (
                 <div key={testimonial.id} className="w-full flex-shrink-0">
