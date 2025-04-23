@@ -1,31 +1,72 @@
 import { apiRequest } from './api';
 
-// User Information API
+/**
+ * Get user information
+ * Endpoint: /b/manage_user/users/me
+ */
 export const getUserInfo = async () => {
   return await apiRequest('get', '/b/manage_user/users/me');
 };
 
-// Daily Streak API
+/**
+ * Get daily streak information
+ * Endpoint: /b/user_activity/daily-streak
+ */
 export const getDailyStreak = async () => {
   return await apiRequest('get', '/b/user_activity/daily-streak');
 };
 
-// Daily Question API
-export const getDailyQuestion = async (date) => {
-  return await apiRequest('get', '/b/user_activity/daily-question', null, { date });
+/**
+ * Get daily question
+ * Endpoint: /b/user_activity/daily-question
+ */
+export const getDailyQuestion = async () => {
+  return await apiRequest('get', '/b/user_activity/daily-question');
 };
 
-// User Activities API
+/**
+ * Submit answer to daily question
+ * Endpoint: /b/user_activity/daily-question/submit
+ * @param {string} questionId - The ID of the question
+ * @param {string} selectedOption - The selected answer option
+ */
+export const submitDailyAnswer = async (questionId, selectedOption) => {
+  return await apiRequest('post', '/b/user_activity/daily-question/submit', {
+    questionId,
+    selectedOption
+  });
+};
+
+/**
+ * Get user activities
+ * Endpoint: /b/user_activity/activities
+ */
 export const getUserActivities = async () => {
   return await apiRequest('get', '/b/user_activity/activities');
 };
 
-// Test Recommendations API
-export const getTestRecommendations = async (limit = 3) => {
+/**
+ * Get test recommendations
+ * Endpoint: /b/recommendation/recommendations
+ * @param {number} limit - Maximum number of recommendations to return
+ */
+export const getTestRecommendations = async (limit = 4) => {
   return await apiRequest('get', '/b/recommendation/recommendations', null, { limit });
 };
 
-// Format timestamp to readable date
+/**
+ * Update user profile
+ * Endpoint: /b/manage_user/users
+ * @param {object} userData - User data to update (only include fields to be updated)
+ */
+export const updateUserProfile = async (userData) => {
+  return await apiRequest('put', '/b/manage_user/users', userData);
+};
+
+/**
+ * Format timestamp to readable date
+ * @param {number} timestamp - Unix timestamp in seconds
+ */
 export const formatDate = (timestamp) => {
   if (!timestamp) return 'N/A';
   const date = new Date(timestamp * 1000);
@@ -36,7 +77,10 @@ export const formatDate = (timestamp) => {
   });
 };
 
-// Format timestamp to time ago
+/**
+ * Format timestamp to time ago
+ * @param {number} timestamp - Unix timestamp in seconds
+ */
 export const timeAgo = (timestamp) => {
   if (!timestamp) return 'N/A';
   

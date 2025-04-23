@@ -1,0 +1,172 @@
+II. Dashboard Page:
+
+Header: User's name, avatar (if available), current streak count, certification target. Buttons for "Start Practice Test" and "View Profile".
+
+Daily Streak Challenge: Displays the current day of the streak, a progress bar, the daily question (multiple-choice), "Take Quiz" button (changes to "View Results" after submission), and feedback (correct/incorrect, explanation).
+
+Learning Progress: Visual representation of key metrics (tests taken, questions answered, average score, study time) using charts or graphs.
+
+Recent Activity: Displays the last 5 activities (with icons) including descriptions and timestamps. Implement infinite scrolling or "Load More" functionality.
+
+Recommended Tests: Presents up to 4 recommended tests with titles, categories, difficulty levels (visual indicators), popularity scores, and "Start Test" buttons.
+
+Quick Actions: Buttons for "Take Practice Test," "Ask AI Assistant," and "Browse Resources."
+
+III. Profile Page:
+
+User Information: Profile picture (with update option), editable name, email, and certification target. Displays account creation date and last login.
+
+Subscription Details: Current subscription tier, status, renewal date, and an upgrade option (if applicable).
+
+Preferences: Toggle switches for notifications and reminders, theme selection, daily study goal setting.
+
+Achievements: Displays earned badges or certificates, longest streak, and total study hours.
+
+Activity Calendar: A heatmap visualizing daily activity levels, highlighting streak days.
+
+Completed Modules & Saved Resources: Lists completed modules and saved resources (links or document previews).
+
+IV. API Endpoints & Models:
+
+The application will interact with the following RESTful API endpoints:
+
+1. User Information:
+
+Endpoint: /b/manage_user/users/me
+Method: GET
+Request: None
+Response (Model):
+{
+  "firstName": "string",
+  "lastName": "string",
+  "email": "string",
+  "certificationTarget": "string",
+  "uid": "string",
+  "fullName": "string",
+  "searchName": "string",
+  "uuid": "string",
+  "createdAt": "integer" (timestamp),
+  "updatedAt": "integer" (timestamp),
+  "isActive": boolean,
+  "isVerified": boolean,
+  "avatarUrl": "string" (nullable),
+  "activity": {
+    "lastLogin": "integer" (timestamp),
+    "streakCount": "integer",
+    "streakLastUpdated": "integer" (timestamp),
+    "testsTaken": "integer",
+    "questionsAnswered": "integer",
+    "avgScore": "number",
+    "studyTimeMinutes": "integer"
+  },
+  "preferences": {
+    "dailyReminder": boolean,
+    "emailNotifications": boolean,
+    "theme": "string",
+    "studyGoalMinutesPerDay": "integer",
+    "targetExamDate": "integer" (timestamp, nullable)
+  },
+  "subscription": {
+    "tier": "string",
+    "startDate": "integer" (timestamp),
+    "endDate": "integer" (timestamp, nullable),
+    "isActive": boolean,
+    "autoRenew": boolean,
+    "paymentMethodId": "string" (nullable)
+  },
+  "completedModules": ["array of strings"],
+  "savedResources": ["array of strings"]
+}
+2. Daily Streak:
+
+Endpoint: /b/user_activity/daily-streak
+Method: GET
+Request: None
+Response (Model):
+{
+  "currentStreak": "integer",
+  "lastQuestionDate": "integer" (timestamp)
+}
+3. Daily Question:
+
+Endpoint: /b/user_activity/daily-question
+Method: GET
+Request: None
+Response (Model):
+{
+  "question": {
+    "id": "string",
+    "questionText": "string",
+    "options": ["array of strings"],
+    "correctAnswer": "string",
+    "explanation": "string",
+    "date": "integer" (timestamp)
+  },
+  "userAttempt": {
+    "attempted": boolean,
+    "answer": "string" (nullable),
+    "isCorrect": boolean (nullable),
+    "timestamp": "integer" (timestamp, nullable)
+  }
+}
+4. Submit Daily Answer:
+
+Endpoint: /b/user_activity/daily-question/submit
+Method: POST
+Request (Model):
+{
+  "questionId": "string",
+  "selectedOption": "string"
+}
+Response (Model): (Same as Daily Streak response)
+{
+  "currentStreak": "integer",
+  "lastQuestionDate": "integer" (timestamp)
+}
+5. User Activities:
+
+Endpoint: /b/user_activity/activities
+Method: GET
+Request: None
+Response (Model):
+{
+  "activities": [
+    {
+      "id": "string",
+      "activityType": "string", //e.g., "quizAttempt", "testStarted", "testCompleted"
+      "description": "string",
+      "timestamp": "integer" (timestamp)
+    }
+  ]
+}
+6. Test Recommendations:
+
+Endpoint: /b/recommendation/recommendations
+Method: GET
+Request: None (or possibly a limit parameter)
+Response (Model):
+{
+  "recommendations": [
+    {
+      "testId": "string",
+      "title": "string",
+      "category": "string",
+      "difficulty": "string",
+      "recommendationType": "string",  //e.g., "personalized", "popular", "new"
+      "popularityScore": "number"
+    }
+  ]
+}
+7. Update User Profile:
+
+Endpoint: /b/manage_user/users
+Method: PUT
+Request (Model): (Include only fields to be updated)
+{
+  "firstName": "string",
+  "lastName": "string",
+  "certificationTarget": "string",
+  "preferences": { /* ... */ }, //Only update the fields that need changing
+  "avatarUrl": "string" (nullable)
+}
+Response (Model): (Same as User Information response)
