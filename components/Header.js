@@ -1,12 +1,15 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiMenu, FiX, FiCloud } from "react-icons/fi";
+import { FiMenu, FiX, FiCloud, FiUser } from "react-icons/fi";
 import { FloatingNavbar } from "./ui/FloatingNavbar";
+import { useAuth } from "../contexts/AuthContext";
+import Link from "next/link";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -45,7 +48,19 @@ const Header = () => {
     </motion.div>
   );
 
-  const buttonContent = (
+  const buttonContent = user ? (
+    // Show Dashboard button if user is logged in
+    <motion.a
+      href="/dashboard"
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-full font-medium text-sm shadow-md flex items-center gap-2"
+    >
+      <FiUser size={16} />
+      Dashboard
+    </motion.a>
+  ) : (
+    // Show Login/Signup buttons if user is not logged in
     <div className="flex space-x-2">
       <motion.a
         href="/login"
@@ -136,22 +151,38 @@ const Header = () => {
                   transition={{ delay: 0.3 }}
                   className="pt-2 space-y-2"
                 >
-                  <motion.a
-                    href="/login"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full bg-white border border-blue-200 text-blue-600 py-3 rounded-lg font-medium shadow-sm flex justify-center"
-                  >
-                    Login
-                  </motion.a>
-                  <motion.a
-                    href="/signup"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-medium shadow-md flex justify-center"
-                  >
-                    Sign Up
-                  </motion.a>
+                  {user ? (
+                    // Dashboard link if logged in
+                    <motion.a
+                      href="/dashboard"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-medium shadow-md flex items-center justify-center gap-2"
+                    >
+                      <FiUser size={16} />
+                      Go to Dashboard
+                    </motion.a>
+                  ) : (
+                    // Login and signup links if not logged in
+                    <>
+                      <motion.a
+                        href="/login"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full bg-white border border-blue-200 text-blue-600 py-3 rounded-lg font-medium shadow-sm flex justify-center"
+                      >
+                        Login
+                      </motion.a>
+                      <motion.a
+                        href="/signup"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-medium shadow-md flex justify-center"
+                      >
+                        Sign Up
+                      </motion.a>
+                    </>
+                  )}
                 </motion.div>
               </div>
             </motion.div>

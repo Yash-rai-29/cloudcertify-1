@@ -22,13 +22,39 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // User registration with Firebase Auth only
+  // User registration with both Firebase Auth and external API
   const signup = async (userData) => {
     try {
       setLoading(true);
       const { email, password, first_name, last_name, certification_target } = userData;
       
-      // Create user in Firebase Auth
+      // Map the certification_target value to the required enum format
+      const certificationMapping = {
+        'associate-cloud-engineer': 'Google Cloud Certified - Cloud Engineer',
+        'professional-cloud-architect': 'Google Cloud Certified - Professional Cloud Architect',
+        'professional-data-engineer': 'Google Cloud Certified - Professional Data Engineer',
+        'professional-cloud-developer': 'Google Cloud Certified - Professional Cloud Developer',
+        'professional-cloud-devops-engineer': 'Google Cloud Certified - Professional DevOps Engineer',
+        'professional-cloud-security-engineer': 'Google Cloud Certified - Professional Security Engineer',
+        'professional-cloud-network-engineer': 'Google Cloud Certified - Professional Network Engineer',
+        'professional-machine-learning-engineer': 'Google Cloud Certified - Professional ML Engineer'
+      };
+      
+      const mappedCertification = certificationMapping[certification_target] || 'Other';
+      
+      // First, create user in the external API
+      await axios.post(
+        'https://base-service-6070296894.us-central1.run.app/b/manage_user/users',
+        {
+          first_name,
+          last_name,
+          email,
+          certification_target: mappedCertification,
+          password
+        }
+      );
+      
+      // Then create the user in Firebase Auth
       const firebaseResponse = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = firebaseResponse.user;
       
@@ -37,35 +63,38 @@ export function AuthProvider({ children }) {
         displayName: `${first_name} ${last_name}`
       });
       
-      // Store additional user data in localStorage (could be replaced with Firestore if needed)
-      const userData = {
+      // Store additional user data in localStorage
+      const userDataForStorage = {
         uid: firebaseUser.uid,
         email: firebaseUser.email,
         displayName: `${first_name} ${last_name}`,
         firstName: first_name,
         lastName: last_name,
         certificationTarget: certification_target,
+        mappedCertification: mappedCertification,
         createdAt: new Date().toISOString()
       };
       
-      localStorage.setItem(`user_${firebaseUser.uid}`, JSON.stringify(userData));
+      localStorage.setItem(`user_${firebaseUser.uid}`, JSON.stringify(userDataForStorage));
       
       // Get the user token and set in cookies
       const token = await firebaseUser.getIdToken();
       Cookies.set('auth_token', token, { expires: 7 }); // expires in 7 days
       
-      // Set user in state with updated profile
+      // Set user in state
       setUser({
         uid: firebaseUser.uid,
         email: firebaseUser.email,
         displayName: `${first_name} ${last_name}`,
         photoURL: firebaseUser.photoURL,
-        certificationTarget: certification_target
+        certificationTarget: certification_target,
+        firstName: first_name,
+        lastName: last_name
       });
       
       toast.success('Account created successfully!');
       router.push('/dashboard');
-      return userData;
+      return userDataForStorage;
     } catch (error) {
       console.error("Error signing up:", error);
       toast.error(error.message || 'Failed to create account. Please try again.');
