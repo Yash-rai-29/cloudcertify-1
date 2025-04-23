@@ -9,6 +9,7 @@ export default function Home() {
       <Head>
         <title>Cloud Certify - GCP Certification Preparation</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content="Prepare for your Google Cloud Certification Exams with Cloud Certify - featuring interactive tests, quizzes, and detailed performance tracking." />
       </Head>
 
       <Header />
