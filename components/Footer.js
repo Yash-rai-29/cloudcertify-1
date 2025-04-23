@@ -12,7 +12,7 @@ import {
 } from 'react-icons/fi';
 import { useEffect, useState } from 'react';
 
-const NewFooter = () => {
+const Footer = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isClient, setIsClient] = useState(false);
   
@@ -240,4 +240,4 @@ const NewFooter = () => {
   );
 };
 
-export default NewFooter;
+export default Footer;

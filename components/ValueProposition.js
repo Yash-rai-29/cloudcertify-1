@@ -95,7 +95,7 @@ const FeatureCard = ({ item, index }) => (
   </motion.div>
 );
 
-const NewValueProposition = () => {
+const ValueProposition = () => {
   const { scrollYProgress } = useScroll();
   const scale = useTransform(scrollYProgress, [0, 1], [0.8, 1]);
   const opacity = useTransform(scrollYProgress, [0, 0.3], [0.6, 1]);
@@ -226,4 +226,4 @@ const NewValueProposition = () => {
   );
 };
 
-export default NewValueProposition;
+export default ValueProposition;

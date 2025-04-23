@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { FiCloud } from "react-icons/fi";
 import { GlowingBackground } from "./ui/GlowingBackground";
 
-const NewTestLibrary = () => {
+const TestLibrary = () => {
   const certifications = [
     {
       title: "Associate Cloud Engineer",
@@ -114,4 +114,4 @@ const NewTestLibrary = () => {
   );
 };
 
-export default NewTestLibrary;
+export default TestLibrary;

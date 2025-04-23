@@ -48,7 +48,7 @@ const testimonials = [
   },
 ];
 
-const NewTestimonials = () => {
+const Testimonials = () => {
   // Initialize with null to avoid hydration mismatch
   const [currentSlide, setCurrentSlide] = useState(null);
   const [isClient, setIsClient] = useState(false);
@@ -287,4 +287,4 @@ const NewTestimonials = () => {
   );
 };
 
-export default NewTestimonials;
+export default Testimonials;
