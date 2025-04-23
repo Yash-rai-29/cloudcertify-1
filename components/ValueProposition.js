@@ -114,7 +114,7 @@ const ValueProposition = () => {
   };
 
   return (
-    <section className="py-20 sm:py-24 md:py-32 bg-gradient-to-b from-white to-blue-50 relative overflow-hidden">
+    <section id="value-proposition" className="py-20 sm:py-24 md:py-32 bg-gradient-to-b from-white to-blue-50 relative overflow-hidden">
       {/* Background decorations */}
       <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-50 to-transparent opacity-50 z-0"></div>
       <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full opacity-30 blur-3xl z-0"></div>

@@ -69,7 +69,7 @@ const Testimonials = () => {
   };
   
   return (
-    <section className="py-20 bg-gradient-to-b from-blue-50 to-white overflow-hidden">
+    <section id="testimonials" className="py-20 bg-gradient-to-b from-blue-50 to-white overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <motion.h2 
