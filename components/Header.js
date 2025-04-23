@@ -27,9 +27,9 @@ const Header = () => {
   const navItems = [
     { name: 'Home', href: '#' },
     { name: 'Test Library', href: '#test-library' },
-    { name: 'Dashboard', href: '#dashboard' },
-    { name: 'About Us', href: '#about' },
-    { name: 'Contact', href: '#contact' }
+    { name: 'Performance Dashboard', href: '#performance-dashboard' },
+    { name: 'Value Proposition', href: '#value-proposition' },
+    { name: 'Testimonials', href: '#testimonials' }
   ];
 
   // Animation variants

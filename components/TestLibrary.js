@@ -327,34 +327,7 @@ const TestLibrary = () => {
                   </div>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                  <div>
-                    <div className="text-xs text-gray-500 mb-1.5">Average Score</div>
-                    <div className="flex items-center">
-                      {isClient ? (
-                        <>
-                          <div className="w-24 h-3 rounded-full bg-gray-200 mr-3 overflow-hidden">
-                            <motion.div 
-                              initial={{ width: 0 }}
-                              animate={{ width: `${test.completionRate}%` }}
-                              transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-                              className={`h-3 rounded-full bg-${test.color}-500`} 
-                            />
-                          </div>
-                          <span className="text-sm font-semibold text-gray-700">
-                            {test.completionRate}%
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <div className="w-24 h-3 rounded-full bg-gray-200 mr-3">
-                            <div className={`h-3 rounded-full bg-${test.color}-500 w-3/5`}></div>
-                          </div>
-                          <span className="text-sm font-semibold text-gray-700">60%</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
+                <div className="flex justify-center">
                   <motion.button
                     whileHover={{ 
                       scale: 1.05,
@@ -368,9 +341,9 @@ const TestLibrary = () => {
                       }, 0.3)`
                     }}
                     whileTap={{ scale: 0.95 }}
-                    className={`bg-gradient-to-r from-${test.color}-500 to-${test.color}-600 text-white px-5 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center shadow-md transition-all`}
+                    className={`bg-gradient-to-r from-${test.color}-500 to-${test.color}-600 text-white px-6 py-3 rounded-xl text-sm font-medium flex items-center justify-center shadow-md transition-all w-full`}
                   >
-                    Start Test <FiArrowRight className="ml-1.5" />
+                    Start Test <FiArrowRight className="ml-2" />
                   </motion.button>
                 </div>
               </div>
