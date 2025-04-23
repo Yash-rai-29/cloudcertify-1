@@ -7,24 +7,29 @@ import DashboardCard from '../../components/ui/DashboardCard';
 import StatCard from '../../components/ui/StatCard';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import ErrorMessage from '../../components/ui/ErrorMessage';
-import UserProfile from '../../components/dashboard/UserProfile';
+import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
+
+// Dashboard Components
+import DailyQuestionSection from '../../components/dashboard/DailyQuestionSection';
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
+import ActivityItem from '../../components/dashboard/ActivityItem';
+import TestRecommendationCard from '../../components/dashboard/TestRecommendationCard';
+import QuickActionCard from '../../components/dashboard/QuickActionCard';
+
 import { 
   FiActivity, 
-  FiBookOpen, 
-  FiCalendar, 
+  FiBookOpen,  
   FiClock, 
   FiTrendingUp,
-  FiAward,
-  FiBriefcase,
-  FiClipboard,
   FiCheckCircle,
   FiBarChart2,
   FiPlay,
   FiMessageSquare,
   FiFileText,
-  FiUser,
   FiArrowRight
 } from 'react-icons/fi';
+
 import { 
   getUserInfo, 
   getDailyStreak, 
@@ -32,7 +37,6 @@ import {
   submitDailyAnswer,
   getUserActivities, 
   getTestRecommendations,
-  formatDate,
   timeAgo
 } from '../../utils/services/dashboardService';
 
@@ -40,38 +44,8 @@ import {
 const activityIcons = {
   'quizAttempt': <FiBarChart2 className="text-rose-500" size={18} />,
   'testStarted': <FiBookOpen className="text-emerald-500" size={18} />,
-  'testCompleted': <FiClipboard className="text-blue-500" size={18} />,
+  'testCompleted': <FiActivity className="text-blue-500" size={18} />,
   'default': <FiActivity className="text-gray-500" size={18} />
-};
-
-// Get difficulty colors
-const getDifficultyColor = (difficulty) => {
-  switch (difficulty?.toLowerCase()) {
-    case 'beginner':
-      return 'bg-green-100 text-green-700';
-    case 'intermediate':
-      return 'bg-blue-100 text-blue-700';
-    case 'advanced':
-      return 'bg-purple-100 text-purple-700';
-    case 'expert':
-      return 'bg-red-100 text-red-700';
-    default:
-      return 'bg-gray-100 text-gray-700';
-  }
-};
-
-// Get recommendation type badge style
-const getRecommendationStyle = (type) => {
-  switch (type?.toLowerCase()) {
-    case 'personalized':
-      return 'bg-indigo-100 text-indigo-700';
-    case 'popular':
-      return 'bg-amber-100 text-amber-700';
-    case 'new':
-      return 'bg-emerald-100 text-emerald-700';
-    default:
-      return 'bg-gray-100 text-gray-700';
-  }
 };
 
 // Calculate certification progress based on completed modules
@@ -264,14 +238,15 @@ export default function Dashboard() {
     setVisibleActivities(prev => prev + 5);
   };
 
-  // Navigate to profile
-  const navigateToProfile = () => {
-    router.push('/dashboard/profile');
-  };
+  // Navigation handlers
+  const navigateToProfile = () => router.push('/dashboard/profile');
+  const navigateToTestLibrary = () => router.push('/dashboard/test-library');
+  const navigateToAiChatbot = () => router.push('/dashboard/ai-chatbot');
+  const navigateToResources = () => router.push('/dashboard/resources');
 
-  // Navigate to test library
-  const navigateToTestLibrary = () => {
-    router.push('/dashboard/test-library');
+  // Get activity icon
+  const getActivityIcon = (activity) => {
+    return activityIcons[activity.activityType] || activityIcons.default;
   };
 
   // Check if all data is loading
@@ -288,149 +263,25 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-8">
-      {/* Header Section with User Profile and Action Buttons */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xl font-semibold">
-            {userData?.avatarUrl ? (
-              <img 
-                src={userData.avatarUrl} 
-                alt={userData.firstName} 
-                className="w-full h-full rounded-full object-cover"
-              />
-            ) : (
-              userData?.firstName?.charAt(0) || 'U'
-            )}
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Welcome, {userData?.firstName || authUser?.displayName?.split(' ')[0] || 'User'}
-            </h1>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="flex items-center">
-                <FiCalendar className="mr-1 text-blue-500" />
-                {streak?.currentStreak || 0} day streak
-              </span>
-              <span className="flex items-center">
-                <FiAward className="mr-1 text-amber-500" />
-                {userData?.certificationTarget || 'GCP Certification'}
-              </span>
-            </div>
-          </div>
-        </div>
-        <div className="flex gap-3">
-          <button 
-            onClick={navigateToTestLibrary}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors"
-          >
-            <FiPlay size={16} />
-            <span>Start Practice Test</span>
-          </button>
-          <button 
-            onClick={navigateToProfile}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg flex items-center gap-2 transition-colors"
-          >
-            <FiUser size={16} />
-            <span>View Profile</span>
-          </button>
-        </div>
-      </div>
+      {/* Header Section */}
+      <DashboardHeader 
+        userData={userData}
+        streak={streak}
+        authUser={authUser}
+        onStartTest={navigateToTestLibrary}
+        onViewProfile={navigateToProfile}
+      />
       
       {/* Daily Streak Challenge */}
-      <DashboardCard title="Daily Streak Challenge" className="overflow-hidden">
-        {error.question || error.streak ? (
-          <ErrorMessage
-            title="Failed to load daily challenge"
-            message={error.question || error.streak}
-            retry={() => window.location.reload()}
-          />
-        ) : dailyQuestion?.question ? (
-          <div className="space-y-6">
-            {/* Streak Progress */}
-            <div className="flex flex-col">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700">Day {streak?.currentStreak || 0} of your streak</span>
-                <span className="text-sm text-gray-500">Keep it going!</span>
-              </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-blue-500 to-indigo-600"
-                  style={{ width: `${Math.min((streak?.currentStreak || 0) / 30 * 100, 100)}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between mt-1">
-                <span className="text-xs text-gray-500">1 day</span>
-                <span className="text-xs text-gray-500">30 days</span>
-              </div>
-            </div>
-
-            {/* Daily Question */}
-            <div className="space-y-4">
-              <h3 className="font-medium text-lg text-gray-800">Today's Question</h3>
-              <p className="text-gray-800">{dailyQuestion.question.questionText}</p>
-              
-              <div className="space-y-2">
-                {dailyQuestion.question.options.map((option, index) => (
-                  <div 
-                    key={index}
-                    onClick={() => handleOptionSelect(option)}
-                    className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                      dailyQuestion.userAttempt?.answer === option && dailyQuestion.userAttempt?.isCorrect
-                        ? 'bg-green-50 border-green-200'
-                        : dailyQuestion.userAttempt?.answer === option && !dailyQuestion.userAttempt?.isCorrect
-                        ? 'bg-red-50 border-red-200'
-                        : option === dailyQuestion.question.correctAnswer && dailyQuestion.userAttempt?.attempted
-                        ? 'bg-green-50 border-green-200'
-                        : selectedOption === option && !dailyQuestion.userAttempt?.attempted
-                        ? 'bg-blue-50 border-blue-200'
-                        : 'bg-white border-gray-200 hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <div className="mr-3 h-5 w-5 flex items-center justify-center rounded-full border border-gray-300">
-                        {String.fromCharCode(65 + index)}
-                      </div>
-                      <span>{option}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Submit button or explanation */}
-              {!dailyQuestion.userAttempt?.attempted ? (
-                <button
-                  onClick={handleSubmitAnswer}
-                  disabled={!selectedOption || submitting}
-                  className={`mt-2 px-6 py-2 rounded-lg font-medium transition-colors ${
-                    !selectedOption || submitting
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
-                  }`}
-                >
-                  {submitting ? 'Submitting...' : 'Take Quiz'}
-                </button>
-              ) : (
-                <div className={`mt-4 p-4 rounded-lg ${
-                  dailyQuestion.userAttempt.isCorrect 
-                    ? 'bg-green-50 border border-green-200' 
-                    : 'bg-blue-50 border border-blue-200'
-                }`}>
-                  <h3 className="font-medium text-gray-800 mb-2">
-                    {dailyQuestion.userAttempt.isCorrect 
-                      ? 'Correct! Great job!' 
-                      : 'Not quite right. Here\'s the explanation:'}
-                  </h3>
-                  <p className="text-gray-700">{dailyQuestion.question.explanation}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No daily question available today</p>
-          </div>
-        )}
-      </DashboardCard>
+      <DailyQuestionSection
+        streak={streak}
+        dailyQuestion={dailyQuestion}
+        selectedOption={selectedOption}
+        handleOptionSelect={handleOptionSelect}
+        handleSubmitAnswer={handleSubmitAnswer}
+        submitting={submitting}
+        error={error.question || error.streak}
+      />
       
       {/* Learning Progress */}
       <DashboardCard title="Learning Progress">
@@ -439,7 +290,7 @@ export default function Dashboard() {
             title="Tests Taken" 
             value={userData?.activity?.testsTaken || 0}
             description="completed" 
-            icon={<FiClipboard className="text-blue-500" size={20} />}
+            icon={<FiActivity className="text-blue-500" size={20} />}
           />
           
           <StatCard 
@@ -481,36 +332,15 @@ export default function Dashboard() {
           ) : recommendations.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {recommendations.map((test, index) => (
-                <div 
-                  key={index} 
-                  className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <h3 className="font-medium text-gray-800 mb-1">{test.title}</h3>
-                  <div className="flex flex-wrap items-center gap-2 mt-2 mb-3">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                      {test.category}
-                    </span>
-                    <span className={`px-2 py-1 text-xs rounded-full ${getDifficultyColor(test.difficulty)}`}>
-                      {test.difficulty}
-                    </span>
-                    {test.recommendationType && (
-                      <span className={`px-2 py-1 text-xs rounded-full ${getRecommendationStyle(test.recommendationType)}`}>
-                        {test.recommendationType}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <FiBarChart2 size={14} />
-                        {test.popularityScore?.toFixed(1) || 'N/A'} popularity
-                      </span>
-                    </div>
-                    <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition-colors">
-                      Start Test
-                    </button>
-                  </div>
-                </div>
+                <TestRecommendationCard
+                  key={index}
+                  title={test.title}
+                  category={test.category}
+                  difficulty={test.difficulty}
+                  recommendationType={test.recommendationType}
+                  popularityScore={test.popularityScore}
+                  onStartTest={navigateToTestLibrary}
+                />
               ))}
             </div>
           ) : (
@@ -538,34 +368,30 @@ export default function Dashboard() {
             <div className="space-y-4">
               <TracingBeam>
                 <div className="space-y-4">
-                  {activities.slice(0, visibleActivities).map((activity) => {
-                    const icon = activityIcons[activity.activityType] || activityIcons.default;
-                    return (
-                      <div key={activity.id} className="pl-5 relative">
-                        <div className="absolute left-0 top-1.5">
-                          <div className="bg-white border border-gray-200 rounded-full p-1 shadow-sm">
-                            {icon}
-                          </div>
-                        </div>
-                        <div>
-                          <h3 className="text-gray-800 font-medium">{activity.description}</h3>
-                          <p className="text-xs text-gray-500 mt-1">{timeAgo(activity.timestamp)}</p>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {activities.slice(0, visibleActivities).map((activity) => (
+                    <ActivityItem
+                      key={activity.id}
+                      id={activity.id}
+                      icon={getActivityIcon(activity)}
+                      title={activity.description}
+                      timestamp={activity.timestamp}
+                    />
+                  ))}
                 </div>
               </TracingBeam>
               
               {/* Load more button */}
               {visibleActivities < activities.length && (
                 <div className="pt-2 flex justify-center">
-                  <button 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={loadMoreActivities}
-                    className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    rightIcon={<FiArrowRight size={14} />}
+                    className="text-blue-600 hover:text-blue-800"
                   >
-                    Load More <FiArrowRight size={14} />
-                  </button>
+                    Load More
+                  </Button>
                 </div>
               )}
             </div>
@@ -579,44 +405,29 @@ export default function Dashboard() {
       
       {/* Quick Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <button
+        <QuickActionCard
+          icon={<FiPlay size={20} />}
+          iconColor="bg-blue-100 text-blue-600"
+          title="Take Practice Test"
+          description="Test your knowledge"
           onClick={navigateToTestLibrary}
-          className="bg-white p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all flex items-center gap-3"
-        >
-          <div className="p-3 rounded-lg bg-blue-100 text-blue-600">
-            <FiPlay size={20} />
-          </div>
-          <div className="text-left">
-            <h3 className="font-medium text-gray-800">Take Practice Test</h3>
-            <p className="text-xs text-gray-500">Test your knowledge</p>
-          </div>
-        </button>
+        />
         
-        <button
-          onClick={() => router.push('/dashboard/ai-chatbot')}
-          className="bg-white p-4 rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all flex items-center gap-3"
-        >
-          <div className="p-3 rounded-lg bg-purple-100 text-purple-600">
-            <FiMessageSquare size={20} />
-          </div>
-          <div className="text-left">
-            <h3 className="font-medium text-gray-800">Ask AI Assistant</h3>
-            <p className="text-xs text-gray-500">Get study help</p>
-          </div>
-        </button>
+        <QuickActionCard
+          icon={<FiMessageSquare size={20} />}
+          iconColor="bg-purple-100 text-purple-600"
+          title="Ask AI Assistant"
+          description="Get study help"
+          onClick={navigateToAiChatbot}
+        />
         
-        <button
-          onClick={() => router.push('/dashboard/resources')}
-          className="bg-white p-4 rounded-xl border border-gray-200 hover:border-green-300 hover:shadow-md transition-all flex items-center gap-3"
-        >
-          <div className="p-3 rounded-lg bg-green-100 text-green-600">
-            <FiFileText size={20} />
-          </div>
-          <div className="text-left">
-            <h3 className="font-medium text-gray-800">Browse Resources</h3>
-            <p className="text-xs text-gray-500">Study materials & guides</p>
-          </div>
-        </button>
+        <QuickActionCard
+          icon={<FiFileText size={20} />}
+          iconColor="bg-green-100 text-green-600"
+          title="Browse Resources"
+          description="Study materials & guides"
+          onClick={navigateToResources}
+        />
       </div>
     </div>
   );
