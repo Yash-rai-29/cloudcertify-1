@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '../../contexts/AuthContext';
-import { getLayout } from '../../components/dashboard/DashboardLayout';
+import { useAuth } from '../../hooks/useAuth';
+import { getDashboardLayout } from '../../components/layouts/DashboardLayout';
 import { TracingBeam } from '../../components/ui/TracingBeam';
 import DashboardCard from '../../components/ui/DashboardCard';
 import StatCard from '../../components/ui/StatCard';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import LoadingSpinner from '../../components/common/ui/LoadingSpinner';
 import ErrorMessage from '../../components/ui/ErrorMessage';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -434,4 +434,4 @@ export default function Dashboard() {
 }
 
 // Use the DashboardLayout for this page
-Dashboard.getLayout = getLayout;
+Dashboard.getLayout = (page) => getDashboardLayout(page, 'Dashboard - Cloud Certify');

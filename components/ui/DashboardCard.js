@@ -1,24 +1,48 @@
-import React from 'react';
+"use client";
+import { cn } from '../../utils/helpers';
 
-const DashboardCard = ({ 
-  title, 
+/**
+ * DashboardCard component for displaying content in a consistent card format
+ * 
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Card content
+ * @param {string|React.ReactNode} props.title - Card title
+ * @param {React.ReactNode} props.rightHeaderContent - Optional content to display on the right side of the header
+ * @param {string} props.className - Additional classes for the card container
+ * @param {string} props.contentClassName - Additional classes for the content area
+ * @param {string} props.headerClassName - Additional classes for the header
+ */
+export default function DashboardCard({ 
   children, 
-  className = '', 
-  headerClassName = '',
-  bodyClassName = '',
-  rightHeaderContent = null
-}) => {
+  title, 
+  rightHeaderContent,
+  className,
+  contentClassName,
+  headerClassName
+}) {
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden ${className}`}>
-      <div className={`flex items-center justify-between px-6 py-4 border-b ${headerClassName}`}>
-        <h2 className="text-lg font-medium text-gray-800">{title}</h2>
-        {rightHeaderContent}
-      </div>
-      <div className={`p-6 ${bodyClassName}`}>
+    <div className={cn(
+      "bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden",
+      className
+    )}>
+      {title && (
+        <div className={cn(
+          "px-5 py-4 border-b border-gray-200 flex items-center justify-between",
+          headerClassName
+        )}>
+          <h3 className="font-medium text-gray-800">
+            {title}
+          </h3>
+          {rightHeaderContent && (
+            <div className="flex items-center">
+              {rightHeaderContent}
+            </div>
+          )}
+        </div>
+      )}
+      <div className={cn("p-5", contentClassName)}>
         {children}
       </div>
     </div>
   );
-};
-
-export default DashboardCard;
+}

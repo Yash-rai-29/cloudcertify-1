@@ -1,6 +1,7 @@
-import React from 'react';
+"use client";
+import { forwardRef } from 'react';
 import Link from 'next/link';
-import { cn } from '../../utils/cn';
+import { cn } from '../../utils/helpers';
 
 /**
  * Button component that can be rendered as a button or link
@@ -15,8 +16,9 @@ import { cn } from '../../utils/cn';
  * @param {boolean} props.isLoading - Whether button is in loading state
  * @param {boolean} props.disabled - Whether button is disabled
  */
-const Button = ({
+const Button = forwardRef(({
   children,
+  className,
   variant = 'primary',
   size = 'md',
   fullWidth = false,
@@ -25,63 +27,112 @@ const Button = ({
   rightIcon,
   isLoading = false,
   disabled = false,
-  className = '',
+  type = 'button',
   ...props
-}) => {
-  // Style variants
-  const variants = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white',
-    secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-700',
-    outline: 'bg-transparent border border-gray-300 hover:bg-gray-50 text-gray-700',
-    ghost: 'bg-transparent hover:bg-gray-50 text-gray-700',
-    danger: 'bg-red-600 hover:bg-red-700 text-white',
-    success: 'bg-green-600 hover:bg-green-700 text-white',
+}, ref) => {
+  // Variant styles
+  const variantStyles = {
+    primary: 'bg-blue-600 text-white hover:bg-blue-700 border border-transparent',
+    secondary: 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300',
+    outline: 'bg-transparent text-blue-600 hover:bg-blue-50 border border-blue-600',
+    ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 border border-transparent',
+    danger: 'bg-red-600 text-white hover:bg-red-700 border border-transparent',
   };
-
-  // Size variants
-  const sizes = {
-    sm: 'px-3 py-1 text-sm',
-    md: 'px-4 py-2',
-    lg: 'px-6 py-3 text-lg',
+  
+  // Size styles
+  const sizeStyles = {
+    sm: 'text-xs py-1.5 px-3',
+    md: 'text-sm py-2 px-4',
+    lg: 'text-base py-2.5 px-5',
   };
-
-  // Combine classNames
+  
+  // Disabled and loading styles
+  const stateStyles = {
+    disabled: 'opacity-50 cursor-not-allowed',
+    loading: 'relative text-transparent pointer-events-none',
+  };
+  
+  // Get styles based on props
+  const buttonVariant = variantStyles[variant] || variantStyles.primary;
+  const buttonSize = sizeStyles[size] || sizeStyles.md;
+  const buttonState = disabled 
+    ? stateStyles.disabled 
+    : isLoading 
+      ? stateStyles.loading 
+      : '';
+  
+  // Base button styles
+  const baseStyles = 'inline-flex items-center justify-center rounded-lg font-medium shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50';
+  
+  // Combined classes
   const buttonClasses = cn(
-    'rounded-lg font-medium transition-colors flex items-center justify-center gap-2',
-    variants[variant],
-    sizes[size],
+    baseStyles,
+    buttonVariant,
+    buttonSize,
+    buttonState,
     fullWidth ? 'w-full' : '',
-    (disabled || isLoading) ? 'opacity-70 cursor-not-allowed' : '',
     className
   );
-
-  // If href is provided, render as Link
+  
+  // Loading spinner
+  const LoadingSpinner = () => (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <svg 
+        className="animate-spin h-4 w-4 text-current" 
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="none" 
+        viewBox="0 0 24 24"
+      >
+        <circle 
+          className="opacity-25" 
+          cx="12" 
+          cy="12" 
+          r="10" 
+          stroke="currentColor" 
+          strokeWidth="4"
+        />
+        <path 
+          className="opacity-75" 
+          fill="currentColor" 
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        />
+      </svg>
+    </div>
+  );
+  
+  // Content with icons
+  const ButtonContent = () => (
+    <>
+      {leftIcon && <span className="mr-2">{leftIcon}</span>}
+      {children}
+      {rightIcon && <span className="ml-2">{rightIcon}</span>}
+      {isLoading && <LoadingSpinner />}
+    </>
+  );
+  
+  // Render as link if href is provided
   if (href) {
     return (
-      <Link 
-        href={href} 
-        className={buttonClasses}
-        {...props}
-      >
-        {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
-        {children}
-        {rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
+      <Link href={href} passHref className={buttonClasses} ref={ref} {...props}>
+        <ButtonContent />
       </Link>
     );
   }
-
-  // Otherwise render as button
+  
+  // Otherwise, render as button
   return (
     <button
+      ref={ref}
+      type={type}
       className={buttonClasses}
       disabled={disabled || isLoading}
       {...props}
     >
-      {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
-      {isLoading ? 'Loading...' : children}
-      {rightIcon && <span className="flex-shrink-0">{rightIcon}</span>}
+      <ButtonContent />
     </button>
   );
-};
+});
+
+Button.displayName = 'Button';
 
 export default Button;
