@@ -1,276 +1,229 @@
-import { motion, useAnimation } from 'framer-motion';
-import { FiTarget, FiTrendingUp, FiClock, FiBarChart, FiShield, FiBook, FiArrowRight } from 'react-icons/fi';
-import { useInView } from 'react-intersection-observer';
-import { useEffect } from 'react';
+"use client";
+import React from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  FiTarget,
+  FiTrendingUp,
+  FiClock,
+  FiBarChart,
+  FiShield,
+  FiBook,
+} from "react-icons/fi";
+import { GlowingBackground } from "./ui/GlowingBackground";
+import { Sparkles } from "./ui/SparklesBackground";
+import { TracingBeam } from "./ui/TracingBeam";
 
-// Feature data with enhanced colors and descriptions
-const features = [
+const valueItems = [
   {
     id: 1,
-    title: 'Targeted Learning Paths',
-    description: 'Customized study plans based on your experience level and certification goals',
-    icon: FiTarget,
-    bgColor: 'bg-gradient-to-br from-blue-50 to-blue-100',
-    iconColor: 'text-blue-600',
-    borderColor: 'border-blue-200',
+    title: "Targeted Learning Paths",
+    description:
+      "Customized study plans based on your strengths and weaknesses to accelerate your certification journey",
+    icon: <FiTarget className="text-blue-600" size={20} />,
+    badge: "Popular",
   },
   {
     id: 2,
-    title: 'Real-Time Progress Tracking',
-    description: 'Monitor your improvement with detailed analytics and performance insights',
-    icon: FiTrendingUp,
-    bgColor: 'bg-gradient-to-br from-green-50 to-green-100',
-    iconColor: 'text-green-600',
-    borderColor: 'border-green-200',
+    title: "Performance Analytics",
+    description:
+      "Detailed insights into your test performance and improvement areas with visual dashboards",
+    icon: <FiTrendingUp className="text-indigo-600" size={20} />,
   },
   {
     id: 3,
-    title: 'Time-Optimized Sessions',
-    description: 'Efficient study sessions designed to maximize knowledge retention',
-    icon: FiClock,
-    bgColor: 'bg-gradient-to-br from-purple-50 to-purple-100',
-    iconColor: 'text-purple-600',
-    borderColor: 'border-purple-200',
+    title: "Time Management Tools",
+    description:
+      "Learn to optimize your time during the actual certification exam with proven techniques",
+    icon: <FiClock className="text-blue-600" size={20} />,
   },
   {
     id: 4,
-    title: 'Detailed Performance Analytics',
-    description: 'Identify your strengths and weaknesses with comprehensive reporting',
-    icon: FiBarChart,
-    bgColor: 'bg-gradient-to-br from-orange-50 to-orange-100',
-    iconColor: 'text-orange-600',
-    borderColor: 'border-orange-200',
+    title: "Progress Tracking",
+    description:
+      "Visual dashboards to monitor your progress and readiness with personalized recommendations",
+    icon: <FiBarChart className="text-indigo-600" size={20} />,
   },
   {
     id: 5,
-    title: 'Exam-Aligned Content',
-    description: 'Questions and scenarios that mirror the actual GCP certification exams',
-    icon: FiShield,
-    bgColor: 'bg-gradient-to-br from-red-50 to-red-100',
-    iconColor: 'text-red-600',
-    borderColor: 'border-red-200',
+    title: "Exam-Aligned Content",
+    description:
+      "Questions and scenarios that mirror the actual GCP certification exams for real-world preparation",
+    icon: <FiShield className="text-blue-600" size={20} />,
   },
   {
     id: 6,
-    title: 'Comprehensive Study Material',
-    description: 'Rich resources covering all GCP certification topics and services',
-    icon: FiBook,
-    bgColor: 'bg-gradient-to-br from-indigo-50 to-indigo-100',
-    iconColor: 'text-indigo-600',
-    borderColor: 'border-indigo-200',
+    title: "Comprehensive Study Material",
+    description:
+      "In-depth explanations and references for further learning with expert-curated content",
+    icon: <FiBook className="text-indigo-600" size={20} />,
   },
 ];
 
-const ValueProposition = () => {
-  // Animation controls for staggered animations
-  const controls = useAnimation();
-  const [ref, inView] = useInView({
-    triggerOnce: true,
-    threshold: 0.1
-  });
-
-  useEffect(() => {
-    if (inView) {
-      controls.start('visible');
-    }
-  }, [controls, inView]);
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 10
-      }
-    }
-  };
-
-  // Icon animation for hover effect
-  const iconVariants = {
-    hover: {
-      scale: 1.2,
-      rotate: 5,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 10
-      }
-    }
-  };
-
-  return (
-    <section id="value-proposition" className="py-20 sm:py-24 md:py-32 bg-gradient-to-b from-white to-blue-50 relative overflow-hidden">
-      {/* Background decorations */}
-      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-50 to-transparent opacity-50 z-0"></div>
-      <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full opacity-30 blur-3xl z-0"></div>
-      <div className="absolute bottom-0 -left-20 w-60 h-60 bg-indigo-100 rounded-full opacity-30 blur-3xl z-0"></div>
-      
-      <div className="container mx-auto px-4 sm:px-6 relative z-10">
-        <div className="text-center mb-16 md:mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-            className="inline-block px-4 py-1.5 mb-6 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
-          >
-            Features & Benefits
-          </motion.div>
-          
-          <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-700"
-          >
-            Why Cloud Certify Is Your Best Choice
-          </motion.h2>
-          
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            viewport={{ once: true }}
-            className="text-gray-600 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed"
-          >
-            Our platform is designed specifically for Google Cloud Platform certifications, 
-            with powerful features that accelerate your learning journey and maximize your success rate.
-          </motion.p>
-        </div>
-        
-        <motion.div 
-          ref={ref}
-          variants={containerVariants}
-          initial="hidden"
-          animate={controls}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+const FeatureCard = ({ item, index }) => (
+  <motion.div
+    className="relative bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 group"
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6, delay: index * 0.1 }}
+    whileHover={{ y: -10, transition: { duration: 0.3 } }}
+    viewport={{ once: true, margin: "-100px" }}
+  >
+    <motion.div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0" />
+    <div className="relative z-10 p-6 md:p-8 flex flex-col h-full">
+      <div className="w-14 h-14 rounded-lg bg-blue-50 flex items-center justify-center mb-5 group-hover:bg-white/20 transition-colors duration-300">
+        <motion.div
+          className="text-blue-600 group-hover:text-white"
+          initial={{ scale: 1 }}
+          whileHover={{ scale: 1.2, rotate: 5 }}
+          whileTap={{ scale: 0.9 }}
         >
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.id}
-              variants={itemVariants}
-              whileHover={{ 
-                y: -8, 
-                boxShadow: '0 15px 30px -5px rgba(0, 0, 0, 0.1)',
-                transition: { duration: 0.3 }
-              }}
-              className={`bg-white rounded-2xl p-6 sm:p-8 border ${feature.borderColor} shadow-lg hover-lift`}
-            >
-              <div className="flex items-start mb-5">
-                <motion.div 
-                  className={`w-14 h-14 rounded-xl ${feature.bgColor} flex items-center justify-center shadow-sm`}
-                  whileHover="hover"
-                >
-                  <motion.div variants={iconVariants}>
-                    <feature.icon className={`${feature.iconColor} text-2xl`} />
-                  </motion.div>
-                </motion.div>
-                <div className="w-full h-0.5 bg-gray-100 mt-7 ml-4"></div>
-              </div>
-              
-              <h3 className="text-xl font-bold mb-3 text-gray-800">{feature.title}</h3>
-              <p className="text-gray-600 leading-relaxed mb-4">{feature.description}</p>
-              
-              <motion.a 
-                href="#"
-                className={`inline-flex items-center text-sm font-medium ${feature.iconColor} hover:underline mt-2`}
-                whileHover={{ x: 5 }}
-                transition={{ type: "spring", stiffness: 400, damping: 10 }}
-              >
-                Learn more <FiArrowRight className="ml-1.5" />
-              </motion.a>
-            </motion.div>
-          ))}
-        </motion.div>
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.4 }}
-          viewport={{ once: true }}
-          className="mt-20 md:mt-24 rounded-2xl overflow-hidden shadow-2xl"
-        >
-          <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 p-1">
-            <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 rounded-xl p-6 sm:p-10 md:p-12 text-white">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-                <div>
-                  <h3 className="text-2xl sm:text-3xl font-bold mb-4 text-white">Ready to accelerate your GCP certification journey?</h3>
-                  <p className="text-blue-100 mb-8 text-lg leading-relaxed">
-                    Join thousands of successful IT professionals who have earned their Google Cloud certifications with Cloud Certify.
-                    Our proven methodology has helped candidates achieve a 94% pass rate.
-                  </p>
-                  <div className="flex flex-wrap gap-4">
-                    <motion.button
-                      whileHover={{ 
-                        scale: 1.05,
-                        boxShadow: "0 15px 25px -5px rgba(0, 0, 0, 0.2)"
-                      }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-white text-blue-600 px-8 py-3.5 rounded-xl font-semibold text-md shadow-xl transition-all flex items-center"
-                    >
-                      Start Your Free Trial <FiArrowRight className="ml-2" />
-                    </motion.button>
-                    <motion.a
-                      href="#"
-                      whileHover={{ 
-                        scale: 1.05,
-                        textDecoration: "underline"
-                      }}
-                      whileTap={{ scale: 0.95 }}
-                      className="border-2 border-white/30 text-white px-8 py-3.5 rounded-xl font-medium text-md transition-all flex items-center hover:bg-white/10"
-                    >
-                      See Pricing
-                    </motion.a>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 sm:gap-6">
-                  {[
-                    { label: 'Certified Professionals', value: '15,000+' },
-                    { label: 'Practice Questions', value: '2,500+' },
-                    { label: 'Success Rate', value: '94%' },
-                    { label: 'Average Prep Time', value: '4 Weeks' }
-                  ].map((stat, index) => (
-                    <motion.div 
-                      key={index}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.5, delay: 0.6 + (index * 0.1) }}
-                      viewport={{ once: true }}
-                      whileHover={{ 
-                        scale: 1.05,
-                        boxShadow: "0 8px 25px -5px rgba(0, 0, 0, 0.3)"
-                      }}
-                      className="bg-white/10 backdrop-blur-sm p-5 sm:p-6 rounded-xl border border-white/20 hover:bg-white/15 transition-all"
-                    >
-                      <div className="text-2xl sm:text-3xl font-bold mb-1">{stat.value}</div>
-                      <div className="text-blue-100 text-sm">{stat.label}</div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
+          {item.icon}
         </motion.div>
       </div>
+      {item.badge && (
+        <div className="absolute top-6 right-6 text-xs font-medium bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full group-hover:bg-white group-hover:text-blue-700 transition-colors duration-300">
+          {item.badge}
+        </div>
+      )}
+      <h3 className="text-xl font-bold mb-3 text-gray-800 group-hover:text-white transition-colors duration-300">
+        {item.title}
+      </h3>
+      <p className="text-gray-600 group-hover:text-white/90 mb-4 transition-colors duration-300">
+        {item.description}
+      </p>
+    </div>
+  </motion.div>
+);
+
+const NewValueProposition = () => {
+  const { scrollYProgress } = useScroll();
+  const scale = useTransform(scrollYProgress, [0, 1], [0.8, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3], [0.6, 1]);
+
+  return (
+    <section id="value-proposition" className="py-24 relative">
+      {/* Decorative animated backgrounds */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <motion.div
+          className="absolute -top-40 -left-40 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.7, 0.5] }}
+          transition={{ duration: 8, repeat: Infinity, repeatType: "reverse" }}
+        />
+        <motion.div
+          className="absolute top-1/3 -right-20 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.6, 0.4] }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            repeatType: "reverse",
+            delay: 1,
+          }}
+        />
+        <motion.div
+          className="absolute -bottom-40 left-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"
+          animate={{ scale: [1, 1.15, 1], opacity: [0.5, 0.7, 0.5] }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            repeatType: "reverse",
+            delay: 2,
+          }}
+        />
+      </div>
+
+      <TracingBeam>
+        <motion.div
+          className="container mx-auto px-4 relative z-10"
+          style={{ scale, opacity }}
+        >
+          <div className="text-center mb-20">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              className="inline-block px-4 py-1.5 mb-4 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 text-blue-700 rounded-full text-sm font-medium border border-blue-200/50"
+            >
+              <Sparkles>Features & Benefits</Sparkles>
+            </motion.div>
+            <motion.h2
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              className="text-3xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700"
+            >
+              Why Cloud Certify Is Your Best Choice
+              <motion.div
+                className="absolute -bottom-3 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent rounded-full"
+                initial={{ scaleX: 0, opacity: 0 }}
+                whileInView={{ scaleX: 1, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 1 }}
+                viewport={{ once: true }}
+              />
+            </motion.h2>
+            <motion.p
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7 }}
+              className="text-gray-600 max-w-3xl mx-auto mt-6 text-lg"
+            >
+              Our platform is designed specifically for Google Cloud Platform
+              certifications, with powerful features that accelerate your
+              learning journey.
+            </motion.p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+            {valueItems.map((item, index) => (
+              <FeatureCard key={index} item={item} index={index} />
+            ))}
+          </div>
+
+          <GlowingBackground
+            containerClassName="rounded-2xl overflow-hidden"
+            glowSize="350px"
+            glowOpacity={0.4}
+            glowColor="rgba(37, 99, 235, 0.4)" // Updated to match blue color
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="rounded-2xl overflow-hidden shadow-2xl"
+            >
+              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-10 md:p-12 text-white">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+                  <div>
+                    <h3 className="text-2xl md:text-3xl font-bold mb-6">
+                      Ready to accelerate your GCP certification journey?
+                    </h3>
+                    <p className="text-lg opacity-90 mb-6">
+                      Let Cloud Certify be your trusted guide. Start today and
+                      experience smarter, faster, and more effective
+                      preparation.
+                    </p>
+                    <button className="bg-white text-blue-600 font-semibold px-6 py-3 rounded-lg shadow hover:bg-blue-50 transition-all">
+                      Get Started
+                    </button>
+                  </div>
+                  <div className="hidden md:block">
+                    <img
+                      src="/images/gcp-certify.svg"
+                      alt="GCP Illustration"
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </GlowingBackground>
+        </motion.div>
+      </TracingBeam>
     </section>
   );
 };
 
-export default ValueProposition;
+export default NewValueProposition;

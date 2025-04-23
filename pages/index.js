@@ -1,11 +1,11 @@
 import Head from 'next/head';
-import NewHeader from '../components/NewHeader';
-import NewHeroSection from '../components/NewHeroSection';
-import NewFooter from '../components/NewFooter';
-import NewValueProposition from '../components/NewValueProposition';
-import NewTestLibrary from '../components/NewTestLibrary';
+import Header from '../components/Header';
+import HeroSection from '../components/HeroSection';
+import Footer from '../components/Footer';
+import ValueProposition from '../components/ValueProposition';
+import TestLibrary from '../components/TestLibrary';
 import PerformanceDashboard from '../components/PerformanceDashboard';
-import NewTestimonials from '../components/NewTestimonials';
+import Testimonials from '../components/Testimonials';
 
 export default function Home() {
   return (
@@ -17,17 +17,17 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <NewHeader />
+      <Header />
       
       <main>
-        <NewHeroSection />
-        <NewValueProposition />
-        <NewTestLibrary />
+        <HeroSection />
+        <ValueProposition />
+        <TestLibrary />
         <PerformanceDashboard />
-        <NewTestimonials />
+        <Testimonials />
       </main>
 
-      <NewFooter />
+      <Footer />
     </div>
   );
 }
