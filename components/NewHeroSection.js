@@ -34,13 +34,13 @@ const NewHeroSection = () => {
             >
               Become a{" "}
               <motion.span 
-                className="bg-gradient-to-r from-blue-200 to-white bg-clip-text text-transparent px-3 relative"
+                className="bg-gradient-to-r from-blue-200 to-white bg-clip-text text-transparent px-3 relative inline-block"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
                 certified
                 <motion.div 
-                  className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full"
+                  className="absolute -bottom-2 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-400 to-indigo-400 rounded-full"
                   initial={{ scaleX: 0, opacity: 0 }}
                   animate={{ scaleX: 1, opacity: 1 }}
                   transition={{ delay: 0.8, duration: 0.8 }}

@@ -19,9 +19,9 @@ const NewHeader = () => {
 
   const navItems = [
     { name: "Home", href: "#hero" },
+    { name: "Features", href: "#value-proposition" },
     { name: "Test Library", href: "#test-library" },
     { name: "Performance", href: "#performance-dashboard" },
-    { name: "Features", href: "#value-proposition" },
     { name: "Reviews", href: "#testimonials" },
   ];
 
@@ -51,7 +51,7 @@ const NewHeader = () => {
     <>
       {/* Desktop Navigation */}
       <div className="hidden md:block">
-        <FloatingNavbar 
+        <FloatingNavbar
           navItems={navItems}
           logoContent={logoContent}
           buttonContent={buttonContent}
@@ -61,7 +61,9 @@ const NewHeader = () => {
       {/* Mobile Navigation */}
       <header
         className={`md:hidden fixed w-full z-50 transition-all duration-300 ${
-          scrolled ? "bg-white/90 backdrop-blur-sm shadow-sm py-2" : "bg-transparent py-5"
+          scrolled
+            ? "bg-white/90 backdrop-blur-sm shadow-sm py-2"
+            : "bg-transparent py-5"
         }`}
       >
         <div className="container mx-auto px-4 flex justify-between items-center">

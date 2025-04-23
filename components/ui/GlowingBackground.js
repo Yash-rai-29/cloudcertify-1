@@ -66,6 +66,7 @@ export const GlowingBackground = ({
     <div
       ref={containerRef}
       className={cn("relative overflow-hidden", containerClassName)}
+      style={{ position: "relative" }}
     >
       {isMounted && <div style={glowStyles} />}
       <div className={cn("relative z-10", className)}>{children}</div>

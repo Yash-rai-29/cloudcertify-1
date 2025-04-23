@@ -54,7 +54,9 @@ export const FloatingNavbar = ({
         <div
           className={cn(
             "px-2 py-2 rounded-full flex items-center justify-center space-x-2",
-            scrolled ? "bg-white shadow-lg border border-neutral-200" : "bg-transparent"
+            scrolled 
+              ? "bg-white shadow-lg border border-neutral-200" 
+              : "bg-black/10 backdrop-blur-md border border-white/20"
           )}
         >
           {logoContent && (
@@ -85,7 +87,7 @@ export const FloatingNavbar = ({
                     ? "text-white"
                     : scrolled
                     ? "text-neutral-600 hover:text-neutral-900"
-                    : "text-neutral-100 hover:text-white"
+                    : "text-white/90 hover:text-white"
                 )}
               >
                 {activeIdx === idx && (

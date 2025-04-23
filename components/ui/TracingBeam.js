@@ -39,6 +39,7 @@ export const TracingBeam = ({
     <div
       ref={ref}
       className={cn("relative w-full max-w-4xl mx-auto px-4", containerClassName)}
+      style={{ position: "relative" }}
     >
       <motion.div 
         ref={contentRef}
