@@ -1,50 +1,36 @@
-// Import the functions from the Firebase SDKs
-import { initializeApp, getApps } from "firebase/app";
-import { getAuth, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signOut as firebaseSignOut,
-  onAuthStateChanged,
+import { initializeApp } from 'firebase/app';
+import { 
+  getAuth, 
+  signInWithEmailAndPassword as firebaseSignInWithEmailAndPassword,
+  createUserWithEmailAndPassword as firebaseCreateUserWithEmailAndPassword,
+  signInWithPopup as firebaseSignInWithPopup,
   GoogleAuthProvider,
-  signInWithPopup
-} from "firebase/auth";
-import { getAnalytics } from "firebase/analytics";
+  onAuthStateChanged as firebaseOnAuthStateChanged,
+  signOut as firebaseSignOut
+} from 'firebase/auth';
 
-// Firebase configuration using environment variables
+// Firebase configuration
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  authDomain: `${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.firebaseapp.com`,
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  storageBucket: `${process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID}.appspot.com`,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-// Initialize Firebase only if it hasn't been initialized already
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApps()[0];
-
-// Initialize Firebase Authentication
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-
-// Initialize Google provider for authentication
 const googleProvider = new GoogleAuthProvider();
 
-// Initialize Analytics (client-side only)
-let analytics = null;
-if (typeof window !== 'undefined') {
-  // Only initialize analytics on the client side
-  analytics = getAnalytics(app);
-}
-
-export { 
-  app, 
-  auth, 
-  analytics,
+// Export Firebase auth functions
+export {
+  auth,
   googleProvider,
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  firebaseSignOut,
-  onAuthStateChanged
+  firebaseSignInWithEmailAndPassword as signInWithEmailAndPassword,
+  firebaseCreateUserWithEmailAndPassword as createUserWithEmailAndPassword,
+  firebaseSignInWithPopup as signInWithPopup,
+  firebaseOnAuthStateChanged as onAuthStateChanged,
+  firebaseSignOut
 };
