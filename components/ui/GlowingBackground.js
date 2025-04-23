@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
 import { cn } from "../../utils/cn";
 
 export const GlowingBackground = ({
@@ -8,7 +9,7 @@ export const GlowingBackground = ({
   containerClassName,
   glowSize = "300px",
   glowOpacity = 0.3,
-  glowColor = "rgba(120, 119, 198, 0.4)",
+  glowColor = "rgba(37, 99, 235, 0.4)", // blue color to match design
 }) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [opacity, setOpacity] = useState(0);
@@ -21,14 +22,14 @@ export const GlowingBackground = ({
 
   useEffect(() => {
     if (!isMounted) return;
-    
+
     const handleMouseMove = (e) => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
       setPosition({ x, y });
-      setOpacity(1);
+      setOpacity(glowOpacity);
     };
 
     const handleMouseLeave = () => {
@@ -45,7 +46,7 @@ export const GlowingBackground = ({
         container.removeEventListener("mouseleave", handleMouseLeave);
       };
     }
-  }, [isMounted]);
+  }, [isMounted, glowOpacity]);
 
   const glowStyles = {
     position: "absolute",
@@ -59,17 +60,21 @@ export const GlowingBackground = ({
     top: `${position.y - parseInt(glowSize) / 2}px`,
     transform: "translate(-50%, -50%)",
     pointerEvents: "none",
-    transition: "opacity 0.2s",
+    transition: "opacity 0.3s ease",
   };
 
   return (
-    <div
+    <motion.div
       ref={containerRef}
       className={cn("relative overflow-hidden", containerClassName)}
       style={{ position: "relative" }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7 }}
+      viewport={{ once: true }}
     >
       {isMounted && <div style={glowStyles} />}
       <div className={cn("relative z-10", className)}>{children}</div>
-    </div>
+    </motion.div>
   );
 };

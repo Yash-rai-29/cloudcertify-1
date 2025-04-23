@@ -3,11 +3,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { motion, useTransform, useScroll, useSpring } from "framer-motion";
 import { cn } from "../../utils/cn";
 
-export const TracingBeam = ({
-  children,
-  className,
-  containerClassName,
-}) => {
+export const TracingBeam = ({ children, className, containerClassName }) => {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -38,21 +34,25 @@ export const TracingBeam = ({
   return (
     <div
       ref={ref}
-      className={cn("relative w-full max-w-4xl mx-auto px-4", containerClassName)}
+      className={cn(
+        "relative w-full max-w-7xl mx-auto px-4", // Increased max width for consistency
+        containerClassName,
+      )}
       style={{ position: "relative" }}
     >
       <motion.div 
-        ref={contentRef}
+        ref={contentRef} 
         className={cn("relative z-10", className)}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
       >
         {children}
       </motion.div>
 
       <div className="absolute inset-0 z-0">
         <motion.div
-          transition={{
-            duration: 0.2,
-          }}
+          transition={{ duration: 0.2 }}
           className="relative h-full w-full"
         >
           <svg
@@ -63,6 +63,7 @@ export const TracingBeam = ({
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
+            {/* Subtle dotted line */}
             <motion.path
               d={`M20 0L20 ${svgHeight}`}
               stroke="url(#gradient)"
@@ -70,12 +71,15 @@ export const TracingBeam = ({
               strokeDasharray="6 6"
               strokeLinecap="round"
             />
+
+            {/* Tracing beam */}
             <motion.path
               d={`M20 ${springyY1} L20 ${springyY2}`}
               stroke="url(#gradient-bright)"
               strokeWidth="4"
               strokeLinecap="round"
             />
+
             <defs>
               <motion.linearGradient
                 id="gradient"
@@ -85,12 +89,13 @@ export const TracingBeam = ({
                 y2={svgHeight}
                 gradientUnits="userSpaceOnUse"
               >
-                <stop stopColor="#18CCFC" stopOpacity="0" />
-                <stop offset="0.3" stopColor="#18CCFC" stopOpacity="0.3" />
-                <stop offset="0.5" stopColor="#6344F5" />
-                <stop offset="0.7" stopColor="#18CCFC" stopOpacity="0.3" />
-                <stop offset="1" stopColor="#18CCFC" stopOpacity="0" />
+                <stop stopColor="#3B82F6" stopOpacity="0" />
+                <stop offset="0.3" stopColor="#3B82F6" stopOpacity="0.2" />
+                <stop offset="0.5" stopColor="#3B82F6" stopOpacity="0.4" />
+                <stop offset="0.7" stopColor="#3B82F6" stopOpacity="0.2" />
+                <stop offset="1" stopColor="#3B82F6" stopOpacity="0" />
               </motion.linearGradient>
+
               <motion.linearGradient
                 id="gradient-bright"
                 x1="0"
@@ -99,9 +104,9 @@ export const TracingBeam = ({
                 y2={springyY2}
                 gradientUnits="userSpaceOnUse"
               >
-                <stop stopColor="#18CCFC" />
-                <stop offset="0.5" stopColor="#6344F5" />
-                <stop offset="1" stopColor="#18CCFC" />
+                <stop stopColor="#3B82F6" />
+                <stop offset="0.5" stopColor="#1D4ED8" />
+                <stop offset="1" stopColor="#3B82F6" />
               </motion.linearGradient>
             </defs>
           </svg>
