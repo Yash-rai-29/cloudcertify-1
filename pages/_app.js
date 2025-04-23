@@ -1,18 +1,25 @@
 import '../styles/globals.css';
 import { Poppins } from 'next/font/google';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AuthProvider } from '../contexts/AuthContext';
+import { AuthProvider } from '../hooks/useAuth';
 import { Toaster } from 'react-hot-toast';
+import { getPublicLayout } from '../components/layouts/PublicLayout';
 
+/**
+ * Load Poppins font for the entire application
+ */
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
   variable: '--font-poppins',
 });
 
+/**
+ * Main application component that wraps all pages
+ */
 function MyApp({ Component, pageProps, router }) {
-  // Check if the component has a getLayout property
-  const getLayout = Component.getLayout || ((page) => page);
+  // Use the layout defined at the page level, or fallback to default public layout
+  const getLayout = Component.getLayout || getPublicLayout;
 
   return (
     <AuthProvider>

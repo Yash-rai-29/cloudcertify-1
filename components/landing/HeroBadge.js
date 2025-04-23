@@ -1,5 +1,6 @@
-import React from 'react';
+"use client";
 import { motion } from 'framer-motion';
+import { cn } from '../../utils/helpers';
 
 /**
  * Hero Badge component for displaying highlighted information in the hero section
@@ -9,19 +10,19 @@ import { motion } from 'framer-motion';
  * @param {string} props.text - Text to display in the badge
  * @param {string} props.className - Additional CSS classes
  */
-const HeroBadge = ({ icon, text, className = '', ...props }) => {
+const HeroBadge = ({ icon, text, className }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`inline-block ${className}`}
-      {...props}
+      className={cn(
+        "inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full text-sm text-white/90 font-medium",
+        className
+      )}
     >
-      <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white border border-white/20">
-        {icon}
-        <span className="text-sm font-medium">{text}</span>
-      </div>
+      {icon && <span className="text-blue-300">{icon}</span>}
+      <span>{text}</span>
     </motion.div>
   );
 };
