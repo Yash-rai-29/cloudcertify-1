@@ -1,16 +1,20 @@
 "use client";
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { FiMenu, FiX, FiCloud, FiUser } from "react-icons/fi";
 import { FloatingNavbar } from "./ui/FloatingNavbar";
 import { useAuth } from "../contexts/AuthContext";
-import Link from "next/link";
+import MobileMenu from "./landing/MobileMenu";
 
+/**
+ * Site Header component with responsive navigation
+ */
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { user } = useAuth();
 
+  // Handle scroll event to change header appearance
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -20,6 +24,7 @@ const Header = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Navigation items for both desktop and mobile
   const navItems = [
     { name: "Home", href: "#hero" },
     { name: "Features", href: "#value-proposition" },
@@ -28,6 +33,7 @@ const Header = () => {
     { name: "Reviews", href: "#testimonials" },
   ];
 
+  // Logo component used in both desktop and mobile
   const logoContent = (
     <motion.div
       whileHover={{ scale: 1.05 }}
@@ -48,6 +54,7 @@ const Header = () => {
     </motion.div>
   );
 
+  // Button content changes based on authentication state
   const buttonContent = user ? (
     // Show Dashboard button if user is logged in
     <motion.a
@@ -81,6 +88,12 @@ const Header = () => {
     </div>
   );
 
+  // Toggle mobile menu
+  const toggleMenu = () => setIsOpen(!isOpen);
+
+  // Close mobile menu
+  const closeMenu = () => setIsOpen(false);
+
   return (
     <>
       {/* Desktop Navigation */}
@@ -101,6 +114,7 @@ const Header = () => {
         }`}
       >
         <div className="container mx-auto px-4 flex justify-between items-center">
+          {/* Logo */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -111,83 +125,24 @@ const Header = () => {
 
           {/* Mobile menu button */}
           <motion.button
-            onClick={() => setIsOpen(!isOpen)}
+            onClick={toggleMenu}
             whileTap={{ scale: 0.9 }}
             className={`p-2 rounded-lg ${
               scrolled ? "text-gray-700" : "text-white"
             } focus:outline-none`}
+            aria-label={isOpen ? "Close menu" : "Open menu"}
           >
             {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
           </motion.button>
         </div>
 
         {/* Mobile menu */}
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
-              className="bg-white shadow-lg overflow-hidden"
-            >
-              <div className="px-4 py-4 space-y-2">
-                {navItems.map((item, index) => (
-                  <motion.a
-                    key={index}
-                    href={item.href}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="block py-2.5 px-4 rounded-lg font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {item.name}
-                  </motion.a>
-                ))}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="pt-2 space-y-2"
-                >
-                  {user ? (
-                    // Dashboard link if logged in
-                    <motion.a
-                      href="/dashboard"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-medium shadow-md flex items-center justify-center gap-2"
-                    >
-                      <FiUser size={16} />
-                      Go to Dashboard
-                    </motion.a>
-                  ) : (
-                    // Login and signup links if not logged in
-                    <>
-                      <motion.a
-                        href="/login"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full bg-white border border-blue-200 text-blue-600 py-3 rounded-lg font-medium shadow-sm flex justify-center"
-                      >
-                        Login
-                      </motion.a>
-                      <motion.a
-                        href="/signup"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-medium shadow-md flex justify-center"
-                      >
-                        Sign Up
-                      </motion.a>
-                    </>
-                  )}
-                </motion.div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <MobileMenu 
+          isOpen={isOpen}
+          onClose={closeMenu}
+          navItems={navItems}
+          user={user}
+        />
       </header>
     </>
   );
