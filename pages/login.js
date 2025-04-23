@@ -1,10 +1,22 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
+import Head from 'next/head';
 import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/router';
 import { FiMail, FiLock, FiAlertCircle, FiEye, FiEyeOff, FiArrowLeft, FiCloud } from 'react-icons/fi';
 import { SparklesBackground } from '../components/ui/SparklesBackground';
+
+// Create a custom layout for the login page that doesn't include header or footer
+Login.getLayout = (page) => (
+  <>
+    <Head>
+      <title>Log In - Cloud Certify</title>
+      <meta name="description" content="Log in to your Cloud Certify account to continue your GCP certification journey." />
+    </Head>
+    {page}
+  </>
+);
 
 export default function Login() {
   const { login, signInWithGoogle, loading } = useAuth();

@@ -52,6 +52,54 @@ export const getDashboardData = asyncTryCatch(async () => {
   };
 }, "getDashboardData");
 
+// Dashboard-specific individual service functions
+
+/**
+ * Get user information for dashboard
+ *
+ * @returns {Promise} User information
+ */
+export const getUserInfo = asyncTryCatch(async () => {
+  return await apiRequest("get", API.ENDPOINTS.USER_ME);
+}, "getUserInfo");
+
+/**
+ * Get user daily streak data
+ *
+ * @returns {Promise} User streak data
+ */
+export const getDailyStreak = asyncTryCatch(async () => {
+  return await apiRequest("get", API.ENDPOINTS.DAILY_STREAK);
+}, "getDailyStreak");
+
+/**
+ * Get daily question
+ *
+ * @returns {Promise} Daily question data
+ */
+export const getDailyQuestion = asyncTryCatch(async () => {
+  return await apiRequest("get", API.ENDPOINTS.DAILY_QUESTION);
+}, "getDailyQuestion");
+
+/**
+ * Get test recommendations
+ *
+ * @returns {Promise} Test recommendations
+ */
+export const getTestRecommendations = asyncTryCatch(async () => {
+  return await apiRequest("get", API.ENDPOINTS.RECOMMENDATIONS);
+}, "getTestRecommendations");
+
+/**
+ * Get user activities
+ *
+ * @param {number} limit - Number of activities to return
+ * @returns {Promise} User activities
+ */
+export const getUserActivities = asyncTryCatch(async (limit = 10) => {
+  return await apiRequest("get", API.ENDPOINTS.USER_ACTIVITIES, null, { limit });
+}, "getUserActivities");
+
 /**
  * Get current user profile data
  *

@@ -1,9 +1,21 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
+import Head from 'next/head';
 import { useAuth } from '../contexts/AuthContext';
 import { FiMail, FiLock, FiUser, FiAlertCircle, FiEye, FiEyeOff, FiArrowLeft, FiCloud, FiAward } from 'react-icons/fi';
 import { SparklesBackground } from '../components/ui/SparklesBackground';
+
+// Create a custom layout for the signup page that doesn't include header or footer
+Signup.getLayout = (page) => (
+  <>
+    <Head>
+      <title>Sign Up - Cloud Certify</title>
+      <meta name="description" content="Create your Cloud Certify account to start your GCP certification journey." />
+    </Head>
+    {page}
+  </>
+);
 
 export default function Signup() {
   const { signup, loading } = useAuth();
