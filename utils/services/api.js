@@ -1,21 +1,21 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-// API base URL
-const API_BASE_URL = 'https://base-service-6070296894.us-central1.run.app';
+// API base URL configuration
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.cloudcertify.app/v1';
 
-// Create axios instance with default config
-const apiClient = axios.create({
+// Create axios instance
+export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
-  },
+  }
 });
 
-// Request interceptor to add auth token to requests
+// Intercept requests to add auth token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('auth_token');
+    const token = Cookies.get('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -26,18 +26,30 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle common errors
+// Intercept responses to handle common errors
 apiClient.interceptors.response.use(
   (response) => {
     return response;
   },
   (error) => {
-    // Handle token expiration, network errors, etc.
-    if (error.response?.status === 401) {
-      // Optionally redirect to login page or refresh token
-      console.error('Authentication error:', error);
-      Cookies.remove('auth_token');
-      window.location.href = '/auth/login';
+    // Handle specific error cases
+    if (error.response) {
+      // Authentication errors
+      if (error.response.status === 401) {
+        // Clear auth cookies and redirect to login
+        Cookies.remove('authToken');
+        Cookies.remove('refreshToken');
+        
+        // Only redirect if in browser context
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+      }
+      
+      // Rate limiting
+      if (error.response.status === 429) {
+        console.error('API rate limit exceeded. Please try again later.');
+      }
     }
     
     return Promise.reject(error);
@@ -45,13 +57,13 @@ apiClient.interceptors.response.use(
 );
 
 /**
- * Make API requests with standard format
+ * Generic API request wrapper with error handling
  * 
  * @param {string} method - HTTP method (get, post, put, delete)
  * @param {string} url - API endpoint
- * @param {object} data - Request body data (for POST, PUT)
- * @param {object} params - URL query parameters
- * @returns {Promise} - Promise with standardized response format
+ * @param {Object} data - Request payload (for POST/PUT)
+ * @param {Object} params - URL query parameters (for GET)
+ * @returns {Promise} - API response with standardized format
  */
 export const apiRequest = async (method, url, data = null, params = null) => {
   try {
@@ -68,17 +80,16 @@ export const apiRequest = async (method, url, data = null, params = null) => {
       status: response.status
     };
   } catch (error) {
-    console.error(`API ${method.toUpperCase()} request to ${url} failed:`, error);
+    console.error(`API Error (${url}):`, error);
     
-    return {
+    // Extract error details
+    const errorResponse = {
       success: false,
-      error: {
-        message: error.response?.data?.detail || error.message || 'An unexpected error occurred',
-        status: error.response?.status || 500,
-        data: error.response?.data || null
-      }
+      status: error.response?.status || 500,
+      message: error.response?.data?.message || error.message || 'An unexpected error occurred',
+      error: error.response?.data?.error || error.name || 'UnknownError'
     };
+    
+    return errorResponse;
   }
 };
-
-export default apiClient;

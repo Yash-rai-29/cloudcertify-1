@@ -15,34 +15,46 @@ export default function Section({
   title,
   description,
   headerContent,
+  children,
   className,
   contentClassName,
-  headerClassName,
-  children
+  headerClassName
 }) {
   return (
-    <div className={cn('', className)}>
+    <div className={cn('space-y-4', className)}>
+      {/* Section Header */}
       {(title || description || headerContent) && (
         <div className={cn(
-          'flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:justify-between sm:items-center mb-4',
+          'flex flex-col md:flex-row md:items-center md:justify-between',
           headerClassName
         )}>
-          <div>
-            {title && (
-              <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-            )}
-            {description && (
-              <p className="text-sm text-gray-500">{description}</p>
-            )}
-          </div>
+          {/* Title and Description */}
+          {(title || description) && (
+            <div>
+              {title && (
+                <h2 className="text-lg font-medium text-gray-900">
+                  {title}
+                </h2>
+              )}
+              {description && (
+                <p className="mt-1 text-sm text-gray-500">
+                  {description}
+                </p>
+              )}
+            </div>
+          )}
+          
+          {/* Header Right Content */}
           {headerContent && (
-            <div className="mt-2 sm:mt-0">
+            <div className="mt-2 md:mt-0">
               {headerContent}
             </div>
           )}
         </div>
       )}
-      <div className={cn('', contentClassName)}>
+      
+      {/* Content */}
+      <div className={contentClassName}>
         {children}
       </div>
     </div>

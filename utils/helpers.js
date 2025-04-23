@@ -19,12 +19,19 @@ export function cn(...inputs) {
 export function formatDate(date, options = {}) {
   const dateObj = date instanceof Date ? date : new Date(date);
   
-  return dateObj.toLocaleDateString('en-US', {
+  const defaultOptions = {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
     ...options
-  });
+  };
+  
+  try {
+    return new Intl.DateTimeFormat('en-US', defaultOptions).format(dateObj);
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return String(date);
+  }
 }
 
 /**
@@ -35,20 +42,46 @@ export function formatDate(date, options = {}) {
 export function timeAgo(date) {
   const dateObj = date instanceof Date ? date : new Date(date);
   const now = new Date();
+  const seconds = Math.floor((now - dateObj) / 1000);
   
-  const seconds = Math.round((now - dateObj) / 1000);
-  const minutes = Math.round(seconds / 60);
-  const hours = Math.round(minutes / 60);
-  const days = Math.round(hours / 24);
-  const months = Math.round(days / 30);
-  const years = Math.round(months / 12);
+  // Less than a minute
+  if (seconds < 60) {
+    return 'just now';
+  }
   
-  if (seconds < 60) return 'just now';
-  if (minutes < 60) return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
-  if (hours < 24) return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
-  if (days < 30) return `${days} ${days === 1 ? 'day' : 'days'} ago`;
-  if (months < 12) return `${months} ${months === 1 ? 'month' : 'months'} ago`;
-  return `${years} ${years === 1 ? 'year' : 'years'} ago`;
+  // Less than an hour
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+  }
+  
+  // Less than a day
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  }
+  
+  // Less than a week
+  const days = Math.floor(hours / 24);
+  if (days < 7) {
+    return `${days} day${days === 1 ? '' : 's'} ago`;
+  }
+  
+  // Less than a month
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) {
+    return `${weeks} week${weeks === 1 ? '' : 's'} ago`;
+  }
+  
+  // Less than a year
+  const months = Math.floor(days / 30);
+  if (months < 12) {
+    return `${months} month${months === 1 ? '' : 's'} ago`;
+  }
+  
+  // More than a year
+  const years = Math.floor(days / 365);
+  return `${years} year${years === 1 ? '' : 's'} ago`;
 }
 
 /**
@@ -58,8 +91,9 @@ export function timeAgo(date) {
  * @returns {string} - Truncated string with ellipsis if needed
  */
 export function truncate(str, maxLength = 50) {
-  if (!str || str.length <= maxLength) return str;
-  return `${str.slice(0, maxLength - 3)}...`;
+  if (!str) return '';
+  if (str.length <= maxLength) return str;
+  return str.slice(0, maxLength) + '...';
 }
 
 /**
@@ -68,7 +102,14 @@ export function truncate(str, maxLength = 50) {
  * @returns {string} - Random ID
  */
 export function generateId(length = 8) {
-  return Math.random().toString(36).substring(2, 2 + length);
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  
+  return result;
 }
 
 /**

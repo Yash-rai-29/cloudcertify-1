@@ -93,7 +93,7 @@ export default function DailyQuestionSection({ question, className }) {
         {/* Options */}
         <div className="p-5">
           <div className="space-y-3">
-            {question.options.map((option) => {
+            {question.options && question.options.map((option) => {
               const isSelected = userAnswer === option.id;
               const isCorrect = correctAnswer === option.id;
               

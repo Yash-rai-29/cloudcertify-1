@@ -53,7 +53,7 @@ export default function Chat() {
       if (response.success) {
         const botMessage = {
           id: Date.now().toString(),
-          content: response.data.message || 'I'm sorry, I couldn't process your request.',
+          content: response.data.message || "I'm sorry, I couldn't process your request.",
           role: 'assistant',
           timestamp: Date.now() / 1000
         };
