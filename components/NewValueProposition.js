@@ -12,69 +12,39 @@ const NewValueProposition = () => {
     {
       id: 1,
       title: "Targeted Learning Paths",
-      description: "Customized study plans based on your strengths and weaknesses",
-      icon: <FiTarget />,
-      badge: "Popular",
-      footer: (
-        <a href="#" className="flex items-center text-sm text-blue-600 hover:underline">
-          Learn more <FiArrowRight className="ml-1" size={14} />
-        </a>
-      )
+      description: "Customized study plans based on your strengths and weaknesses to accelerate your certification journey",
+      icon: <FiTarget className="text-blue-600" size={20} />,
+      badge: "Popular"
     },
     {
       id: 2,
       title: "Performance Analytics",
-      description: "Detailed insights into your test performance and improvement areas",
-      icon: <FiTrendingUp />,
-      footer: (
-        <a href="#" className="flex items-center text-sm text-blue-600 hover:underline">
-          Learn more <FiArrowRight className="ml-1" size={14} />
-        </a>
-      )
+      description: "Detailed insights into your test performance and improvement areas with visual dashboards",
+      icon: <FiTrendingUp className="text-indigo-600" size={20} />
     },
     {
       id: 3,
       title: "Time Management Tools",
-      description: "Learn to optimize your time during the actual certification exam",
-      icon: <FiClock />,
-      footer: (
-        <a href="#" className="flex items-center text-sm text-blue-600 hover:underline">
-          Learn more <FiArrowRight className="ml-1" size={14} />
-        </a>
-      )
+      description: "Learn to optimize your time during the actual certification exam with proven techniques",
+      icon: <FiClock className="text-blue-600" size={20} />
     },
     {
       id: 4,
       title: "Progress Tracking",
-      description: "Visual dashboards to monitor your progress and readiness",
-      icon: <FiBarChart />,
-      footer: (
-        <a href="#" className="flex items-center text-sm text-blue-600 hover:underline">
-          Learn more <FiArrowRight className="ml-1" size={14} />
-        </a>
-      )
+      description: "Visual dashboards to monitor your progress and readiness with personalized recommendations",
+      icon: <FiBarChart className="text-indigo-600" size={20} />
     },
     {
       id: 5,
       title: "Exam-Aligned Content",
-      description: "Questions and scenarios that mirror the actual GCP certification exams",
-      icon: <FiShield />,
-      footer: (
-        <a href="#" className="flex items-center text-sm text-blue-600 hover:underline">
-          Learn more <FiArrowRight className="ml-1" size={14} />
-        </a>
-      )
+      description: "Questions and scenarios that mirror the actual GCP certification exams for real-world preparation",
+      icon: <FiShield className="text-blue-600" size={20} />
     },
     {
       id: 6,
       title: "Comprehensive Study Material",
-      description: "In-depth explanations and references for further learning",
-      icon: <FiBook />,
-      footer: (
-        <a href="#" className="flex items-center text-sm text-blue-600 hover:underline">
-          Learn more <FiArrowRight className="ml-1" size={14} />
-        </a>
-      )
+      description: "In-depth explanations and references for further learning with expert-curated content",
+      icon: <FiBook className="text-indigo-600" size={20} />
     },
   ];
 
