@@ -81,20 +81,22 @@ const HeroSection = () => {
                 transition={{ duration: 0.6, delay: 0.3 }}
                 className="flex flex-col sm:flex-row gap-4 justify-center mt-8"
               >
-                <motion.button
+                <motion.a
+                  href="/signup"
                   whileHover={{ scale: 1.05, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
                   whileTap={{ scale: 0.95 }}
                   className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
                 >
-                  Start Free Trial <FiArrowRight className="ml-2" />
-                </motion.button>
-                <motion.button
+                  Sign Up Now <FiArrowRight className="ml-2" />
+                </motion.a>
+                <motion.a
+                  href="/login"
                   whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.15)" }}
                   whileTap={{ scale: 0.95 }}
                   className="bg-transparent border-2 border-white/30 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all flex items-center justify-center"
                 >
-                  Explore Certifications
-                </motion.button>
+                  Log In
+                </motion.a>
               </motion.div>
             </GlowingBackground>
 

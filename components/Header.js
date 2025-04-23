@@ -46,13 +46,24 @@ const Header = () => {
   );
 
   const buttonContent = (
-    <motion.button
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-full font-medium text-sm shadow-md"
-    >
-      Login
-    </motion.button>
+    <div className="flex space-x-2">
+      <motion.a
+        href="/login"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="bg-white text-blue-600 border border-blue-200 px-4 py-2 rounded-full font-medium text-sm shadow-sm hover:shadow-md transition-shadow"
+      >
+        Login
+      </motion.a>
+      <motion.a
+        href="/signup"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-full font-medium text-sm shadow-md"
+      >
+        Sign Up
+      </motion.a>
+    </div>
   );
 
   return (
@@ -123,15 +134,24 @@ const Header = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
-                  className="pt-2"
+                  className="pt-2 space-y-2"
                 >
-                  <motion.button
+                  <motion.a
+                    href="/login"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full bg-white border border-blue-200 text-blue-600 py-3 rounded-lg font-medium shadow-sm flex justify-center"
+                  >
+                    Login
+                  </motion.a>
+                  <motion.a
+                    href="/signup"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-lg font-medium shadow-md flex justify-center"
                   >
-                    Login
-                  </motion.button>
+                    Sign Up
+                  </motion.a>
                 </motion.div>
               </div>
             </motion.div>
