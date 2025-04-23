@@ -6,11 +6,20 @@
 /* Global styles */
 html {
   scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+/* Responsive font size adjustments */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px;
+  }
 }
 
 body {
   font-family: var(--font-poppins), 'Roboto', 'system-ui', sans-serif;
   color: #1f2937;
+  overflow-x: hidden;
 }
 
 /* Custom scrollbar */
@@ -36,6 +45,57 @@ body {
   text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+.text-shadow-lg {
+  text-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Animation utilities */
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+.smooth-transition {
+  transition: all 0.3s ease;
+}
+
+/* Button animations */
+.btn-pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
+  }
+}
+
+/* Responsive container */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+}
+
 /* Color classes */
 .bg-blue-600 { background-color: #2563eb; }
 .bg-purple-600 { background-color: #9333ea; }
@@ -43,6 +103,7 @@ body {
 .bg-red-600 { background-color: #dc2626; }
 .bg-orange-600 { background-color: #ea580c; }
 .bg-indigo-600 { background-color: #4f46e5; }
+.bg-yellow-600 { background-color: #ca8a04; }
 
 .text-blue-600 { color: #2563eb; }
 .text-purple-600 { color: #9333ea; }
@@ -50,3 +111,13 @@ body {
 .text-red-600 { color: #dc2626; }
 .text-orange-600 { color: #ea580c; }
 .text-indigo-600 { color: #4f46e5; }
+.text-yellow-600 { color: #ca8a04; }
+
+/* Hover color variants */
+.hover\:bg-blue-700:hover { background-color: #1d4ed8; }
+.hover\:bg-purple-700:hover { background-color: #7e22ce; }
+.hover\:bg-green-700:hover { background-color: #15803d; }
+.hover\:bg-red-700:hover { background-color: #b91c1c; }
+.hover\:bg-orange-700:hover { background-color: #c2410c; }
+.hover\:bg-indigo-700:hover { background-color: #4338ca; }
+.hover\:bg-yellow-700:hover { background-color: #a16207; }
