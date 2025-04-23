@@ -1,5 +1,6 @@
-import React from 'react';
-import { cn } from '../../utils/cn';
+"use client";
+import { useState } from 'react';
+import { cn } from '../../utils/helpers';
 
 /**
  * Avatar component that displays user avatar or initials
@@ -11,42 +12,48 @@ import { cn } from '../../utils/cn';
  * @param {string} props.size - Avatar size (sm, md, lg, xl)
  * @param {string} props.className - Additional CSS classes
  */
-const Avatar = ({
-  src,
-  alt = 'User',
-  initials = 'U',
+export default function Avatar({
+  src = null,
+  alt = 'User avatar',
+  initials = '',
   size = 'md',
-  className = '',
-  ...props
-}) => {
-  // Size variants
-  const sizes = {
-    sm: 'h-8 w-8 text-sm',
-    md: 'h-12 w-12 text-base',
-    lg: 'h-16 w-16 text-xl',
-    xl: 'h-24 w-24 text-3xl',
+  className,
+}) {
+  const [imageError, setImageError] = useState(false);
+  
+  // Size mappings
+  const sizeClasses = {
+    sm: 'w-8 h-8 text-xs',
+    md: 'w-10 h-10 text-sm',
+    lg: 'w-14 h-14 text-base',
+    xl: 'w-20 h-20 text-xl',
   };
-
-  // Combine classNames
-  const avatarClasses = cn(
-    'rounded-full flex items-center justify-center text-white font-semibold bg-gradient-to-r from-blue-500 to-indigo-600',
-    sizes[size],
-    className
-  );
-
+  
+  const avatarSize = sizeClasses[size] || sizeClasses.md;
+  
+  // Handle image error
+  const handleImageError = () => {
+    setImageError(true);
+  };
+  
   return (
-    <div className={avatarClasses} {...props}>
-      {src ? (
-        <img 
-          src={src} 
-          alt={alt} 
-          className="w-full h-full rounded-full object-cover" 
+    <div
+      className={cn(
+        "rounded-full flex items-center justify-center overflow-hidden bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium",
+        avatarSize,
+        className
+      )}
+    >
+      {src && !imageError ? (
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-full object-cover"
+          onError={handleImageError}
         />
       ) : (
-        initials?.charAt(0) || 'U'
+        <span>{initials?.toUpperCase() || '?'}</span>
       )}
     </div>
   );
-};
-
-export default Avatar;
+}

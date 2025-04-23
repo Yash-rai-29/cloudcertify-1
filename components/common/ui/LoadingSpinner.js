@@ -1,4 +1,5 @@
-import React from 'react';
+"use client";
+import { cn } from "../../../utils/helpers";
 
 /**
  * Loading spinner component with customizable size and text
@@ -8,21 +9,41 @@ import React from 'react';
  * @param {string|null} props.text - Optional text to display with the spinner
  * @param {string} props.className - Additional CSS classes
  */
-const LoadingSpinner = ({ size = 'medium', text = 'Loading...', className = '' }) => {
+export default function LoadingSpinner({ 
+  size = "medium", 
+  text = null,
+  className
+}) {
+  // Size mappings
   const sizeClasses = {
-    small: 'h-4 w-4 border-2',
-    medium: 'h-8 w-8 border-2',
-    large: 'h-12 w-12 border-3',
+    small: "w-5 h-5 border-2",
+    medium: "w-8 h-8 border-3",
+    large: "w-12 h-12 border-4",
   };
 
-  const spinnerSizeClass = sizeClasses[size] || sizeClasses.medium;
-  
+  // Text size mappings
+  const textSizeClasses = {
+    small: "text-xs",
+    medium: "text-sm",
+    large: "text-base",
+  };
+
+  const spinnerSize = sizeClasses[size] || sizeClasses.medium;
+  const textSize = textSizeClasses[size] || textSizeClasses.medium;
+
   return (
-    <div className={`flex flex-col items-center justify-center ${className}`}>
-      <div className={`animate-spin rounded-full ${spinnerSizeClass} border-t-blue-600 border-blue-200`} />
-      {text && <p className="mt-2 text-gray-600 text-sm">{text}</p>}
+    <div className={cn("flex flex-col items-center justify-center", className)}>
+      <div 
+        className={cn(
+          "rounded-full border-blue-300 border-t-blue-600 animate-spin", 
+          spinnerSize
+        )} 
+      />
+      {text && (
+        <p className={cn("mt-3 text-gray-600 font-medium", textSize)}>
+          {text}
+        </p>
+      )}
     </div>
   );
-};
-
-export default LoadingSpinner;
+}

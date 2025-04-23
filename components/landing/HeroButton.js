@@ -1,5 +1,7 @@
-import React from 'react';
+"use client";
 import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { cn } from '../../utils/helpers';
 
 /**
  * Hero Button component for the landing page
@@ -11,36 +13,33 @@ import { motion } from 'framer-motion';
  * @param {boolean} props.primary - Whether button is primary or secondary
  * @param {string} props.className - Additional classes
  */
-const HeroButton = ({
-  children,
-  icon,
-  href,
+const HeroButton = ({ 
+  children, 
+  icon, 
+  href = "#",
   primary = true,
-  className = '',
-  ...props
+  className
 }) => {
   return (
-    <motion.a
+    <Link 
       href={href}
-      whileHover={
+      className={cn(
+        "flex items-center justify-center gap-2 px-6 py-3 rounded-full font-medium transition-all duration-300 text-base",
         primary 
-          ? { scale: 1.05, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }
-          : { scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.15)" }
-      }
-      whileTap={{ scale: 0.95 }}
-      className={`
-        ${primary 
-          ? 'bg-white text-blue-600 shadow-lg hover:shadow-xl' 
-          : 'bg-transparent border-2 border-white/30 text-white'
-        }
-        px-8 py-4 rounded-xl font-semibold text-lg transition-all flex items-center justify-center
-        ${className}
-      `}
-      {...props}
+          ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-700/30 hover:shadow-blue-700/40" 
+          : "bg-white/20 text-white backdrop-blur-md border border-white/30 hover:bg-white/30",
+        className
+      )}
     >
-      {children}
-      {icon && <span className="ml-2">{icon}</span>}
-    </motion.a>
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.98 }}
+        className="flex items-center justify-center gap-2"
+      >
+        {children}
+        {icon && <span className="ml-1">{icon}</span>}
+      </motion.div>
+    </Link>
   );
 };
 

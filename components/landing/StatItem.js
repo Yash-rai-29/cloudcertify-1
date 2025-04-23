@@ -1,5 +1,6 @@
-import React from 'react';
+"use client";
 import { motion } from 'framer-motion';
+import { cn } from '../../utils/helpers';
 
 /**
  * Statistic Item component for displaying statistics on the landing page
@@ -9,21 +10,21 @@ import { motion } from 'framer-motion';
  * @param {string} props.label - Description of the statistic
  * @param {string} props.className - Additional CSS classes
  */
-const StatItem = ({ value, label, className = '', ...props }) => {
+const StatItem = ({ value, label, className }) => {
   return (
     <motion.div
-      whileHover={{ 
-        scale: 1.05, 
-        boxShadow: "0 0 15px rgba(255, 255, 255, 0.2)",
-        backgroundColor: "rgba(255, 255, 255, 0.15)" 
-      }}
-      className={`bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all ${className}`}
-      {...props}
+      whileHover={{ y: -5 }}
+      className={cn(
+        "flex flex-col items-center justify-center p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10",
+        className
+      )}
     >
-      <div className="text-2xl md:text-3xl font-bold mb-1">
+      <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-200 to-white bg-clip-text text-transparent">
         {value}
-      </div>
-      <div className="text-blue-100 text-sm">{label}</div>
+      </span>
+      <span className="text-xs sm:text-sm text-blue-100 mt-1 text-center">
+        {label}
+      </span>
     </motion.div>
   );
 };

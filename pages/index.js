@@ -1,33 +1,21 @@
-import Head from 'next/head';
-import Header from '../components/Header';
 import HeroSection from '../components/HeroSection';
-import Footer from '../components/Footer';
 import ValueProposition from '../components/ValueProposition';
 import TestLibrary from '../components/TestLibrary';
 import PerformanceDashboard from '../components/PerformanceDashboard';
 import Testimonials from '../components/Testimonials';
+import { getPublicLayout } from '../components/layouts/PublicLayout';
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
-      <Head>
-        <title>Cloud Certify - GCP Certification Preparation</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="Prepare for your Google Cloud Certification Exams with Cloud Certify - featuring interactive tests, quizzes, and detailed performance tracking." />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <Header />
-      
-      <main>
-        <HeroSection />
-        <ValueProposition />
-        <TestLibrary />
-        <PerformanceDashboard />
-        <Testimonials />
-      </main>
-
-      <Footer />
-    </div>
+    <main>
+      <HeroSection />
+      <ValueProposition />
+      <TestLibrary />
+      <PerformanceDashboard />
+      <Testimonials />
+    </main>
   );
 }
+
+// Use the public layout for this page
+Home.getLayout = getPublicLayout;
