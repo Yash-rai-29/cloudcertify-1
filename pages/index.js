@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import NewHeader from '../components/NewHeader';
 import NewHeroSection from '../components/NewHeroSection';
-import Footer from '../components/Footer';
+import NewFooter from '../components/NewFooter';
 import NewValueProposition from '../components/NewValueProposition';
 import NewTestLibrary from '../components/NewTestLibrary';
 import PerformanceDashboard from '../components/PerformanceDashboard';
@@ -27,7 +27,7 @@ export default function Home() {
         <NewTestimonials />
       </main>
 
-      <Footer />
+      <NewFooter />
     </div>
   );
 }
