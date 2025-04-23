@@ -7,28 +7,38 @@ import { TextReveal } from "./ui/TextReveal";
 import { GlowingBackground } from "./ui/GlowingBackground";
 import { useAuth } from "../contexts/AuthContext";
 
+// Import reusable landing components
+import HeroButton from "./landing/HeroButton";
+import StatItem from "./landing/StatItem";
+import HeroBadge from "./landing/HeroBadge";
+
+/**
+ * Hero section component for the landing page
+ */
 const HeroSection = () => {
   const { user } = useAuth();
+  
+  // Stats data for the hero section
+  const stats = [
+    { value: "15,000+", label: "Certified Professionals" },
+    { value: "94%", label: "Success Rate" },
+    { value: "2,500+", label: "Practice Questions" },
+    { value: "4 Weeks", label: "Avg. Prep Time" },
+  ];
   
   return (
     <section id="hero" className="relative w-full overflow-hidden">
       <SparklesBackground containerClassName="min-h-screen">
         <div className="container mx-auto px-4 py-24 md:py-32 relative z-10">
           <div className="max-w-5xl mx-auto text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-block mb-6"
-            >
-              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white border border-white/20">
-                <FiCloud className="text-lg" />
-                <span className="text-sm font-medium">
-                  Google Cloud Platform Certification
-                </span>
-              </div>
-            </motion.div>
+            {/* GCP Certification Badge */}
+            <HeroBadge 
+              icon={<FiCloud className="text-lg" />}
+              text="Google Cloud Platform Certification"
+              className="mb-6"
+            />
 
+            {/* Main Heading */}
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -52,6 +62,7 @@ const HeroSection = () => {
               GCP professional
             </motion.h1>
 
+            {/* Subtitle with Text Reveal */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -73,6 +84,7 @@ const HeroSection = () => {
               />
             </motion.div>
 
+            {/* CTA Buttons */}
             <GlowingBackground 
               containerClassName="py-4"
               glowSize="250px"
@@ -85,65 +97,46 @@ const HeroSection = () => {
                 className="flex flex-col sm:flex-row gap-4 justify-center mt-8"
               >
                 {user ? (
-                  // Show dashboard button if logged in
-                  <motion.a
-                    href="/dashboard"
-                    whileHover={{ scale: 1.05, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
+                  // Dashboard button for logged in users
+                  <HeroButton 
+                    href="/dashboard" 
+                    icon={<FiUser />}
                   >
-                    Go to Dashboard <FiUser className="ml-2" />
-                  </motion.a>
+                    Go to Dashboard
+                  </HeroButton>
                 ) : (
-                  // Show login/signup buttons if not logged in
+                  // Sign up and login buttons for visitors
                   <>
-                    <motion.a
+                    <HeroButton 
                       href="/signup"
-                      whileHover={{ scale: 1.05, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center"
+                      icon={<FiArrowRight />}
                     >
-                      Sign Up Now <FiArrowRight className="ml-2" />
-                    </motion.a>
-                    <motion.a
+                      Sign Up Now
+                    </HeroButton>
+                    <HeroButton 
                       href="/login"
-                      whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.15)" }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-transparent border-2 border-white/30 text-white px-8 py-4 rounded-xl font-semibold text-lg transition-all flex items-center justify-center"
+                      primary={false}
                     >
                       Log In
-                    </motion.a>
+                    </HeroButton>
                   </>
                 )}
               </motion.div>
             </GlowingBackground>
 
+            {/* Stats Grid */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 text-white max-w-3xl mx-auto"
             >
-              {[
-                { value: "15,000+", label: "Certified Professionals" },
-                { value: "94%", label: "Success Rate" },
-                { value: "2,500+", label: "Practice Questions" },
-                { value: "4 Weeks", label: "Avg. Prep Time" },
-              ].map((stat, index) => (
-                <motion.div
+              {stats.map((stat, index) => (
+                <StatItem
                   key={index}
-                  whileHover={{ 
-                    scale: 1.05, 
-                    boxShadow: "0 0 15px rgba(255, 255, 255, 0.2)",
-                    backgroundColor: "rgba(255, 255, 255, 0.15)" 
-                  }}
-                  className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 transition-all"
-                >
-                  <div className="text-2xl md:text-3xl font-bold mb-1">
-                    {stat.value}
-                  </div>
-                  <div className="text-blue-100 text-sm">{stat.label}</div>
-                </motion.div>
+                  value={stat.value}
+                  label={stat.label}
+                />
               ))}
             </motion.div>
           </div>
