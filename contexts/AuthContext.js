@@ -22,43 +22,50 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // User registration with Firebase and API
+  // User registration with Firebase Auth only
   const signup = async (userData) => {
     try {
       setLoading(true);
-      // First create the user in Firebase Auth
       const { email, password, first_name, last_name, certification_target } = userData;
       
+      // Create user in Firebase Auth
       const firebaseResponse = await createUserWithEmailAndPassword(auth, email, password);
       const firebaseUser = firebaseResponse.user;
       
-      // After Firebase auth is successful, register user with the API
-      const apiResponse = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/b/manage_user/users`, 
-        {
-          first_name,
-          last_name,
-          email,
-          certification_target,
-          password
-        }
-      );
+      // Update user profile with displayName
+      await firebaseUser.updateProfile({
+        displayName: `${first_name} ${last_name}`
+      });
+      
+      // Store additional user data in localStorage (could be replaced with Firestore if needed)
+      const userData = {
+        uid: firebaseUser.uid,
+        email: firebaseUser.email,
+        displayName: `${first_name} ${last_name}`,
+        firstName: first_name,
+        lastName: last_name,
+        certificationTarget: certification_target,
+        createdAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem(`user_${firebaseUser.uid}`, JSON.stringify(userData));
       
       // Get the user token and set in cookies
       const token = await firebaseUser.getIdToken();
       Cookies.set('auth_token', token, { expires: 7 }); // expires in 7 days
       
-      // Set user in state and redirect to dashboard
+      // Set user in state with updated profile
       setUser({
         uid: firebaseUser.uid,
         email: firebaseUser.email,
         displayName: `${first_name} ${last_name}`,
-        apiData: apiResponse.data,
+        photoURL: firebaseUser.photoURL,
+        certificationTarget: certification_target
       });
       
       toast.success('Account created successfully!');
       router.push('/dashboard');
-      return apiResponse.data;
+      return userData;
     } catch (error) {
       console.error("Error signing up:", error);
       toast.error(error.message || 'Failed to create account. Please try again.');
@@ -139,12 +146,29 @@ export function AuthProvider({ children }) {
           const token = await firebaseUser.getIdToken();
           Cookies.set('auth_token', token, { expires: 7 });
           
-          // Set user in state
+          // Try to get additional user data from localStorage
+          let additionalData = {};
+          try {
+            const storedData = localStorage.getItem(`user_${firebaseUser.uid}`);
+            if (storedData) {
+              const parsedData = JSON.parse(storedData);
+              additionalData = {
+                certificationTarget: parsedData.certificationTarget,
+                firstName: parsedData.firstName,
+                lastName: parsedData.lastName
+              };
+            }
+          } catch (localStorageError) {
+            console.error("Error getting data from localStorage:", localStorageError);
+          }
+          
+          // Set user in state with combined data
           setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             displayName: firebaseUser.displayName || firebaseUser.email,
             photoURL: firebaseUser.photoURL,
+            ...additionalData
           });
         } catch (error) {
           console.error("Error setting user:", error);
