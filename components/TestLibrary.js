@@ -341,7 +341,15 @@ const TestLibrary = () => {
                       }, 0.3)`
                     }}
                     whileTap={{ scale: 0.95 }}
-                    className={`bg-gradient-to-r from-${test.color}-500 to-${test.color}-600 text-white px-6 py-3 rounded-xl text-sm font-medium flex items-center justify-center shadow-md transition-all w-full`}
+                    style={{
+                      background: test.color === 'blue' ? 'linear-gradient(to right, #2563eb, #3b82f6)' : 
+                               test.color === 'green' ? 'linear-gradient(to right, #10b981, #34d399)' : 
+                               test.color === 'purple' ? 'linear-gradient(to right, #8b5cf6, #a78bfa)' : 
+                               test.color === 'red' ? 'linear-gradient(to right, #ef4444, #f87171)' : 
+                               test.color === 'orange' ? 'linear-gradient(to right, #f97316, #fb923c)' : 
+                               'linear-gradient(to right, #2563eb, #3b82f6)'
+                    }}
+                    className="text-white px-6 py-3 rounded-xl text-sm font-medium flex items-center justify-center shadow-md transition-all w-full"
                   >
                     Start Test <FiArrowRight className="ml-2" />
                   </motion.button>
@@ -373,7 +381,15 @@ const TestLibrary = () => {
                 }, 0.25)`
               }}
               whileTap={{ scale: 0.95 }}
-              className={`bg-gradient-to-r from-${getActiveTabColor()}-500 to-${getActiveTabColor()}-600 text-white px-8 py-3.5 rounded-xl font-medium shadow-lg transition-all flex items-center`}
+              style={{
+                background: getActiveTabColor() === 'blue' ? 'linear-gradient(to right, #2563eb, #3b82f6)' : 
+                           getActiveTabColor() === 'green' ? 'linear-gradient(to right, #10b981, #34d399)' : 
+                           getActiveTabColor() === 'purple' ? 'linear-gradient(to right, #8b5cf6, #a78bfa)' : 
+                           getActiveTabColor() === 'red' ? 'linear-gradient(to right, #ef4444, #f87171)' : 
+                           getActiveTabColor() === 'orange' ? 'linear-gradient(to right, #f97316, #fb923c)' : 
+                           'linear-gradient(to right, #2563eb, #3b82f6)'
+              }}
+              className="text-white px-8 py-3.5 rounded-xl font-medium shadow-lg transition-all flex items-center"
             >
               View All Tests <FiArrowRight className="ml-2" />
             </motion.button>
@@ -384,7 +400,23 @@ const TestLibrary = () => {
                 boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)"
               }}
               whileTap={{ scale: 0.95 }}
-              className={`border-2 border-${getActiveTabColor()}-500 text-${getActiveTabColor()}-600 hover:bg-${getActiveTabColor()}-50 px-8 py-3.5 rounded-xl font-medium transition-all`}
+              style={{
+                border: `2px solid ${
+                  getActiveTabColor() === 'blue' ? '#2563eb' : 
+                  getActiveTabColor() === 'green' ? '#10b981' : 
+                  getActiveTabColor() === 'purple' ? '#8b5cf6' : 
+                  getActiveTabColor() === 'red' ? '#ef4444' : 
+                  getActiveTabColor() === 'orange' ? '#f97316' : 
+                  '#2563eb'
+                }`,
+                color: getActiveTabColor() === 'blue' ? '#2563eb' : 
+                      getActiveTabColor() === 'green' ? '#10b981' : 
+                      getActiveTabColor() === 'purple' ? '#8b5cf6' : 
+                      getActiveTabColor() === 'red' ? '#ef4444' : 
+                      getActiveTabColor() === 'orange' ? '#f97316' : 
+                      '#2563eb'
+              }}
+              className="px-8 py-3.5 rounded-xl font-medium transition-all bg-white hover:bg-gray-50"
             >
               Random Test
             </motion.button>
