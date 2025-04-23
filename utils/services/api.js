@@ -1,9 +1,12 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+// Get API base URL from environment variables or use default
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://base-service-6070296894.us-central1.run.app';
+
 // Create axios instance with default config
 const api = axios.create({
-  baseURL: 'https://base-service-6070296894.us-central1.run.app',
+  baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
