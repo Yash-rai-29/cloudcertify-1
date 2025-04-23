@@ -30,8 +30,16 @@ const NewHeader = () => {
       whileHover={{ scale: 1.05 }}
       className="flex items-center gap-1.5"
     >
-      <FiCloud className="text-blue-600 text-2xl" />
-      <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+      <FiCloud
+        className={`text-2xl ${scrolled ? "text-blue-600" : "text-white"}`}
+      />
+      <span
+        className={`font-bold text-xl ${
+          scrolled
+            ? "bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-blue-600"
+            : "text-white"
+        }`}
+      >
         Cloud Certify
       </span>
     </motion.div>

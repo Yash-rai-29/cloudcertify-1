@@ -2,7 +2,6 @@
 import React from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { FiTarget, FiTrendingUp, FiClock, FiBarChart, FiShield, FiBook, FiArrowRight } from "react-icons/fi";
-import { CardHover } from "./ui/CardHover";
 import { TracingBeam } from "./ui/TracingBeam";
 import { GlowingBackground } from "./ui/GlowingBackground";
 import { Sparkles } from "./ui/SparklesBackground";
@@ -20,7 +19,7 @@ const NewValueProposition = () => {
       id: 2,
       title: "Performance Analytics",
       description: "Detailed insights into your test performance and improvement areas with visual dashboards",
-      icon: <FiTrendingUp className="text-indigo-600" size={20} />
+      icon: <FiTrendingUp className="text-blue-600" size={20} />
     },
     {
       id: 3,
@@ -32,7 +31,7 @@ const NewValueProposition = () => {
       id: 4,
       title: "Progress Tracking",
       description: "Visual dashboards to monitor your progress and readiness with personalized recommendations",
-      icon: <FiBarChart className="text-indigo-600" size={20} />
+      icon: <FiBarChart className="text-blue-600" size={20} />
     },
     {
       id: 5,
@@ -44,13 +43,13 @@ const NewValueProposition = () => {
       id: 6,
       title: "Comprehensive Study Material",
       description: "In-depth explanations and references for further learning with expert-curated content",
-      icon: <FiBook className="text-indigo-600" size={20} />
+      icon: <FiBook className="text-blue-600" size={20} />
     },
   ];
 
   const { scrollYProgress } = useScroll();
-  const scale = useTransform(scrollYProgress, [0, 1], [0.8, 1]);
-  const opacity = useTransform(scrollYProgress, [0, 0.3], [0.6, 1]);
+  const scale = useTransform(scrollYProgress, [0, 1], [0.9, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3], [0.8, 1]);
 
   // Animation variants
   const containerVariants = {
@@ -102,7 +101,7 @@ const NewValueProposition = () => {
       >
         {/* Gradient overlay on hover */}
         <motion.div 
-          className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"
+          className="absolute inset-0 bg-gradient-to-br from-blue-600 to-blue-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-0"
         />
         
         {/* Card content */}
@@ -146,14 +145,14 @@ const NewValueProposition = () => {
   };
 
   return (
-    <section id="value-proposition" className="py-24 relative" style={{ position: 'relative' }}>
-      {/* Background decorative elements with animated gradients */}
+    <section id="value-proposition" className="py-24 bg-white relative" style={{ position: 'relative' }}>
+      {/* Background decorative elements with blue accent */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <motion.div 
-          className="absolute -top-40 -left-40 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"
+          className="absolute -top-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"
           animate={{ 
             scale: [1, 1.1, 1],
-            opacity: [0.5, 0.7, 0.5]
+            opacity: [0.3, 0.5, 0.3]
           }} 
           transition={{ 
             duration: 8, 
@@ -162,10 +161,10 @@ const NewValueProposition = () => {
           }}
         />
         <motion.div 
-          className="absolute top-1/3 -right-20 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl"
+          className="absolute top-1/3 -right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"
           animate={{ 
             scale: [1, 1.2, 1],
-            opacity: [0.4, 0.6, 0.4]
+            opacity: [0.2, 0.4, 0.2]
           }} 
           transition={{ 
             duration: 10, 
@@ -175,10 +174,10 @@ const NewValueProposition = () => {
           }}
         />
         <motion.div 
-          className="absolute -bottom-40 left-1/4 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl"
+          className="absolute -bottom-40 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"
           animate={{ 
             scale: [1, 1.15, 1],
-            opacity: [0.5, 0.7, 0.5]
+            opacity: [0.3, 0.5, 0.3]
           }} 
           transition={{ 
             duration: 12, 
@@ -191,7 +190,7 @@ const NewValueProposition = () => {
       
       <TracingBeam>
         <motion.div 
-          className="container mx-auto px-4 relative z-10"
+          className="container mx-auto px-4 relative z-10 max-w-7xl"
           style={{ scale, opacity }}
         >
           {/* Section header with enhanced animations */}
@@ -204,7 +203,7 @@ const NewValueProposition = () => {
           >
             <motion.div
               variants={titleVariants}
-              className="inline-block px-4 py-1.5 mb-4 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 text-blue-700 rounded-full text-sm font-medium border border-blue-200/50"
+              className="inline-block px-4 py-1.5 mb-4 bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 rounded-full text-sm font-medium border border-blue-200/50"
             >
               <Sparkles className="w-full h-full">
                 Features & Benefits
@@ -213,11 +212,11 @@ const NewValueProposition = () => {
 
             <motion.h2
               variants={titleVariants}
-              className="text-3xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 relative inline-block"
+              className="text-3xl md:text-5xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-700 relative inline-block"
             >
               Why Cloud Certify Is Your Best Choice
               <motion.div 
-                className="absolute -bottom-3 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent rounded-full"
+                className="absolute -bottom-3 left-0 right-0 h-1.5 bg-gradient-to-r from-transparent via-blue-500 to-transparent rounded-full"
                 initial={{ scaleX: 0, opacity: 0 }}
                 whileInView={{ scaleX: 1, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 1 }}
@@ -246,7 +245,7 @@ const NewValueProposition = () => {
             containerClassName="rounded-2xl overflow-hidden"
             glowSize="350px" 
             glowOpacity={0.4}
-            glowColor="rgba(79, 70, 229, 0.4)"
+            glowColor="rgba(37, 99, 235, 0.4)"
           >
             <motion.div
               initial={{ opacity: 0, y: 40 }}
@@ -255,7 +254,7 @@ const NewValueProposition = () => {
               viewport={{ once: true, margin: "-100px" }}
               className="rounded-2xl overflow-hidden shadow-2xl"
             >
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-10 md:p-12 text-white">
+              <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-10 md:p-12 text-white">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
                   <div>
                     <h3 className="text-2xl md:text-3xl font-bold mb-6 relative">
