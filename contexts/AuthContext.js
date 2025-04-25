@@ -54,8 +54,37 @@ export function AuthProvider({ children }) {
   const handleAuthError = (errorResponse) => {
     console.error('Authentication error:', errorResponse);
     
+    // Check if this is a session expiration error
+    if (errorResponse.code === 'session_expired' || errorResponse.error?.code === 'session_expired') {
+      const formattedError = {
+        message: 'Your session has expired. Please log in again.',
+        code: 'session_expired',
+        shouldShowToast: true
+      };
+      setError(formattedError);
+      
+      // Redirect to login with the appropriate parameters
+      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+      const returnUrl = currentPath !== '/' && !currentPath.includes('/login') ? 
+                       currentPath : undefined;
+      
+      // Only redirect if we're in the browser
+      if (typeof window !== 'undefined') {
+        // Build the redirect URL with query parameters
+        let redirectUrl = AUTH.ROUTES.LOGIN;
+        const params = new URLSearchParams();
+        if (returnUrl) params.append('returnUrl', returnUrl);
+        params.append('expired', 'true');
+        
+        if (params.toString()) {
+          redirectUrl += `?${params.toString()}`;
+        }
+        
+        router.push(redirectUrl);
+      }
+    }
     // Check if the errorResponse is a direct Firebase error
-    if (errorResponse.code && errorResponse.code.startsWith('auth/')) {
+    else if (errorResponse.code && errorResponse.code.startsWith('auth/')) {
       // Format Firebase auth error codes for better display
       let formattedError;
       
@@ -103,6 +132,15 @@ export function AuthProvider({ children }) {
             shouldShowToast: true
           };
           break;
+        // Handle token expiration errors from Firebase
+        case 'auth/id-token-expired':
+        case 'auth/id-token-revoked':
+          formattedError = { 
+            message: 'Your session has expired. Please log in again.',
+            code: 'session_expired',
+            shouldShowToast: true
+          };
+          break;
         default:
           formattedError = {
             message: errorResponse.message || 'An authentication error occurred',
@@ -135,20 +173,104 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // User is signed in
-        setUser({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          emailVerified: user.emailVerified,
-          photoURL: user.photoURL,
-        });
-        
-        // TODO: Fetch user profile from API if needed
-        // const profileResponse = await getUserProfile();
-        // if (profileResponse.success) {
-        //   setUserProfile(profileResponse.data);
-        // }
+        try {
+          // Check token validity
+          const tokenResult = await user.getIdTokenResult(true);
+          
+          // Check if token is close to expiration (within 5 minutes)
+          const expirationTime = new Date(tokenResult.expirationTime).getTime();
+          const currentTime = Date.now();
+          const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+          
+          if (expirationTime - currentTime < fiveMinutes) {
+            // Token is about to expire, try to refresh it
+            try {
+              await user.getIdToken(true); // Force token refresh
+              console.log('Token refreshed successfully');
+            } catch (refreshError) {
+              console.error('Failed to refresh token:', refreshError);
+              // Handle failed token refresh
+              const errorObj = {
+                message: 'Your session is about to expire and could not be refreshed. Please log in again.',
+                code: 'session_expiring',
+                shouldShowToast: true
+              };
+              setError(errorObj);
+            }
+          }
+          
+          // User is signed in and token is valid
+          setUser({
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            emailVerified: user.emailVerified,
+            photoURL: user.photoURL,
+            // Add token expiration information
+            tokenExpiration: tokenResult.expirationTime
+          });
+          
+          // TODO: Fetch user profile from API if needed
+          // const profileResponse = await getUserProfile();
+          // if (profileResponse.success) {
+          //   setUserProfile(profileResponse.data);
+          // }
+        } catch (tokenError) {
+          console.error('Error checking token validity:', tokenError);
+          
+          // Handle token validation errors
+          if (tokenError.code === 'auth/id-token-expired' || 
+              tokenError.code === 'auth/id-token-revoked') {
+            // Handle expired or revoked tokens
+            const errorObj = {
+              message: 'Your session has expired. Please log in again.',
+              code: 'session_expired',
+              shouldShowToast: true
+            };
+            setError(errorObj);
+            
+            // Sign out and force redirect
+            try {
+              await auth.signOut();
+            } catch (signOutError) {
+              console.error('Error signing out user after token expired:', signOutError);
+            }
+            
+            // Redirect with query parameters for session expiration
+            const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+            const returnUrl = currentPath !== '/' && !currentPath.includes('/login') ? 
+                           currentPath : undefined;
+                           
+            if (typeof window !== 'undefined') {
+              let redirectUrl = AUTH.ROUTES.LOGIN;
+              const params = new URLSearchParams();
+              if (returnUrl) params.append('returnUrl', returnUrl);
+              params.append('expired', 'true');
+              
+              if (params.toString()) {
+                redirectUrl += `?${params.toString()}`;
+              }
+              
+              // Force router push to login page with expired flag
+              router.push(redirectUrl);
+            }
+          } else {
+            // If some other token error, set user to signed in but mark error
+            setUser({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              emailVerified: user.emailVerified,
+              photoURL: user.photoURL,
+            });
+            
+            setError({
+              message: 'There was a problem with your session. Some features may be unavailable.',
+              code: 'token_error',
+              shouldShowToast: true
+            });
+          }
+        }
       } else {
         // User is signed out
         setUser(null);
@@ -160,7 +282,17 @@ export function AuthProvider({ children }) {
         );
         
         if (isProtectedRoute) {
-          router.push(AUTH.ROUTES.LOGIN);
+          const returnUrl = router.asPath !== '/' ? router.asPath : undefined;
+          
+          // Build redirect URL
+          let redirectUrl = AUTH.ROUTES.LOGIN;
+          if (returnUrl) {
+            const params = new URLSearchParams();
+            params.append('returnUrl', returnUrl);
+            redirectUrl += `?${params}`;
+          }
+          
+          router.push(redirectUrl);
         }
       }
       
@@ -187,7 +319,11 @@ export function AuthProvider({ children }) {
       
       if (response.success) {
         handleAuthSuccess(response);
-        router.push(AUTH.ROUTES.DASHBOARD);
+        
+        // Check if there's a returnUrl to redirect to
+        const returnUrl = router.query.returnUrl || AUTH.ROUTES.DASHBOARD;
+        router.push(returnUrl);
+        
         return response;
       } else {
         // Check for "User already exists" error which should be handled specially
@@ -242,7 +378,11 @@ export function AuthProvider({ children }) {
       
       if (response.success) {
         handleAuthSuccess(response);
-        router.push(AUTH.ROUTES.DASHBOARD);
+        
+        // Check if there's a returnUrl to redirect to
+        const returnUrl = router.query.returnUrl || AUTH.ROUTES.DASHBOARD;
+        router.push(returnUrl);
+        
         return response;
       } else {
         // Check for special error handling cases

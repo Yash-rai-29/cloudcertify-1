@@ -55,10 +55,23 @@ apiClient.interceptors.response.use(
           console.error('Error signing out user after token expired:', signOutError);
         }
         
-        // Redirect to login page (will be handled by the auth state listener)
-        // If this doesn't work immediately, we could use next/router to force navigation
+        // Redirect to login page with returnUrl and expired flag
         if (typeof window !== 'undefined') {
-          window.location.href = AUTH.ROUTES.LOGIN;
+          const currentPath = window.location.pathname;
+          const returnUrl = currentPath !== '/' && !currentPath.includes('/login') ? 
+                           currentPath : undefined;
+          
+          // Build the redirect URL with query parameters
+          let redirectUrl = AUTH.ROUTES.LOGIN;
+          const params = new URLSearchParams();
+          if (returnUrl) params.append('returnUrl', returnUrl);
+          params.append('expired', 'true');
+          
+          if (params.toString()) {
+            redirectUrl += `?${params.toString()}`;
+          }
+          
+          window.location.href = redirectUrl;
         }
       } 
       // Handle 403 Forbidden errors (user doesn't have permission)

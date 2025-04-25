@@ -71,9 +71,10 @@ export default function Login() {
         // If successful, show a success toast
         showSuccess('Logged in successfully!');
         
-        // Optional: redirect to dashboard after successful login
+        // Get returnUrl from query parameters if available
         setTimeout(() => {
-          router.push('/dashboard');
+          const returnUrl = router.query.returnUrl || '/dashboard';
+          router.push(returnUrl);
         }, 1000);
       }
     } catch (error) {
@@ -135,6 +136,10 @@ export default function Login() {
   // Show error from context if present
   const displayError = authError ? formatErrorMessage(authError) : 
                       (authContextError ? formatErrorMessage(authContextError) : null);
+  
+  // Check if the user was redirected due to session expiration
+  const hasSessionExpired = router.query.expired === 'true';
+  const hasReturnUrl = !!router.query.returnUrl;
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center">
@@ -162,6 +167,22 @@ export default function Login() {
             </div>
             <p className="text-gray-600">Log in to your account</p>
           </div>
+
+          {/* Session expired message */}
+          {hasSessionExpired && (
+            <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-lg mb-6 flex items-start gap-2">
+              <FiAlertCircle className="mt-0.5 flex-shrink-0 text-amber-500" />
+              <p>Your session has expired. Please log in again to continue.</p>
+            </div>
+          )}
+          
+          {/* Return URL message */}
+          {!hasSessionExpired && hasReturnUrl && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg mb-6 flex items-start gap-2">
+              <FiAlertCircle className="mt-0.5 flex-shrink-0 text-blue-500" />
+              <p>Please log in to access the requested page.</p>
+            </div>
+          )}
 
           {/* Error message */}
           {displayError && (
