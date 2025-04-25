@@ -1,4 +1,4 @@
-import { IconClock, IconTestPipe, IconNotebook, IconFlashcard, IconMessage, IconCertificate } from '@tabler/icons-react';
+import { IconClock, IconTestPipe2, IconBook, IconCards, IconMessage, IconCertificate } from '@tabler/icons-react';
 import { timeAgo } from '../../utils/helpers';
 
 /**
@@ -10,11 +10,11 @@ const getActivityIcon = (type) => {
   switch (type?.toUpperCase()) {
     case 'TEST_COMPLETED':
     case 'TEST_STARTED':
-      return <IconTestPipe size={18} />;
+      return <IconTestPipe2 size={18} />;
     case 'FLASHCARD_REVIEWED':
-      return <IconFlashcard size={18} />;
+      return <IconCards size={18} />;
     case 'MODULE_COMPLETED':
-      return <IconNotebook size={18} />;
+      return <IconBook size={18} />;
     case 'CERTIFICATE_EARNED':
       return <IconCertificate size={18} />;
     case 'AI_CHAT':
