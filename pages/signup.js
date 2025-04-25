@@ -18,7 +18,7 @@ Signup.getLayout = (page) => (
 );
 
 export default function Signup() {
-  const { signUp, loading } = useAuth();
+  const { signUp, loading, error: authContextError, clearError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState(null);
   
@@ -41,19 +41,30 @@ export default function Signup() {
   const onSubmit = async (data) => {
     try {
       setAuthError(null);
-      await signUp({
+      clearError();
+      
+      // Create user data object to match API requirements
+      const userData = {
         first_name: data.firstName,
         last_name: data.lastName,
         email: data.email,
         password: data.password,
         certification_target: data.certificationTarget
-      });
-      // Redirect is handled in the signup function
+      };
+      
+      const response = await signUp(userData);
+      if (!response.success) {
+        setAuthError(response.error?.message || 'Failed to create account. Please try again.');
+      }
+      // Redirect is handled in the signUp function
     } catch (error) {
-      console.error(error);
+      console.error('Signup error:', error);
       setAuthError(error.message || 'Failed to create account. Please try again.');
     }
   };
+
+  // Show error from context if present
+  const displayError = authError || (authContextError ? authContextError.message : null);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center">
@@ -83,10 +94,10 @@ export default function Signup() {
           </div>
 
           {/* Error message */}
-          {authError && (
+          {displayError && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-start gap-2">
               <FiAlertCircle className="mt-0.5 flex-shrink-0" />
-              <p>{authError}</p>
+              <p>{displayError}</p>
             </div>
           )}
           
