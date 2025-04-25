@@ -1,0 +1,187 @@
+Design a modern, clean, and responsive Dashboard UI for an EdTech platform that helps users prepare for cloud certifications. It should include a Daily Streak Challenge, Recent Activity, Recommended Tests, and Learning Accelerators.
+
+🧱 Layout Requirements
+📌 Left Sidebar
+Logo
+
+Navigation:
+
+Dashboard (active)
+
+Test Library
+
+Test History
+
+Leaderboard
+
+Resources
+
+AI ChatBot
+
+📌 Header
+Welcome text: Welcome back, {user_name}
+
+Continue Learning button
+
+Profile avatar (with dropdown)
+
+Notifications
+
+📌 Daily Streak Challenge Card
+Streak status: {day_count} Day(s)
+
+Question of the Day text
+
+Take Question Button
+
+📌 Recent Activity
+List of past activities (tests taken, flashcards reviewed, AI chat, etc.)
+
+📌 Recommended Practice Tests
+List of test types (with status tags like "Recommended", "New", "Practice")
+
+📌 CTA (Bottom Card)
+Prompt to take a practice test, ask AI assistant, browse resources
+
+🔗 API Calls & Data Flow
+1. ✅ Daily Streak Challenge Section
+📲 API: GET /b/user_activity/daily-streak
+Purpose: Show current streak count
+
+Response:
+
+json
+Copy
+Edit
+{
+  "streak": 3,
+  "last_streak_date": "2025-04-24"
+}
+📲 API: GET /b/user_activity/daily-question
+Purpose: Show “Question of the Day”
+
+Response:
+
+json
+Copy
+Edit
+{
+  "question": {
+    "id": "dq-123",
+    "question_text": "What is the default VPC in GCP?",
+    "options": ["A", "B", "C", "D"]
+  },
+  "user_attempted": false
+}
+📤 On “Take Question” Button Click
+API: POST /b/user_activity/daily-question/submit
+
+Request:
+
+json
+Copy
+Edit
+{
+  "question_id": "dq-123",
+  "selected_option": "B"
+}
+Response:
+
+json
+Copy
+Edit
+{
+  "streak": 4,
+  "last_streak_date": "2025-04-25"
+}
+2. 📋 Recent Activity Section
+📲 API: GET /b/user_activity/activities
+Response:
+
+json
+Copy
+Edit
+{
+  "activities": [
+    {
+      "id": "a1",
+      "type": "TEST_COMPLETED",
+      "title": "Cloud Network Engineer",
+      "timestamp": "2025-04-25T14:30:00Z"
+    },
+    {
+      "id": "a2",
+      "type": "FLASHCARD_REVIEWED",
+      "title": "GCP Services",
+      "timestamp": "2025-04-25T10:15:00Z"
+    }
+  ]
+}
+3. 🧠 Recommended Practice Tests Section
+📲 API: GET /b/recommendation/recommendations
+Query Params:
+
+recommendation_type: optional ("new", "recommended")
+
+limit: optional (default = 10)
+
+Response:
+
+json
+Copy
+Edit
+{
+  "recommendations": [
+    {
+      "id": "test-1",
+      "title": "Professional Cloud Architect",
+      "questions_count": 60,
+      "duration_minutes": 120,
+      "tag": "Practice"
+    },
+    {
+      "id": "test-2",
+      "title": "Cloud Network Engineer",
+      "questions_count": 50,
+      "duration_minutes": 90,
+      "tag": "Recommended"
+    }
+  ]
+}
+4. ➕ Log Activity (Optional - Analytics or Event Tracking)
+📲 API: POST /b/user_activity/activities
+Request:
+
+json
+Copy
+Edit
+{
+  "type": "TEST_STARTED",
+  "title": "Professional Cloud Architect"
+}
+Response:
+
+json
+Copy
+Edit
+{
+  "id": "a123",
+  "timestamp": "2025-04-25T10:00:00Z"
+}
+🧪 Button → Action Mapping
+UI Button	API	Action
+Take Question	POST /b/user_activity/daily-question/submit	Submits the selected option
+View History	(Route + optional API)	Navigate to /test-history
+Continue Learning	Frontend route (e.g. /test/start/:test_id)	Starts a test
+Recommended Test Card Click	POST /b/user_activity/activities (optional)	Log and redirect to start
+Take Practice Test (CTA)	Frontend route	Navigate to test library
+🧑‍🎨 Styling Tips
+Use Tailwind CSS or MUI for clean, structured layouts
+
+Card-based layout with shadows and subtle hover effects
+
+Icons for activity types
+
+Color indicators for status (green = Recommended, blue = Practice, yellow = New)
+
+Rounded profile avatar with dropdown menu
