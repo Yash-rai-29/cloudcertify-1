@@ -1,15 +1,10 @@
 import { initializeApp } from 'firebase/app';
 import { 
   getAuth, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  signInWithRedirect,
-  GoogleAuthProvider,
+  signInWithEmailAndPassword,
   onAuthStateChanged,
   signOut as firebaseSignOut,
-  sendPasswordResetEmail,
-  getRedirectResult
+  sendPasswordResetEmail
 } from 'firebase/auth';
 
 /**
@@ -56,24 +51,12 @@ try {
   }
 }
 
-// Create and configure Google provider
-const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({
-  prompt: 'select_account' // Force account selection even when one account is available
-});
-
 // Export Firebase authentication objects and methods
 export {
   app,
   auth,
-  googleProvider,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
   onAuthStateChanged,
   sendPasswordResetEmail,
-  firebaseSignOut,
-  GoogleAuthProvider
+  firebaseSignOut
 };

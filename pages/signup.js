@@ -18,7 +18,7 @@ Signup.getLayout = (page) => (
 );
 
 export default function Signup() {
-  const { signup, loading } = useAuth();
+  const { signUp, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState(null);
   
@@ -41,7 +41,7 @@ export default function Signup() {
   const onSubmit = async (data) => {
     try {
       setAuthError(null);
-      await signup({
+      await signUp({
         first_name: data.firstName,
         last_name: data.lastName,
         email: data.email,

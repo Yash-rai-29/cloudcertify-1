@@ -2,10 +2,5 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/": "pages/index.js",
-  "/login": "pages/login.js",
-  "/dashboard": "pages/dashboard.js",
-  "/dashboard/tests": "pages/dashboard/tests.js",
-  "/dashboard/history": "pages/dashboard/history.js",
-  "/dashboard/profile": "pages/dashboard/profile.js"
+  "/": "pages/index.js"
 }

@@ -3,8 +3,7 @@ import { auth, onAuthStateChanged } from '../utils/firebase';
 import { useRouter } from 'next/router';
 import { 
   signUp as apiSignUp, 
-  signIn as apiSignIn, 
-  signInWithGoogle as apiSignInWithGoogle,
+  signIn as apiSignIn,
   signOut as apiSignOut,
   resetPassword as apiResetPassword
 } from '../utils/services/authService';
@@ -20,7 +19,6 @@ const defaultContextState = {
   error: null,
   signUp: async () => {},
   signIn: async () => {},
-  signInWithGoogle: async () => {},
   signOut: async () => {},
   resetPassword: async () => {},
   clearError: () => {}
@@ -112,8 +110,10 @@ export function AuthProvider({ children }) {
 
   /**
    * Sign up a new user
+   * Creates user via FastAPI and then authenticates with Firebase
    * 
    * @param {Object} userData - User registration data
+   * @returns {Promise<Object>} - Sign up result
    */
   const signUp = async (userData) => {
     setLoading(true);
@@ -124,6 +124,7 @@ export function AuthProvider({ children }) {
       
       if (response.success) {
         handleAuthSuccess(response);
+        router.push(AUTH.ROUTES.DASHBOARD);
         return response;
       } else {
         handleAuthError(response);
@@ -136,10 +137,11 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Sign in existing user
+   * Sign in existing user with email and password
    * 
    * @param {string} email - User email
    * @param {string} password - User password
+   * @returns {Promise<Object>} - Sign in result
    */
   const signIn = async (email, password) => {
     setLoading(true);
@@ -150,29 +152,7 @@ export function AuthProvider({ children }) {
       
       if (response.success) {
         handleAuthSuccess(response);
-        return response;
-      } else {
-        handleAuthError(response);
-        return response;
-      }
-    } catch (error) {
-      handleAuthError({ error: { message: error.message } });
-      return { success: false, error: { message: error.message } };
-    }
-  };
-
-  /**
-   * Sign in with Google
-   */
-  const signInWithGoogle = async () => {
-    setLoading(true);
-    clearError();
-    
-    try {
-      const response = await apiSignInWithGoogle();
-      
-      if (response.success) {
-        handleAuthSuccess(response);
+        router.push(AUTH.ROUTES.DASHBOARD);
         return response;
       } else {
         handleAuthError(response);
@@ -186,6 +166,8 @@ export function AuthProvider({ children }) {
 
   /**
    * Sign out current user
+   * 
+   * @returns {Promise<Object>} - Sign out result
    */
   const signOut = async () => {
     setLoading(true);
@@ -197,6 +179,7 @@ export function AuthProvider({ children }) {
       if (response.success) {
         // User state will be updated by the auth state listener
         setLoading(false);
+        router.push('/');
         return response;
       } else {
         handleAuthError(response);
@@ -212,6 +195,7 @@ export function AuthProvider({ children }) {
    * Reset user password
    * 
    * @param {string} email - User email
+   * @returns {Promise<Object>} - Password reset result
    */
   const resetPassword = async (email) => {
     setLoading(true);
@@ -242,7 +226,6 @@ export function AuthProvider({ children }) {
     error,
     signUp,
     signIn,
-    signInWithGoogle,
     signOut,
     resetPassword,
     clearError
