@@ -1,11 +1,11 @@
 import axios from 'axios';
-import { AUTH, HTTP_STATUS } from '../constants';
+import { AUTH, HTTP_STATUS, API } from '../constants';
 import { auth } from '../firebase';
 import { showError } from '../toast';
 
 // Create an axios instance for API calls
 const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://base-service-6070296894.us-central1.run.app',
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || API.BASE_URL,
   timeout: 15000, // 15 seconds timeout
   headers: {
     'Content-Type': 'application/json',
