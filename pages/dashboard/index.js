@@ -1,235 +1,203 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
-import { useAuth } from '../../contexts/AuthContext';
-import { getDailyStreak, getRecentActivities, getRecommendedPracticeTests, trackUserActivity } from '../../utils/services/activityService';
-import DailyQuestionSection from '../../components/dashboard/DailyQuestionSection';
-import ActivityItem from '../../components/dashboard/ActivityItem';
-import TestRecommendationCard from '../../components/dashboard/TestRecommendationCard';
-import CTACard from '../../components/dashboard/CTACard';
-import Section from '../../components/dashboard/Section';
-import { showSuccess, showError } from '../../utils/toast';
+import { IconCloudComputing, IconBook, IconProgress, IconCalendarStats, IconRocket } from '@tabler/icons-react';
 import { getDashboardLayout } from '../../components/layouts/DashboardLayout';
-import { FiPlus, FiChevronRight, FiMessageSquare } from 'react-icons/fi';
+import DashboardHeader from '../../components/dashboard/DashboardHeader';
+import Section from '../../components/dashboard/Section';
+import DailyQuestionSection from '../../components/dashboard/DailyQuestionSection';
+import TestRecommendationCard from '../../components/dashboard/TestRecommendationCard';
+import ActivityItem from '../../components/dashboard/ActivityItem';
+import CTACard from '../../components/dashboard/CTACard';
+import { getUserInfo, getDailyStreak, getTestRecommendations, getUserActivities } from '../../utils/services/dashboardService';
+import { useAuth } from '../../contexts/AuthContext';
+import { showError } from '../../utils/toast';
 
+/**
+ * Dashboard home page with redesigned UI based on the specifications
+ */
 export default function Dashboard() {
-  const [streak, setStreak] = useState({ current_streak: 0, longest_streak: 0 });
-  const [activities, setActivities] = useState([]);
+  const { user: authUser } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+  const [streakData, setStreakData] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
-  const [loadingActivities, setLoadingActivities] = useState(true);
-  const [loadingRecommendations, setLoadingRecommendations] = useState(true);
-  const { user } = useAuth();
-  const router = useRouter();
-
-  // Fetch user streak
+  const [activities, setActivities] = useState([]);
+  
+  // Load initial dashboard data
   useEffect(() => {
-    const fetchStreak = async () => {
-      try {
-        const response = await getDailyStreak();
-        if (response.success) {
-          setStreak(response.data);
-        }
-      } catch (error) {
-        console.error('Error fetching user streak:', error);
+    fetchDashboardData();
+  }, [authUser]);
+  
+  // Function to fetch all dashboard data
+  const fetchDashboardData = async () => {
+    if (!authUser) return;
+    
+    setIsLoading(true);
+    try {
+      // Fetch data in parallel
+      const [userResponse, streakResponse, recommendationsResponse, activitiesResponse] = 
+        await Promise.all([
+          getUserInfo(),
+          getDailyStreak(),
+          getTestRecommendations(),
+          getUserActivities(10)
+        ]);
+      
+      // Update state with successful responses
+      if (userResponse.success) {
+        setUserData(userResponse.data);
       }
-    };
-
-    if (user) {
-      fetchStreak();
-    }
-  }, [user]);
-
-  // Fetch recent activities
-  useEffect(() => {
-    const fetchActivities = async () => {
-      setLoadingActivities(true);
-      try {
-        const response = await getRecentActivities(5);
-        if (response.success) {
-          setActivities(response.data.activities || []);
-        }
-      } catch (error) {
-        console.error('Error fetching activities:', error);
-      } finally {
-        setLoadingActivities(false);
+      
+      if (streakResponse.success) {
+        setStreakData(streakResponse.data);
       }
-    };
-
-    if (user) {
-      fetchActivities();
-    }
-  }, [user]);
-
-  // Fetch test recommendations
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      setLoadingRecommendations(true);
-      try {
-        const response = await getRecommendedPracticeTests();
-        if (response.success) {
-          setRecommendations(response.data.recommendations || []);
-        }
-      } catch (error) {
-        console.error('Error fetching recommendations:', error);
-      } finally {
-        setLoadingRecommendations(false);
+      
+      if (recommendationsResponse.success) {
+        setRecommendations(recommendationsResponse.data.recommendations || []);
       }
-    };
-
-    if (user) {
-      fetchRecommendations();
+      
+      if (activitiesResponse.success) {
+        setActivities(activitiesResponse.data.activities || []);
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      showError('Failed to load some dashboard data. Please refresh the page to try again.');
+    } finally {
+      setIsLoading(false);
     }
-  }, [user]);
-
-  // Handle starting a test
-  const handleStartTest = (testId) => {
-    trackUserActivity('start_test', { test_id: testId });
-    showSuccess('Starting test...');
-    router.push(`/dashboard/tests/${testId}`);
+  };
+  
+  // Handle streak update from the Daily Question component
+  const handleStreakUpdate = (updatedStreak) => {
+    setStreakData(updatedStreak);
+    
+    // Refresh activities to show the new streak activity
+    refreshActivities();
+  };
+  
+  // Refresh just the activities section
+  const refreshActivities = async () => {
+    try {
+      const activitiesResponse = await getUserActivities(10);
+      if (activitiesResponse.success) {
+        setActivities(activitiesResponse.data.activities || []);
+      }
+    } catch (error) {
+      console.error('Error refreshing activities:', error);
+    }
   };
 
-  // Handle chat assistant click
-  const handleChatAssistant = () => {
-    trackUserActivity('open_chat_assistant');
-    router.push('/dashboard/chat');
+  const handleStartTest = (testId) => {
+    // Navigate to test page
+    window.location.href = `/dashboard/tests/${testId}`;
+  };
+
+  const handleProfileView = () => {
+    // Sign out in this case (based on updated header)
+    window.location.href = '/';
+  };
+
+  const handleContinueLearning = () => {
+    // Navigate to the continue learning page
+    window.location.href = '/dashboard/tests';
   };
 
   return (
-    <div className="max-w-screen-xl mx-auto">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column - Daily Challenge and Recent Activity */}
-        <div className="lg:col-span-2">
-          {/* Daily Streak Challenge */}
-          <DailyQuestionSection 
-            streak={streak} 
-            onStreakUpdate={setStreak}
-          />
-          
-          {/* Recent Activity */}
-          <Section
-            title="Recent Activity"
-            description="Your latest test attempts, resource views, and other activity."
-            headerContent={
-              <Link href="/dashboard/history" 
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center"
-                onClick={() => trackUserActivity('view_all_activities')}
+    <div className="bg-gray-50 min-h-screen pb-12">
+      {/* Dashboard Header - Sticky at the top */}
+      <DashboardHeader 
+        userData={userData}
+        streak={streakData}
+        authUser={authUser}
+        onStartTest={handleContinueLearning}
+        onViewProfile={handleProfileView}
+      />
+
+      {/* Main content area with max width container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        {/* Loading state */}
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+            <p className="text-gray-600">Loading your dashboard data...</p>
+          </div>
+        ) : (
+          /* Grid layout with 3 columns on desktop, 1 column on mobile */
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main content area (2 columns wide) */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Daily Streak Challenge Section */}
+              <DailyQuestionSection 
+                streak={streakData}
+                onStreakUpdate={handleStreakUpdate}
+              />
+              
+              {/* Recommended Tests Section */}
+              <Section 
+                title="Recommended Practice Tests"
+                description="Prepare for your certification with these tests"
               >
-                View All
-                <FiChevronRight className="ml-1" size={16} />
-              </Link>
-            }
-          >
-            <div>
-              {loadingActivities ? (
-                // Skeleton loader for activities
-                Array(3).fill(0).map((_, i) => (
-                  <div key={i} className="mb-3">
-                    <div className="animate-pulse flex p-4 border rounded-lg">
-                      <div className="rounded-full bg-gray-200 h-10 w-10 mr-3"></div>
-                      <div className="flex-1">
-                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                      </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {recommendations.map((test, index) => (
+                    <TestRecommendationCard
+                      key={test.id || index}
+                      id={test.id}
+                      title={test.title}
+                      questions_count={test.questions_count}
+                      duration_minutes={test.duration_minutes}
+                      tag={test.tag}
+                      onStartTest={handleStartTest}
+                    />
+                  ))}
+                  {recommendations.length === 0 && (
+                    <div className="col-span-2 p-6 bg-white rounded-lg text-center border border-gray-200">
+                      <p className="text-gray-500">No test recommendations available yet. Complete more tests to get personalized recommendations.</p>
                     </div>
-                  </div>
-                ))
-              ) : activities.length > 0 ? (
-                activities.map((activity) => (
-                  <ActivityItem
-                    key={activity.id}
-                    id={activity.id}
-                    type={activity.type}
-                    title={activity.title}
-                    timestamp={activity.timestamp}
-                  />
-                ))
-              ) : (
-                <div className="text-center p-6 bg-gray-50 rounded-lg border border-gray-100">
-                  <p className="text-gray-500">No recent activity yet.</p>
-                  <p className="text-gray-500 text-sm mt-1">
-                    Start taking tests or reviewing resources to see your activity here.
-                  </p>
+                  )}
                 </div>
-              )}
+              </Section>
+              
+              {/* CTA Card */}
+              <CTACard 
+                title="Ready to accelerate your GCP certification journey?"
+                description="Take a practice test, use our AI chatbot, or explore our comprehensive resources to help you prepare for success."
+                buttonText="Take Practice Test"
+                onButtonClick={() => window.location.href = '/dashboard/tests'}
+              />
             </div>
-          </Section>
-        </div>
-
-        {/* Right Column - Recommendations and CTA */}
-        <div>
-          {/* Recommended Practice Tests */}
-          <Section
-            title="Recommended Practice Tests"
-            description="Based on your progress and certification goals."
-            headerContent={
-              <Link href="/dashboard/tests" 
-                className="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center"
-                onClick={() => trackUserActivity('view_all_tests')}
+            
+            {/* Sidebar content (1 column wide) */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Activity Section */}
+              <Section
+                title="Recent Activity"
+                description="Your latest learning activities"
               >
-                All Tests
-                <FiChevronRight className="ml-1" size={16} />
-              </Link>
-            }
-          >
-            {loadingRecommendations ? (
-              // Skeleton loader for test recommendations
-              Array(2).fill(0).map((_, i) => (
-                <div key={i} className="mb-4">
-                  <div className="animate-pulse border rounded-lg p-5">
-                    <div className="h-5 bg-gray-200 rounded w-3/4 mb-3"></div>
-                    <div className="flex mb-4">
-                      <div className="h-4 bg-gray-200 rounded w-24 mr-3"></div>
-                      <div className="h-4 bg-gray-200 rounded w-20"></div>
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  {activities.length > 0 ? (
+                    <div>
+                      {activities.map((activity, index) => (
+                        <ActivityItem
+                          key={activity.id || index}
+                          id={activity.id}
+                          type={activity.type}
+                          title={activity.title}
+                          timestamp={activity.timestamp}
+                        />
+                      ))}
                     </div>
-                    <div className="h-8 bg-gray-200 rounded w-full"></div>
-                  </div>
+                  ) : (
+                    <div className="p-6 text-center">
+                      <p className="text-gray-500">No activities recorded yet. Start answering questions or taking tests to track your progress!</p>
+                    </div>
+                  )}
                 </div>
-              ))
-            ) : recommendations.length > 0 ? (
-              <div className="space-y-4">
-                {recommendations.map((test) => (
-                  <TestRecommendationCard
-                    key={test.id}
-                    id={test.id}
-                    title={test.title}
-                    questions_count={test.questions_count}
-                    duration_minutes={test.duration_minutes}
-                    tag={test.tag}
-                    onStartTest={handleStartTest}
-                  />
-                ))}
-                <Link href="/dashboard/tests" 
-                  className="block text-center py-2 border border-dashed border-gray-300 rounded-lg text-gray-600 hover:text-blue-600 hover:border-blue-300 transition-colors"
-                  onClick={() => trackUserActivity('view_more_tests')}
-                >
-                  <FiPlus className="inline-block mr-1" />
-                  <span>View more tests</span>
-                </Link>
-              </div>
-            ) : (
-              <div className="text-center p-6 bg-gray-50 rounded-lg border border-gray-100">
-                <p className="text-gray-500">No recommendations yet.</p>
-                <p className="text-gray-500 text-sm mt-1">
-                  Update your profile to get personalized test recommendations.
-                </p>
-              </div>
-            )}
-          </Section>
-
-          {/* Call-to-Action Section */}
-          <Section>
-            <CTACard
-              title="Need Help with a Concept?"
-              description="Use our AI chatbot to get instant answers to your Google Cloud certification questions."
-              buttonText="Chat with Assistant"
-              onButtonClick={handleChatAssistant}
-            />
-          </Section>
-        </div>
+              </Section>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// Set the dashboard layout for this page with title parameter
-Dashboard.getLayout = (page) => getDashboardLayout(page, 'Dashboard');
+Dashboard.getLayout = getDashboardLayout;

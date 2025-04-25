@@ -7,7 +7,7 @@ import {
   signOut as apiSignOut,
   resetPassword as apiResetPassword
 } from '../utils/services/authService';
-import { AUTH, ERRORS } from '../utils/constants';
+import { AUTH } from '../utils/constants';
 
 /**
  * Default context state

@@ -1,212 +1,208 @@
-import { useState } from 'react';
-import { submitDailyQuestionAnswer } from '../../utils/services/activityService';
-import { FiX, FiCheck, FiLoader } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { IconX, IconCheck, IconAlertCircle } from '@tabler/icons-react';
+import Button from '../ui/Button';
+import { cn } from '../../utils/helpers';
+import { submitDailyAnswer } from '../../utils/services/dashboardService';
+import { showSuccess, showError } from '../../utils/toast';
 
 /**
  * Question Modal component for displaying the daily question
- *
+ * 
  * @param {Object} props - Component props
  * @param {Object} props.question - Question data
  * @param {boolean} props.isOpen - Whether the modal is open
  * @param {Function} props.onClose - Function to close the modal
  * @param {Function} props.onSubmitSuccess - Function called on successful answer submission
- * @param {Function} props.onSubmitError - Function called on answer submission error
  */
-export default function QuestionModal({
+export default function QuestionModal({ 
   question,
   isOpen,
   onClose,
-  onSubmitSuccess,
-  onSubmitError
+  onSubmitSuccess
 }) {
   const [selectedOption, setSelectedOption] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [result, setResult] = useState(null); // { correct: boolean, feedback: string }
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedback, setFeedback] = useState(null);
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!selectedOption) {
-      setError('Please select an answer option');
-      return;
+  // Reset state when question changes
+  useEffect(() => {
+    if (question) {
+      setSelectedOption(null);
+      setFeedback(null);
     }
+  }, [question]);
 
-    setSubmitting(true);
-    setError(null);
+  if (!isOpen || !question) return null;
+
+  const handleOptionSelect = (option) => {
+    if (feedback) return;
+    setSelectedOption(option);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedOption || isSubmitting) return;
     
+    setIsSubmitting(true);
     try {
-      const response = await submitDailyQuestionAnswer(question.id, selectedOption);
-      
+      const response = await submitDailyAnswer(question.id, selectedOption);
       if (response.success) {
-        setResult({
-          correct: response.data.correct,
-          feedback: response.data.feedback || 'Answer submitted successfully.'
+        setFeedback({
+          isCorrect: response.data.is_correct,
+          explanation: response.data.explanation,
+          streak: response.data.streak
         });
         
-        if (response.data.correct && onSubmitSuccess) {
-          onSubmitSuccess(response.data.streak);
-        } else if (!response.data.correct && onSubmitError) {
-          onSubmitError('That answer was incorrect. Try again tomorrow!');
+        if (response.data.is_correct) {
+          showSuccess('Correct answer! Your streak has been maintained.');
+        } else {
+          showError('That wasn\'t the correct answer. Keep learning!');
         }
         
-        // Auto-close on success after a delay
-        if (response.data.correct) {
-          setTimeout(() => {
-            onClose();
-          }, 2000);
-        }
+        // Call the success callback with the updated streak data
+        onSubmitSuccess({
+          streak: response.data.streak,
+          last_streak_date: response.data.last_streak_date
+        });
       } else {
-        setError(response.error || 'Failed to submit answer.');
-        if (onSubmitError) {
-          onSubmitError(response.error);
-        }
+        setFeedback({
+          isCorrect: false,
+          explanation: 'Failed to submit answer. Please try again.',
+          streak: 0
+        });
+        showError('Failed to submit answer. Please try again.');
       }
     } catch (error) {
-      setError('An unexpected error occurred. Please try again.');
-      if (onSubmitError) {
-        onSubmitError('An unexpected error occurred. Please try again.');
-      }
+      console.error('Error submitting answer:', error);
+      setFeedback({
+        isCorrect: false,
+        explanation: 'An error occurred while submitting your answer.',
+        streak: 0
+      });
+      showError('An error occurred while submitting your answer.');
     } finally {
-      setSubmitting(false);
+      setIsSubmitting(false);
     }
   };
 
-  // Handle option selection
-  const handleOptionSelect = (optionId) => {
-    setSelectedOption(optionId);
-    setError(null);
+  const handleContinue = () => {
+    onClose();
   };
-
-  // Reset modal state when closing
-  const handleClose = () => {
-    if (!submitting) {
-      setSelectedOption(null);
-      setError(null);
-      setResult(null);
-      onClose();
-    }
-  };
-
-  // Early return if modal is not open
-  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true">
-      <div className="flex items-center justify-center min-h-screen p-4">
-        {/* Backdrop */}
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
-          onClick={handleClose}
-          aria-hidden="true"
-        />
-        
-        {/* Modal panel */}
-        <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-          {/* Close button */}
-          <button
-            onClick={handleClose}
-            disabled={submitting}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-500"
-            aria-label="Close"
-          >
-            <FiX size={20} />
-          </button>
-          
-          {/* Modal content */}
-          <div className="mt-2">
-            <h3 className="text-xl font-semibold text-gray-800">Daily Challenge Question</h3>
-            
-            {/* Question text */}
-            <div className="mt-4 mb-6">
-              <p className="text-gray-700">{question.text}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden overflow-y-auto bg-black bg-opacity-50">
+      <div className="relative w-full max-w-md mx-auto my-6">
+        {/* Modal content */}
+        <div className="relative flex flex-col bg-white rounded-lg shadow-lg">
+          {/* Header */}
+          <div className="flex items-center justify-between p-5 bg-blue-600 text-white rounded-t-lg">
+            <h3 className="text-lg font-medium">Question of the Day</h3>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center text-sm">
+                <span className="bg-yellow-500 text-white rounded-full w-5 h-5 flex items-center justify-center mr-1.5">
+                  <IconCheck size={12} />
+                </span>
+                <span>Streak Day: {feedback?.streak || question.streak || 0}</span>
+              </div>
+              <button
+                className="text-white hover:text-gray-200 focus:outline-none"
+                onClick={onClose}
+              >
+                <IconX size={20} />
+              </button>
             </div>
-            
-            {/* Options */}
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-3">
-                {question.options?.map((option) => (
-                  <label
-                    key={option.id}
-                    className={`block p-3 border rounded-lg cursor-pointer transition-colors ${
-                      selectedOption === option.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 hover:border-blue-300'
-                    } ${
-                      result && option.id === selectedOption
-                        ? result.correct ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'
-                        : ''
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <input
-                        type="radio"
-                        name="question-option"
-                        value={option.id}
-                        checked={selectedOption === option.id}
-                        onChange={() => handleOptionSelect(option.id)}
-                        className="mr-3 text-blue-600 focus:ring-blue-500"
-                        disabled={submitting || result !== null}
-                      />
-                      <span className="text-gray-700">{option.text}</span>
-                      
-                      {/* Success/error icon for selected option */}
-                      {result && option.id === selectedOption && (
-                        <span className="ml-auto">
-                          {result.correct ? (
-                            <FiCheck className="text-green-500" size={18} />
-                          ) : (
-                            <FiX className="text-red-500" size={18} />
-                          )}
-                        </span>
-                      )}
-                    </div>
-                  </label>
-                ))}
-              </div>
-              
-              {/* Error message */}
-              {error && (
-                <div className="mt-3 text-sm text-red-600">{error}</div>
-              )}
-              
-              {/* Result message */}
-              {result && (
-                <div className={`mt-4 p-3 rounded-lg text-sm ${
-                  result.correct ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
-                }`}>
-                  {result.feedback}
-                </div>
-              )}
-              
-              {/* Submit button */}
-              <div className="mt-6 flex justify-end">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  disabled={submitting}
-                  className="mr-3 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting || !selectedOption || result !== null}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {submitting ? (
-                    <div className="flex items-center">
-                      <FiLoader className="animate-spin mr-2" size={16} />
-                      Submitting...
-                    </div>
-                  ) : (
-                    'Submit Answer'
-                  )}
-                </button>
-              </div>
-            </form>
           </div>
+          
+          {!feedback ? (
+            <>
+              {/* Question */}
+              <div className="p-6 border-b border-gray-200">
+                <h4 className="text-lg font-medium text-gray-900 mb-4">{question.question_text}</h4>
+                
+                <div className="space-y-3">
+                  {question.options && question.options.map((option, index) => {
+                    const isSelected = selectedOption === option;
+                    
+                    return (
+                      <div
+                        key={index}
+                        onClick={() => handleOptionSelect(option)}
+                        className={cn(
+                          'p-4 border rounded-lg flex items-start cursor-pointer transition-colors relative',
+                          isSelected ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'
+                        )}
+                      >
+                        <div className="mr-3">
+                          <div className={cn(
+                            'w-5 h-5 rounded-full border flex items-center justify-center',
+                            isSelected ? 'border-blue-500 bg-blue-500 text-white' : 'border-gray-300'
+                          )}>
+                            {isSelected && <IconCheck size={12} />}
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900">{option}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              {/* Footer */}
+              <div className="p-4 flex justify-end">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={!selectedOption || isSubmitting}
+                  isLoading={isSubmitting}
+                >
+                  Submit Answer
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Feedback */}
+              <div className={cn(
+                'p-6',
+                feedback.isCorrect ? 'bg-green-50' : 'bg-red-50'
+              )}>
+                <div className="flex items-start">
+                  <div className={cn(
+                    'p-2 rounded-full mr-3',
+                    feedback.isCorrect ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                  )}>
+                    {feedback.isCorrect ? <IconCheck size={16} /> : <IconAlertCircle size={16} />}
+                  </div>
+                  <div>
+                    <h4 className={cn(
+                      'text-lg font-medium mb-2',
+                      feedback.isCorrect ? 'text-green-800' : 'text-red-800'
+                    )}>
+                      {feedback.isCorrect ? 'Correct!' : 'Incorrect!'}
+                    </h4>
+                    <p className="text-gray-700">{feedback.explanation}</p>
+                  </div>
+                </div>
+                
+                {feedback.isCorrect && (
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-md text-blue-800 flex items-center">
+                    <IconCheck size={16} className="mr-2 text-blue-500" />
+                    <span>Streak maintained!</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Footer */}
+              <div className="p-4 flex justify-end">
+                <Button
+                  onClick={handleContinue}
+                  variant={feedback.isCorrect ? 'success' : 'primary'}
+                >
+                  Continue
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

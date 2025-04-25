@@ -1,12 +1,4 @@
-import { 
-  FiBook, 
-  FiFileText, 
-  FiMessageSquare, 
-  FiBarChart2, 
-  FiCheck, 
-  FiAward, 
-  FiStar 
-} from 'react-icons/fi';
+import { IconClock, IconTestPipe2, IconBook, IconCards, IconMessage, IconCertificate } from '@tabler/icons-react';
 import { timeAgo } from '../../utils/helpers';
 
 /**
@@ -14,56 +6,47 @@ import { timeAgo } from '../../utils/helpers';
  * @param {string} type - Activity type
  * @returns {JSX.Element} - Icon component
  */
-function getActivityIcon(type) {
-  switch (type?.toLowerCase()) {
-    case 'test_completed':
-      return <FiCheck className="text-green-500" />;
-    case 'test_started':
-      return <FiBook className="text-blue-500" />;
-    case 'flashcard_reviewed':
-      return <FiFileText className="text-indigo-500" />;
-    case 'resource_viewed':
-      return <FiFileText className="text-purple-500" />;
-    case 'chat_session':
-      return <FiMessageSquare className="text-amber-500" />;
-    case 'certification_progress':
-      return <FiBarChart2 className="text-blue-500" />;
-    case 'leaderboard_position':
-      return <FiAward className="text-amber-500" />;
-    case 'streak_milestone':
-      return <FiStar className="text-amber-500" />;
+const getActivityIcon = (type) => {
+  switch (type?.toUpperCase()) {
+    case 'TEST_COMPLETED':
+    case 'TEST_STARTED':
+      return <IconTestPipe2 size={18} />;
+    case 'FLASHCARD_REVIEWED':
+      return <IconCards size={18} />;
+    case 'MODULE_COMPLETED':
+      return <IconBook size={18} />;
+    case 'CERTIFICATE_EARNED':
+      return <IconCertificate size={18} />;
+    case 'AI_CHAT':
+      return <IconMessage size={18} />;
     default:
-      return <FiCheck className="text-gray-500" />;
+      return <IconClock size={18} />;
   }
-}
+};
 
 /**
  * Get background color for activity type
  * @param {string} type - Activity type
  * @returns {string} - Tailwind classes for background and text
  */
-function getActivityBackground(type) {
-  switch (type?.toLowerCase()) {
-    case 'test_completed':
-      return 'bg-green-50 border-green-100 text-green-800';
-    case 'test_started':
-      return 'bg-blue-50 border-blue-100 text-blue-800';
-    case 'flashcard_reviewed':
-      return 'bg-indigo-50 border-indigo-100 text-indigo-800';
-    case 'resource_viewed':
-      return 'bg-purple-50 border-purple-100 text-purple-800';
-    case 'chat_session':
-      return 'bg-amber-50 border-amber-100 text-amber-800';
-    case 'certification_progress':
-      return 'bg-blue-50 border-blue-100 text-blue-800';
-    case 'leaderboard_position':
-      return 'bg-amber-50 border-amber-100 text-amber-800';
-    case 'streak_milestone':
-      return 'bg-amber-50 border-amber-100 text-amber-800';
+const getActivityColors = (type) => {
+  switch (type?.toUpperCase()) {
+    case 'TEST_COMPLETED':
+      return 'bg-blue-100 text-blue-600';
+    case 'TEST_STARTED':
+      return 'bg-indigo-100 text-indigo-600';
+    case 'FLASHCARD_REVIEWED':
+      return 'bg-purple-100 text-purple-600';
+    case 'MODULE_COMPLETED':
+      return 'bg-green-100 text-green-600';
+    case 'CERTIFICATE_EARNED':
+      return 'bg-amber-100 text-amber-600';
+    case 'AI_CHAT':
+      return 'bg-gray-100 text-gray-600';
     default:
-      return 'bg-gray-50 border-gray-100 text-gray-800';
+      return 'bg-gray-100 text-gray-500';
   }
-}
+};
 
 /**
  * ActivityItem component for displaying user activity in a consistent format
@@ -80,29 +63,33 @@ export default function ActivityItem({
   type,
   title,
   timestamp,
-  className = '',
+  className
 }) {
-  const activityTime = timeAgo(timestamp);
-  const bgColorClass = getActivityBackground(type);
+  const icon = getActivityIcon(type);
+  const iconColors = getActivityColors(type);
+  const formattedTime = timestamp ? timeAgo(new Date(timestamp)) : '';
   
   return (
-    <div className={`p-4 border rounded-lg mb-3 ${bgColorClass} ${className}`} data-activity-id={id}>
-      <div className="flex items-start">
-        <div className="flex-shrink-0 mr-3 p-2 rounded-full bg-white">
-          {getActivityIcon(type)}
+    <div 
+      className={`
+        px-4 py-3 bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors relative last:border-b-0
+        ${className || ''}
+      `}
+    >
+      <div className="flex items-center">
+        <div className={`p-2 rounded-full mr-3 ${iconColors}`}>
+          {icon}
         </div>
-        <div className="flex-grow min-w-0">
-          <div className="flex items-center justify-between mb-1">
-            <h4 className="font-medium text-sm truncate">
-              {title || 'Activity'}
-            </h4>
-            <span className="text-xs opacity-75 whitespace-nowrap ml-2">
-              {activityTime}
-            </span>
-          </div>
-          <div className="text-xs capitalize">
-            {type?.replace(/_/g, ' ').toLowerCase() || 'General activity'}
-          </div>
+        
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
+          
+          {formattedTime && (
+            <div className="flex items-center text-xs text-gray-500 mt-1">
+              <IconClock size={12} className="mr-1" />
+              {formattedTime}
+            </div>
+          )}
         </div>
       </div>
     </div>
