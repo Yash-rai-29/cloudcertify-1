@@ -231,5 +231,5 @@ export default function Dashboard() {
   );
 }
 
-// Set the dashboard layout for this page
-Dashboard.getLayout = getDashboardLayout;
+// Set the dashboard layout for this page with title parameter
+Dashboard.getLayout = (page) => getDashboardLayout(page, 'Dashboard');
