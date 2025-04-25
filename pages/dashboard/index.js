@@ -13,6 +13,13 @@ import { getDashboardLayout } from '../../components/layouts/DashboardLayout';
 import { FiPlus, FiChevronRight, FiMessageSquare } from 'react-icons/fi';
 
 export default function Dashboard() {
+  // Debug component imports
+  console.log("DailyQuestionSection available:", typeof DailyQuestionSection);
+  console.log("ActivityItem available:", typeof ActivityItem);
+  console.log("TestRecommendationCard available:", typeof TestRecommendationCard);
+  console.log("CTACard available:", typeof CTACard);
+  console.log("Section available:", typeof Section);
+  
   const [streak, setStreak] = useState({ current_streak: 0, longest_streak: 0 });
   const [activities, setActivities] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
