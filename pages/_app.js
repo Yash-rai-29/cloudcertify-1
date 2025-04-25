@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AuthProvider } from '../contexts/AuthContext';
 import { Toaster } from 'react-hot-toast';
 import { getPublicLayout } from '../components/layouts/PublicLayout';
+import { TOAST_CONFIG } from '../utils/constants';
 
 /**
  * Load Poppins font for the entire application
@@ -24,23 +25,28 @@ function MyApp({ Component, pageProps, router }) {
   return (
     <AuthProvider>
       <main className={`${poppins.variable} font-sans`}>
-        <Toaster position="top-right" toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#fff',
-            color: '#333',
-          },
-          success: {
+        <Toaster 
+          position={TOAST_CONFIG.POSITION} 
+          toastOptions={{
+            duration: TOAST_CONFIG.DEFAULT_DURATION,
+            // Default styles for all toasts
             style: {
-              border: '1px solid #4ade80',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              padding: '12px 16px',
+              fontSize: '14px',
+              fontWeight: '500',
             },
-          },
-          error: {
-            style: {
-              border: '1px solid #f87171',
-            },
-          },
-        }} />
+            // Success toast styles
+            success: TOAST_CONFIG.SUCCESS,
+            // Error toast styles  
+            error: TOAST_CONFIG.ERROR,
+            // Info toast styles
+            info: TOAST_CONFIG.INFO,
+            // Warning toast styles
+            warning: TOAST_CONFIG.WARNING,
+          }} 
+        />
         
         <AnimatePresence mode="wait">
           <motion.div
