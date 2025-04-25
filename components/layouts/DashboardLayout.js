@@ -15,7 +15,6 @@ import {
   IconLogout,
   IconMenu2,
   IconX,
-  IconUser,
   IconCloud,
   IconBell,
   IconChevronDown
@@ -43,7 +42,6 @@ export default function DashboardLayout({
     { name: 'Resources', href: '/dashboard/resources', icon: IconBookmarks },
     { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: IconTrophy },
     { name: 'AI Chatbot', href: '/dashboard/chat', icon: IconRobot },
-    { name: 'Profile', href: '/dashboard/profile', icon: IconUser },
   ];
 
   const handleSignOut = async () => {
@@ -82,9 +80,10 @@ export default function DashboardLayout({
                 
                 <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
                   <div className="flex-shrink-0 flex items-center px-4 relative">
-                    <Link href="/" className="text-xl font-bold text-blue-600 z-20">
-                      Cloud Certify
-                    </Link>
+                    <div className="flex items-center">
+                      <IconCloud className="h-8 w-8 text-blue-600 mr-2" />
+                      <span className="text-xl font-bold text-blue-600 z-20">Cloud Certify</span>
+                    </div>
                   </div>
                   <nav className="mt-5 px-2 space-y-1 relative">
                     {navigation.map((item) => (
@@ -94,7 +93,7 @@ export default function DashboardLayout({
                         className={`group flex items-center px-2 py-2 text-base font-medium rounded-md z-20 ${
                           (item.exact ? router.pathname === item.href : 
                            router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
-                            ? 'bg-gray-100 text-blue-600'
+                            ? 'bg-blue-50 text-blue-700'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                         }`}
                       >
@@ -112,7 +111,7 @@ export default function DashboardLayout({
                   </nav>
                 </div>
                 
-                <div className="flex-shrink-0 flex border-t border-gray-200 p-4 relative z-20">
+                <div className="flex-shrink-0 flex border-t border-gray-200 p-4 justify-between items-center relative z-20">
                   <div className="flex items-center">
                     <div className="relative">
                       <Avatar 
@@ -121,28 +120,18 @@ export default function DashboardLayout({
                         size="md"
                       />
                     </div>
-                    <div className="ml-3 relative">
-                      <p className="text-base font-medium text-gray-700 truncate">
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-gray-700 truncate">
                         {user?.displayName || user?.email}
                       </p>
-                      <div className="flex mt-1">
-                        <Link
-                          href="/dashboard/profile"
-                          className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center mr-3 z-20"
-                        >
-                          <IconUser className="mr-1 h-3 w-3" />
-                          Profile
-                        </Link>
-                        <button
-                          onClick={handleSignOut}
-                          className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center z-20"
-                        >
-                          <IconLogout className="mr-1 h-3 w-3" />
-                          Sign out
-                        </button>
-                      </div>
                     </div>
                   </div>
+                  <button
+                    onClick={handleSignOut}
+                    className="ml-2 p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                  >
+                    <IconLogout className="h-5 w-5" />
+                  </button>
                 </div>
               </div>
               
@@ -157,9 +146,8 @@ export default function DashboardLayout({
         <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:bg-white lg:z-30">
           <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex-shrink-0 flex items-center px-4 relative">
-              <Link href="/" className="text-xl font-bold text-blue-600">
-                Cloud Certify
-              </Link>
+              <IconCloud className="h-8 w-8 text-blue-600 mr-2" />
+              <span className="text-xl font-bold text-blue-600">Cloud Certify</span>
             </div>
             <nav className="mt-8 flex-1 px-4 space-y-1 relative">
               {navigation.map((item) => (
@@ -169,7 +157,7 @@ export default function DashboardLayout({
                   className={`group z-20 flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                     (item.exact ? router.pathname === item.href : 
                      router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
-                      ? 'bg-gray-100 text-blue-600'
+                      ? 'bg-blue-50 text-blue-700'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
@@ -187,8 +175,8 @@ export default function DashboardLayout({
             </nav>
           </div>
           
-          <div className="flex-shrink-0 flex border-t border-gray-200 p-4 relative z-20">
-            <div className="flex items-center w-full">
+          <div className="flex-shrink-0 flex border-t border-gray-200 p-4 justify-between items-center relative z-20">
+            <div className="flex items-center">
               <div className="relative">
                 <Avatar 
                   src={user?.photoURL}
@@ -196,28 +184,19 @@ export default function DashboardLayout({
                   size="md"
                 />
               </div>
-              <div className="ml-3 flex-1 relative">
+              <div className="ml-3">
                 <p className="text-sm font-medium text-gray-700 truncate">
                   {user?.displayName || user?.email}
                 </p>
-                <div className="flex mt-1">
-                  <Link
-                    href="/dashboard/profile"
-                    className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center mr-3 z-20"
-                  >
-                    <IconUser className="mr-1 h-3 w-3" />
-                    Profile
-                  </Link>
-                  <button
-                    onClick={handleSignOut}
-                    className="text-xs font-medium text-gray-500 hover:text-gray-700 flex items-center z-20"
-                  >
-                    <IconLogout className="mr-1 h-3 w-3" />
-                    Sign out
-                  </button>
-                </div>
               </div>
             </div>
+            <button
+              onClick={handleSignOut}
+              className="ml-2 p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              title="Sign out"
+            >
+              <IconLogout className="h-5 w-5" />
+            </button>
           </div>
         </div>
 
@@ -227,22 +206,26 @@ export default function DashboardLayout({
           <div className="sticky top-0 z-10 lg:hidden flex items-center justify-between bg-white px-4 py-2 border-b border-gray-200 sm:px-6 relative">
             <button
               type="button"
-              className="p-2 -ml-2 rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              className="p-2 rounded-md text-gray-500 hover:text-gray-900 focus:outline-none"
               onClick={() => setSidebarOpen(true)}
             >
               <span className="sr-only">Open sidebar</span>
               <IconMenu2 className="h-6 w-6" />
             </button>
-            <div className="text-lg font-bold text-blue-600 relative">
-              Cloud Certify
+            <div className="flex items-center">
+              <IconCloud className="h-6 w-6 text-blue-600 mr-2" />
+              <span className="text-lg font-bold text-blue-600 relative">Cloud Certify</span>
             </div>
-            <Link href="/dashboard/profile" className="relative">
+            <div className="flex items-center space-x-2">
+              <button className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200">
+                <IconBell size={20} />
+              </button>
               <Avatar 
                 src={user?.photoURL}
                 initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
                 size="sm"
               />
-            </Link>
+            </div>
           </div>
 
           {/* Page content */}

@@ -1,6 +1,5 @@
 import toast from 'react-hot-toast';
 import { TOAST_CONFIG } from './constants';
-import { FiAlertCircle, FiCheckCircle, FiInfo, FiAlertTriangle } from 'react-icons/fi';
 
 /**
  * Custom toast notification functions with consistent styling
@@ -16,8 +15,7 @@ import { FiAlertCircle, FiCheckCircle, FiInfo, FiAlertTriangle } from 'react-ico
 export const showSuccess = (message, options = {}) => {
   return toast.success(message, {
     ...TOAST_CONFIG.SUCCESS,
-    ...options,
-    icon: options.icon || <FiCheckCircle size={18} />,
+    ...options
   });
 };
 
@@ -31,8 +29,7 @@ export const showSuccess = (message, options = {}) => {
 export const showError = (message, options = {}) => {
   return toast.error(message, {
     ...TOAST_CONFIG.ERROR,
-    ...options,
-    icon: options.icon || <FiAlertCircle size={18} />,
+    ...options
   });
 };
 
@@ -46,8 +43,7 @@ export const showError = (message, options = {}) => {
 export const showInfo = (message, options = {}) => {
   return toast(message, {
     ...TOAST_CONFIG.INFO,
-    ...options,
-    icon: options.icon || <FiInfo size={18} />,
+    ...options
   });
 };
 
@@ -61,8 +57,7 @@ export const showInfo = (message, options = {}) => {
 export const showWarning = (message, options = {}) => {
   return toast(message, {
     ...TOAST_CONFIG.WARNING,
-    ...options,
-    icon: options.icon || <FiAlertTriangle size={18} />,
+    ...options
   });
 };
 
@@ -90,26 +85,16 @@ export const dismissToast = (id) => {
  * @returns {string} - Toast ID
  */
 export const handleErrorWithToast = (error, options = {}) => {
-  // Extract error message based on error structure
-  const errorMessage = error.message || 
-                      error.error?.message || 
-                      'An unexpected error occurred';
+  let message = 'An unexpected error occurred';
   
-  // Check if this error should show a toast
-  if (error.shouldShowToast || error.error?.shouldShowToast) {
-    return showError(errorMessage, options);
+  if (error.response && error.response.data) {
+    message = error.response.data.message || 
+              error.response.data.error || 
+              error.response.data.detail || 
+              message;
+  } else if (error.message) {
+    message = error.message;
   }
   
-  return null;
-};
-
-// Default export of all toast functions
-export default {
-  success: showSuccess,
-  error: showError,
-  info: showInfo,
-  warning: showWarning,
-  dismiss: dismissToast,
-  dismissAll: dismissAllToasts,
-  handleError: handleErrorWithToast
+  return showError(message, options);
 };

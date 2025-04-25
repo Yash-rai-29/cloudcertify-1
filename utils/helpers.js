@@ -1,5 +1,7 @@
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { HTTP_STATUS } from './constants';
+import { showError } from './toast';
 
 /**
  * Combine Tailwind CSS class names with clsx and tailwind-merge
@@ -82,6 +84,69 @@ export function timeAgo(date) {
   // More than a year
   const years = Math.floor(days / 365);
   return `${years} year${years === 1 ? '' : 's'} ago`;
+}
+
+/**
+ * Handle API error responses
+ * @param {Error} error - The error object from axios
+ * @param {boolean} showToast - Whether to show a toast notification
+ * @returns {Object} - An object with success: false and error details
+ */
+export function handleApiError(error, showToast = true) {
+  let errorMessage = 'An unexpected error occurred. Please try again.';
+  let errorCode = 'unknown_error';
+  let statusCode = HTTP_STATUS.SERVER_ERROR;
+
+  // Handle axios error response
+  if (error.response) {
+    statusCode = error.response.status;
+    
+    // Get the error message and code from the response if available
+    if (error.response.data) {
+      errorMessage = error.response.data.message || error.response.data.detail || errorMessage;
+      errorCode = error.response.data.code || errorCode;
+    }
+    
+    // Handle specific status codes
+    switch (statusCode) {
+      case HTTP_STATUS.UNAUTHORIZED:
+        errorMessage = 'Your session has expired. Please log in again.';
+        errorCode = 'session_expired';
+        break;
+      case HTTP_STATUS.FORBIDDEN:
+        errorMessage = 'You do not have permission to perform this action.';
+        errorCode = 'permission_denied';
+        break;
+      case HTTP_STATUS.NOT_FOUND:
+        errorMessage = 'The requested resource was not found.';
+        errorCode = 'not_found';
+        break;
+      case HTTP_STATUS.RATE_LIMIT:
+        errorMessage = 'Too many requests. Please try again later.';
+        errorCode = 'rate_limited';
+        break;
+    }
+  } else if (error.request) {
+    // The request was made but no response was received
+    errorMessage = 'Could not connect to the server. Please check your connection.';
+    errorCode = 'network_error';
+    statusCode = 0;
+  }
+
+  // Show error toast if requested
+  if (showToast) {
+    showError(errorMessage);
+  }
+
+  // Return formatted error response
+  return {
+    success: false,
+    error: {
+      message: errorMessage,
+      code: errorCode,
+      status: statusCode
+    }
+  };
 }
 
 /**
