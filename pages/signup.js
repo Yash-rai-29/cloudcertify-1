@@ -25,16 +25,17 @@ export default function Signup() {
   const { register, handleSubmit, formState: { errors }, watch } = useForm();
   const password = watch('password', '');
 
-  // GCP certification options
+  // GCP certification options - must match exactly the API's expected enum values
   const certificationOptions = [
-    { value: 'associate-cloud-engineer', label: 'Associate Cloud Engineer' },
-    { value: 'professional-cloud-architect', label: 'Professional Cloud Architect' },
-    { value: 'professional-data-engineer', label: 'Professional Data Engineer' },
-    { value: 'professional-cloud-developer', label: 'Professional Cloud Developer' },
-    { value: 'professional-cloud-devops-engineer', label: 'Professional Cloud DevOps Engineer' },
-    { value: 'professional-cloud-security-engineer', label: 'Professional Cloud Security Engineer' },
-    { value: 'professional-cloud-network-engineer', label: 'Professional Cloud Network Engineer' },
-    { value: 'professional-machine-learning-engineer', label: 'Professional Machine Learning Engineer' },
+    { value: 'Google Cloud Certified - Cloud Engineer', label: 'Associate Cloud Engineer' },
+    { value: 'Google Cloud Certified - Professional Cloud Architect', label: 'Professional Cloud Architect' },
+    { value: 'Google Cloud Certified - Professional Data Engineer', label: 'Professional Data Engineer' },
+    { value: 'Google Cloud Certified - Professional Cloud Developer', label: 'Professional Cloud Developer' },
+    { value: 'Google Cloud Certified - Professional DevOps Engineer', label: 'Professional DevOps Engineer' },
+    { value: 'Google Cloud Certified - Professional Security Engineer', label: 'Professional Security Engineer' },
+    { value: 'Google Cloud Certified - Professional Network Engineer', label: 'Professional Network Engineer' },
+    { value: 'Google Cloud Certified - Professional ML Engineer', label: 'Professional ML Engineer' },
+    { value: 'Other', label: 'Other' },
   ];
 
   // Handle signup form submission
@@ -63,8 +64,29 @@ export default function Signup() {
     }
   };
 
+  // Format error message for display
+  const formatErrorMessage = (error) => {
+    if (!error) return null;
+    
+    if (error.validationErrors) {
+      // Format validation errors in a more readable way
+      if (Array.isArray(error.validationErrors)) {
+        return error.validationErrors.map(item => {
+          const field = item.loc[item.loc.length - 1];
+          // Convert field name to title case for display
+          const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          return `${fieldName}: ${item.msg}`;
+        }).join('\n');
+      }
+      return error.validationErrors.toString();
+    }
+    
+    return error.message || 'An error occurred. Please try again.';
+  };
+  
   // Show error from context if present
-  const displayError = authError || (authContextError ? authContextError.message : null);
+  const displayError = authError ? formatErrorMessage(authError) : 
+                      (authContextError ? formatErrorMessage(authContextError) : null);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center">

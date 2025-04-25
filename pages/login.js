@@ -43,8 +43,29 @@ export default function Login() {
     }
   };
 
+  // Format error message for display
+  const formatErrorMessage = (error) => {
+    if (!error) return null;
+    
+    if (error.validationErrors) {
+      // Format validation errors in a more readable way
+      if (Array.isArray(error.validationErrors)) {
+        return error.validationErrors.map(item => {
+          const field = item.loc[item.loc.length - 1];
+          // Convert field name to title case for display
+          const fieldName = field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+          return `${fieldName}: ${item.msg}`;
+        }).join('\n');
+      }
+      return error.validationErrors.toString();
+    }
+    
+    return error.message || 'An error occurred. Please try again.';
+  };
+  
   // Show error from context if present
-  const displayError = authError || (authContextError ? authContextError.message : null);
+  const displayError = authError ? formatErrorMessage(authError) : 
+                      (authContextError ? formatErrorMessage(authContextError) : null);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center">

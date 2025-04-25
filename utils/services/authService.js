@@ -44,6 +44,32 @@ const clearAuthCookies = () => {
 const createErrorResponse = (error, operation) => {
   console.error(`Auth Error (${operation}):`, error);
   
+  // Check if this is an API validation error with a detail field
+  if (error.response?.data?.detail) {
+    const detail = error.response.data.detail;
+    // Format validation errors into a more user-friendly message
+    let message = 'Validation error: ';
+    
+    if (Array.isArray(detail)) {
+      message += detail.map(item => {
+        const field = item.loc[item.loc.length - 1];
+        return `${field} - ${item.msg}`;
+      }).join(', ');
+    } else {
+      message += error.response.data.detail.toString();
+    }
+    
+    return {
+      success: false,
+      error: {
+        message,
+        code: 'validation_error',
+        operation,
+        detail: error.response.data.detail
+      }
+    };
+  }
+  
   return {
     success: false,
     error: {
@@ -72,7 +98,16 @@ export const signUp = async (userData) => {
     const apiResponse = await apiRequest('post', API.ENDPOINTS.USERS, userData);
     
     if (!apiResponse.success) {
-      throw new Error(apiResponse.message || 'API user creation failed');
+      // Directly return the API error to preserve validation details
+      return {
+        success: false,
+        error: {
+          message: apiResponse.message || 'API user creation failed',
+          code: 'api_error',
+          operation: 'signUp',
+          detail: apiResponse.error
+        }
+      };
     }
     
     // Step 2: Sign in with Firebase using provided credentials

@@ -96,6 +96,31 @@ export const apiRequest = async (method, url, data = null, params = null) => {
     // Log the error to console
     console.error(`API Error (${method.toUpperCase()} ${url}):`, error);
     
+    // Check for validation errors
+    if (error.response?.data?.detail) {
+      // Format validation errors
+      const detail = error.response.data.detail;
+      let errorMessage = 'Validation error';
+      
+      if (Array.isArray(detail)) {
+        // Format each validation error
+        errorMessage = detail.map(item => {
+          const field = item.loc[item.loc.length - 1];
+          return `${field}: ${item.msg}`;
+        }).join('; ');
+      } else {
+        errorMessage = error.response.data.detail.toString();
+      }
+      
+      return {
+        success: false,
+        status: error.response.status,
+        message: errorMessage,
+        error: error.response.data,
+        validationErrors: error.response.data.detail
+      };
+    }
+    
     // Construct standardized error response
     return {
       success: false,

@@ -70,7 +70,7 @@ const Header = () => {
     // Show Login/Signup buttons if user is not logged in
     <div className="flex space-x-2">
       <motion.a
-        href="/auth/login"
+        href="/login"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className="bg-white text-blue-600 border border-blue-200 px-4 py-2 rounded-full font-medium text-sm shadow-sm hover:shadow-md transition-shadow"
@@ -78,7 +78,7 @@ const Header = () => {
         Login
       </motion.a>
       <motion.a
-        href="/auth/signup"
+        href="/signup"
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-2 rounded-full font-medium text-sm shadow-md"
