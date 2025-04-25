@@ -239,13 +239,10 @@ export default function DashboardLayout({ children, title = 'Dashboard' }) {
 
       {/* Main content */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Fixed header */}
-        <DashboardHeader 
-          streak={streak} 
-          user={user} 
-          title={title}
-          onStreakUpdate={setStreak}
-        />
+        {/* Fixed header - Temporarily removed for debugging */}
+        <div className="p-4 border-b bg-white">
+          <h1 className="text-lg font-semibold">{title}</h1>
+        </div>
         
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6">
