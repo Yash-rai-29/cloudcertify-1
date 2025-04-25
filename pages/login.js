@@ -6,7 +6,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/router';
 import { FiMail, FiLock, FiAlertCircle, FiEye, FiEyeOff, FiArrowLeft, FiCloud } from 'react-icons/fi';
 import { SparklesBackground } from '../components/ui/SparklesBackground';
-import toast from 'react-hot-toast';
+import { showSuccess, showError, handleErrorWithToast } from '../utils/toast';
+import { ERRORS } from '../utils/constants';
 
 // Create a custom layout for the login page that doesn't include header or footer
 Login.getLayout = (page) => (
@@ -36,15 +37,25 @@ export default function Login() {
       const response = await signIn(data.email, data.password);
       
       if (!response.success) {
-        // Check if this is a known error that should use toast
-        if (response.shouldShowToast || response.error?.shouldShowToast) {
+        // Check if this is a known authentication error
+        if (response.code === 'invalid_credentials' || response.error?.code === 'invalid_credentials') {
           // Get the error message from the appropriate location
-          const errorMessage = response.message || response.error?.message || 'Login failed. Please try again.';
+          const errorMessage = response.message || 
+                              response.error?.message || 
+                              ERRORS.AUTH.INVALID_CREDENTIALS.message;
           
-          // Show a toast notification for specific error types
-          toast.error(errorMessage, {
-            duration: 4000
+          // Show a toast notification for invalid credentials
+          showError(errorMessage, {
+            id: 'login-error'
           });
+          
+          // Also set the auth error for the form display
+          setAuthError({ message: errorMessage });
+        } 
+        // Check if it's another error type that should use toast
+        else if (response.shouldShowToast || response.error?.shouldShowToast) {
+          // Use our error handling utility
+          handleErrorWithToast(response);
           
           // Still set the auth error for the form display if it's a validation error
           if (response.validationErrors || response.error?.validationErrors) {
@@ -58,7 +69,7 @@ export default function Login() {
         }
       } else {
         // If successful, show a success toast
-        toast.success('Logged in successfully!');
+        showSuccess('Logged in successfully!');
         
         // Optional: redirect to dashboard after successful login
         setTimeout(() => {
@@ -68,11 +79,36 @@ export default function Login() {
     } catch (error) {
       console.error('Login error:', error);
       
-      // Show toast for critical errors
-      toast.error('An unexpected error occurred. Please try again.');
-      
-      // Also set the error for display in the form
-      setAuthError(error.message || 'Failed to log in. Please check your credentials.');
+      // If it's a Firebase auth error, handle it properly
+      if (error.code && error.code.startsWith('auth/')) {
+        let errorMessage;
+        
+        // Format commonly encountered Firebase auth errors
+        switch (error.code) {
+          case 'auth/user-not-found':
+          case 'auth/wrong-password':
+            errorMessage = ERRORS.AUTH.INVALID_CREDENTIALS.message;
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = ERRORS.AUTH.TOO_MANY_ATTEMPTS.message;
+            break;
+          case 'auth/network-request-failed':
+            errorMessage = ERRORS.AUTH.NETWORK_ERROR.message;
+            break;
+          default:
+            errorMessage = error.message || 'An authentication error occurred';
+        }
+        
+        // Show formatted error message in a toast
+        showError(errorMessage);
+        
+        // Also set the auth error for the form display
+        setAuthError({ message: errorMessage });
+      } else {
+        // For other non-Firebase errors
+        showError('An unexpected error occurred. Please try again.');
+        setAuthError(error.message || 'Failed to log in. Please check your credentials.');
+      }
     }
   };
 

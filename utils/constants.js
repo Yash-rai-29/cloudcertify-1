@@ -63,3 +63,79 @@ export const HTTP_STATUS = {
   RATE_LIMIT: 429,
   SERVER_ERROR: 500
 };
+
+// Error Codes and Messages
+export const ERRORS = {
+  AUTH: {
+    USER_EXISTS: {
+      code: 'user_exists',
+      message: 'A user with this email already exists. Please try logging in instead.'
+    },
+    INVALID_CREDENTIALS: {
+      code: 'invalid_credentials',
+      message: 'Invalid email or password. Please try again.'
+    },
+    WEAK_PASSWORD: {
+      code: 'weak_password',
+      message: 'Password is too weak. Please use a stronger password.'
+    },
+    EMAIL_IN_USE: {
+      code: 'email_in_use',
+      message: 'This email is already in use. Please try logging in instead.'
+    },
+    NETWORK_ERROR: {
+      code: 'network_error',
+      message: 'Network error. Please check your connection and try again.'
+    },
+    TOO_MANY_ATTEMPTS: {
+      code: 'too_many_attempts',
+      message: 'Too many unsuccessful attempts. Please try again later.'
+    },
+    ACCOUNT_DISABLED: {
+      code: 'account_disabled',
+      message: 'This account has been disabled. Please contact support.'
+    },
+    VALIDATION_ERROR: {
+      code: 'validation_error',
+      message: 'Please check the form for errors and try again.'
+    }
+  }
+};
+
+// Toast Configuration 
+export const TOAST_CONFIG = {
+  DEFAULT_DURATION: 4000,
+  POSITION: 'top-right',
+  SUCCESS: {
+    style: {
+      background: '#10B981',
+      color: 'white',
+      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)'
+    },
+    duration: 3000
+  },
+  ERROR: {
+    style: {
+      background: '#EF4444',
+      color: 'white',
+      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)'
+    },
+    duration: 4000
+  },
+  INFO: {
+    style: {
+      background: '#3B82F6',
+      color: 'white',
+      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)'
+    },
+    duration: 3500
+  },
+  WARNING: {
+    style: {
+      background: '#F59E0B',
+      color: 'white',
+      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)'
+    },
+    duration: 4000
+  }
+};

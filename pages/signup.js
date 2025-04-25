@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { useAuth } from '../contexts/AuthContext';
 import { FiMail, FiLock, FiUser, FiAlertCircle, FiEye, FiEyeOff, FiArrowLeft, FiCloud, FiAward } from 'react-icons/fi';
 import { SparklesBackground } from '../components/ui/SparklesBackground';
-import toast from 'react-hot-toast';
+import { showSuccess, showError, handleErrorWithToast } from '../utils/toast';
+import { ERRORS } from '../utils/constants';
 
 // Create a custom layout for the signup page that doesn't include header or footer
 Signup.getLayout = (page) => (
@@ -19,6 +21,7 @@ Signup.getLayout = (page) => (
 );
 
 export default function Signup() {
+  const router = useRouter();
   const { signUp, loading, error: authContextError, clearError } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState(null);
@@ -60,11 +63,12 @@ export default function Signup() {
         // Check for "User already exists" error from direct API response or auth service response
         if (response.code === 'user_exists' || response.error?.code === 'user_exists') {
           // Get the error message from the appropriate location
-          const errorMessage = response.message || response.error?.message || 'User already exists. Please try logging in instead.';
+          const errorMessage = response.message || 
+                               response.error?.message || 
+                               ERRORS.AUTH.USER_EXISTS.message;
           
           // Show a toast notification for user already exists error
-          toast.error(errorMessage, {
-            duration: 4000,
+          showError(errorMessage, {
             id: 'user-exists-error'
           });
           
@@ -73,9 +77,8 @@ export default function Signup() {
             router.push('/login');
           }, 2500);
         } else if (response.shouldShowToast || response.error?.shouldShowToast) {
-          // For other errors that should display as toast
-          const errorMessage = response.message || response.error?.message || 'Failed to create account.';
-          toast.error(errorMessage);
+          // For other errors that should display as toast, use our handleErrorWithToast utility
+          handleErrorWithToast(response);
           
           // Still set the auth error for the form display
           setAuthError(response.error || response);
@@ -87,14 +90,14 @@ export default function Signup() {
         }
       } else {
         // If successful, show a success toast
-        toast.success('Account created successfully!');
+        showSuccess('Account created successfully!');
       }
       // Redirect is handled in the signUp function if successful
     } catch (error) {
       console.error('Signup error:', error);
       
       // Show toast for critical errors
-      toast.error('An unexpected error occurred. Please try again.');
+      showError('An unexpected error occurred. Please try again.');
       
       // Also set the error for display in the form
       setAuthError(error.message || 'Failed to create account. Please try again.');
