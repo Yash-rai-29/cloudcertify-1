@@ -1,4 +1,4 @@
-import axios from 'axios';
+import apiClient from './apiClient';
 import { API } from '../constants';
 import { handleApiError } from '../helpers';
 
@@ -8,7 +8,7 @@ import { handleApiError } from '../helpers';
  */
 export async function getUserInfo() {
   try {
-    const response = await axios.get(`${API.BASE_URL}${API.USER_INFO}`);
+    const response = await apiClient.get(API.USER_INFO);
     return {
       success: true,
       data: response.data
@@ -24,7 +24,7 @@ export async function getUserInfo() {
  */
 export async function getDailyStreak() {
   try {
-    const response = await axios.get(`${API.BASE_URL}${API.DAILY_STREAK}`);
+    const response = await apiClient.get(API.DAILY_STREAK);
     return {
       success: true,
       data: response.data
@@ -40,7 +40,7 @@ export async function getDailyStreak() {
  */
 export async function getDailyQuestion() {
   try {
-    const response = await axios.get(`${API.BASE_URL}${API.DAILY_QUESTION}`);
+    const response = await apiClient.get(API.DAILY_QUESTION);
     return {
       success: true,
       data: response.data
@@ -58,7 +58,7 @@ export async function getDailyQuestion() {
  */
 export async function submitDailyAnswer(questionId, answer) {
   try {
-    const response = await axios.post(`${API.BASE_URL}${API.SUBMIT_DAILY_ANSWER}`, {
+    const response = await apiClient.post(API.SUBMIT_DAILY_ANSWER, {
       question_id: questionId,
       answer
     });
@@ -78,7 +78,7 @@ export async function submitDailyAnswer(questionId, answer) {
  */
 export async function getTestRecommendations(limit = 4) {
   try {
-    const response = await axios.get(`${API.BASE_URL}${API.TEST_RECOMMENDATIONS}`, {
+    const response = await apiClient.get(API.TEST_RECOMMENDATIONS, {
       params: { limit }
     });
     return {
@@ -97,7 +97,7 @@ export async function getTestRecommendations(limit = 4) {
  */
 export async function getUserActivities(limit = 10) {
   try {
-    const response = await axios.get(`${API.BASE_URL}${API.USER_ACTIVITIES}`, {
+    const response = await apiClient.get(API.USER_ACTIVITIES, {
       params: { limit }
     });
     return {
@@ -116,7 +116,7 @@ export async function getUserActivities(limit = 10) {
  */
 export async function startTest(testId) {
   try {
-    const response = await axios.post(`${API.BASE_URL}${API.START_TEST}`, {
+    const response = await apiClient.post(API.START_TEST, {
       test_id: testId
     });
     return {
@@ -136,7 +136,7 @@ export async function startTest(testId) {
  */
 export async function getTestHistory(limit = 10, page = 1) {
   try {
-    const response = await axios.get(`${API.BASE_URL}${API.TEST_HISTORY}`, {
+    const response = await apiClient.get(API.TEST_HISTORY, {
       params: { limit, page }
     });
     return {
@@ -156,7 +156,7 @@ export async function getTestHistory(limit = 10, page = 1) {
 export async function getCertificationResources(category = null) {
   try {
     const params = category ? { category } : {};
-    const response = await axios.get(`${API.BASE_URL}${API.CERTIFICATION_RESOURCES}`, {
+    const response = await apiClient.get(API.CERTIFICATION_RESOURCES, {
       params
     });
     return {
@@ -176,7 +176,7 @@ export async function getCertificationResources(category = null) {
  */
 export async function getLeaderboard(period = 'week', limit = 10) {
   try {
-    const response = await axios.get(`${API.BASE_URL}${API.LEADERBOARD}`, {
+    const response = await apiClient.get(API.LEADERBOARD, {
       params: { period, limit }
     });
     return {
@@ -196,7 +196,7 @@ export async function getLeaderboard(period = 'week', limit = 10) {
  */
 export async function sendAiChatMessage(message, history = []) {
   try {
-    const response = await axios.post(`${API.BASE_URL}${API.AI_CHAT}`, {
+    const response = await apiClient.post(API.AI_CHAT, {
       message,
       history
     });

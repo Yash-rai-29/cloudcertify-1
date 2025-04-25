@@ -1,4 +1,4 @@
-import { apiRequest } from './api';
+import apiClient from './apiClient';
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
@@ -132,20 +132,8 @@ const createErrorResponse = (error, operation) => {
 export const signUp = async (userData) => {
   try {
     // Step 1: Create user via FastAPI
-    const apiResponse = await apiRequest('post', API.ENDPOINTS.USERS, userData);
-    
-    if (!apiResponse.success) {
-      // Directly return the API error to preserve validation details
-      return {
-        success: false,
-        error: {
-          message: apiResponse.message || 'API user creation failed',
-          code: 'api_error',
-          operation: 'signUp',
-          detail: apiResponse.error
-        }
-      };
-    }
+    const response = await apiClient.post(API.USERS, userData);
+    const apiResponse = { success: true, data: response.data };
     
     // Step 2: Sign in with Firebase using provided credentials
     const { email, password } = userData;
