@@ -5,6 +5,7 @@ import Head from 'next/head';
 import { useAuth } from '../contexts/AuthContext';
 import { FiMail, FiLock, FiUser, FiAlertCircle, FiEye, FiEyeOff, FiArrowLeft, FiCloud, FiAward } from 'react-icons/fi';
 import { SparklesBackground } from '../components/ui/SparklesBackground';
+import toast from 'react-hot-toast';
 
 // Create a custom layout for the signup page that doesn't include header or footer
 Signup.getLayout = (page) => (
@@ -54,12 +55,35 @@ export default function Signup() {
       };
       
       const response = await signUp(userData);
+      
       if (!response.success) {
-        setAuthError(response.error?.message || 'Failed to create account. Please try again.');
+        // Check for "User already exists" error
+        if (response.error?.code === 'user_exists') {
+          // Show a toast notification for user already exists error
+          toast.error(response.error.message || 'User already exists. Please try logging in instead.');
+          
+          // Optionally navigate to login page after a short delay
+          setTimeout(() => {
+            router.push('/login');
+          }, 2000);
+        } else {
+          // For other errors, display in the form error area
+          setAuthError(response.error || {
+            message: 'Failed to create account. Please try again.'
+          });
+        }
+      } else {
+        // If successful, show a success toast
+        toast.success('Account created successfully!');
       }
-      // Redirect is handled in the signUp function
+      // Redirect is handled in the signUp function if successful
     } catch (error) {
       console.error('Signup error:', error);
+      
+      // Show toast for critical errors
+      toast.error('An unexpected error occurred. Please try again.');
+      
+      // Also set the error for display in the form
       setAuthError(error.message || 'Failed to create account. Please try again.');
     }
   };

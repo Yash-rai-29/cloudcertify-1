@@ -44,6 +44,20 @@ const clearAuthCookies = () => {
 const createErrorResponse = (error, operation) => {
   console.error(`Auth Error (${operation}):`, error);
   
+  // Check for "User already exists" error
+  if (error.response?.data?.error === "User already exists") {
+    return {
+      success: false,
+      error: {
+        message: "A user with this email already exists. Please try logging in instead.",
+        code: 'user_exists',
+        operation,
+        shouldShowToast: true,
+        toastType: 'error'
+      }
+    };
+  }
+  
   // Check if this is an API validation error with a detail field
   if (error.response?.data?.detail) {
     const detail = error.response.data.detail;
@@ -70,12 +84,35 @@ const createErrorResponse = (error, operation) => {
     };
   }
   
+  // Check for Firebase auth errors and provide more user-friendly messages
+  let message = error.message || `${operation} failed`;
+  let code = error.code || 'unknown';
+  
+  // Map Firebase auth error codes to user-friendly messages
+  if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+    message = 'Invalid email or password. Please try again.';
+    code = 'invalid_credentials';
+  } else if (error.code === 'auth/email-already-in-use') {
+    message = 'This email is already in use. Please try logging in instead.';
+    code = 'email_in_use';
+  } else if (error.code === 'auth/weak-password') {
+    message = 'Password is too weak. Please use a stronger password.';
+    code = 'weak_password';
+  } else if (error.code === 'auth/network-request-failed') {
+    message = 'Network error. Please check your connection and try again.';
+    code = 'network_error';
+  } else if (error.code === 'auth/too-many-requests') {
+    message = 'Too many unsuccessful login attempts. Please try again later.';
+    code = 'too_many_attempts';
+  }
+  
   return {
     success: false,
     error: {
-      message: error.message || `${operation} failed`,
-      code: error.code || 'unknown',
-      operation
+      message,
+      code,
+      operation,
+      shouldShowToast: operation === 'signUp' || operation === 'signIn'
     }
   };
 };

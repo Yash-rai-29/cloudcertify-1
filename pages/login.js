@@ -6,6 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useRouter } from 'next/router';
 import { FiMail, FiLock, FiAlertCircle, FiEye, FiEyeOff, FiArrowLeft, FiCloud } from 'react-icons/fi';
 import { SparklesBackground } from '../components/ui/SparklesBackground';
+import toast from 'react-hot-toast';
 
 // Create a custom layout for the login page that doesn't include header or footer
 Login.getLayout = (page) => (
