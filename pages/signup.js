@@ -57,18 +57,31 @@ export default function Signup() {
       const response = await signUp(userData);
       
       if (!response.success) {
-        // Check for "User already exists" error
-        if (response.error?.code === 'user_exists') {
+        // Check for "User already exists" error from direct API response or auth service response
+        if (response.code === 'user_exists' || response.error?.code === 'user_exists') {
+          // Get the error message from the appropriate location
+          const errorMessage = response.message || response.error?.message || 'User already exists. Please try logging in instead.';
+          
           // Show a toast notification for user already exists error
-          toast.error(response.error.message || 'User already exists. Please try logging in instead.');
+          toast.error(errorMessage, {
+            duration: 4000,
+            id: 'user-exists-error'
+          });
           
           // Optionally navigate to login page after a short delay
           setTimeout(() => {
             router.push('/login');
-          }, 2000);
+          }, 2500);
+        } else if (response.shouldShowToast || response.error?.shouldShowToast) {
+          // For other errors that should display as toast
+          const errorMessage = response.message || response.error?.message || 'Failed to create account.';
+          toast.error(errorMessage);
+          
+          // Still set the auth error for the form display
+          setAuthError(response.error || response);
         } else {
-          // For other errors, display in the form error area
-          setAuthError(response.error || {
+          // For errors that should just display in the form
+          setAuthError(response.error || response || {
             message: 'Failed to create account. Please try again.'
           });
         }

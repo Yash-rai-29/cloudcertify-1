@@ -96,6 +96,18 @@ export const apiRequest = async (method, url, data = null, params = null) => {
     // Log the error to console
     console.error(`API Error (${method.toUpperCase()} ${url}):`, error);
     
+    // Check for "User already exists" error
+    if (error.response?.data?.error === "User already exists") {
+      return {
+        success: false,
+        status: error.response.status,
+        message: "A user with this email already exists. Please try logging in instead.",
+        error: "User already exists",
+        code: 'user_exists',
+        shouldShowToast: true
+      };
+    }
+    
     // Check for validation errors
     if (error.response?.data?.detail) {
       // Format validation errors
@@ -126,7 +138,8 @@ export const apiRequest = async (method, url, data = null, params = null) => {
       success: false,
       status: error.response?.status || HTTP_STATUS.SERVER_ERROR,
       message: error.response?.data?.message || error.message || 'An unexpected error occurred',
-      error: error.response?.data?.error || error.name || 'UnknownError'
+      error: error.response?.data?.error || error.name || 'UnknownError',
+      shouldShowToast: method.toLowerCase() === 'post' && url.includes('/users') // Show toast for user creation errors
     };
   }
 };

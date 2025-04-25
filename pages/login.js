@@ -34,12 +34,44 @@ export default function Login() {
       clearError();
       
       const response = await signIn(data.email, data.password);
+      
       if (!response.success) {
-        setAuthError(response.error?.message || 'Failed to log in. Please check your credentials.');
+        // Check if this is a known error that should use toast
+        if (response.shouldShowToast || response.error?.shouldShowToast) {
+          // Get the error message from the appropriate location
+          const errorMessage = response.message || response.error?.message || 'Login failed. Please try again.';
+          
+          // Show a toast notification for specific error types
+          toast.error(errorMessage, {
+            duration: 4000
+          });
+          
+          // Still set the auth error for the form display if it's a validation error
+          if (response.validationErrors || response.error?.validationErrors) {
+            setAuthError(response.error || response);
+          }
+        } else {
+          // For other errors, display in the form error area
+          setAuthError(response.error || response || {
+            message: 'Failed to log in. Please check your credentials.'
+          });
+        }
+      } else {
+        // If successful, show a success toast
+        toast.success('Logged in successfully!');
+        
+        // Optional: redirect to dashboard after successful login
+        setTimeout(() => {
+          router.push('/dashboard');
+        }, 1000);
       }
-      // Redirect is handled in the signIn function
     } catch (error) {
       console.error('Login error:', error);
+      
+      // Show toast for critical errors
+      toast.error('An unexpected error occurred. Please try again.');
+      
+      // Also set the error for display in the form
       setAuthError(error.message || 'Failed to log in. Please check your credentials.');
     }
   };

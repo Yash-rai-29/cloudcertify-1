@@ -53,7 +53,70 @@ export function AuthProvider({ children }) {
    */
   const handleAuthError = (errorResponse) => {
     console.error('Authentication error:', errorResponse);
-    setError(errorResponse.error || { message: 'An unexpected error occurred' });
+    
+    // Check if the errorResponse is a direct Firebase error
+    if (errorResponse.code && errorResponse.code.startsWith('auth/')) {
+      // Format Firebase auth error codes for better display
+      let formattedError;
+      
+      // Map Firebase error codes to user-friendly messages
+      switch (errorResponse.code) {
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+          formattedError = { 
+            message: 'Invalid email or password. Please try again.',
+            code: 'invalid_credentials',
+            shouldShowToast: true
+          };
+          break;
+        case 'auth/email-already-in-use':
+          formattedError = { 
+            message: 'This email is already in use. Please try logging in instead.',
+            code: 'email_in_use',
+            shouldShowToast: true
+          };
+          break;
+        case 'auth/weak-password':
+          formattedError = { 
+            message: 'Password is too weak. Please use a stronger password.',
+            code: 'weak_password'
+          };
+          break;
+        case 'auth/network-request-failed':
+          formattedError = { 
+            message: 'Network error. Please check your connection and try again.',
+            code: 'network_error',
+            shouldShowToast: true
+          };
+          break;
+        case 'auth/too-many-requests':
+          formattedError = { 
+            message: 'Too many unsuccessful login attempts. Please try again later.',
+            code: 'too_many_attempts',
+            shouldShowToast: true
+          };
+          break;
+        case 'auth/user-disabled':
+          formattedError = { 
+            message: 'This account has been disabled. Please contact support.',
+            code: 'account_disabled',
+            shouldShowToast: true
+          };
+          break;
+        default:
+          formattedError = {
+            message: errorResponse.message || 'An authentication error occurred',
+            code: errorResponse.code,
+            shouldShowToast: true
+          };
+      }
+      
+      setError(formattedError);
+    } else {
+      // Handle errors from our API service
+      setError(errorResponse.error || { message: 'An unexpected error occurred' });
+    }
+    
     setLoading(false);
   };
 
@@ -127,12 +190,39 @@ export function AuthProvider({ children }) {
         router.push(AUTH.ROUTES.DASHBOARD);
         return response;
       } else {
-        handleAuthError(response);
-        return response;
+        // Check for "User already exists" error which should be handled specially
+        if (response.code === 'user_exists' || response.error?.code === 'user_exists') {
+          const errorObj = {
+            message: response.message || response.error?.message || 'A user with this email already exists. Please try logging in instead.',
+            code: 'user_exists',
+            shouldShowToast: true
+          };
+          setError(errorObj);
+          setLoading(false);
+          return { success: false, error: errorObj };
+        } else {
+          handleAuthError(response);
+          return response;
+        }
       }
     } catch (error) {
-      handleAuthError({ error: { message: error.message } });
-      return { success: false, error: { message: error.message } };
+      // If it's a Firebase auth error, pass it directly to handleAuthError
+      if (error.code && error.code.startsWith('auth/')) {
+        handleAuthError(error);
+        // Create a standardized error response
+        return { 
+          success: false, 
+          error: {
+            message: error.message,
+            code: error.code,
+            shouldShowToast: true
+          }
+        };
+      } else {
+        // Handle other errors
+        handleAuthError({ error: { message: error.message } });
+        return { success: false, error: { message: error.message } };
+      }
     }
   };
 
@@ -155,12 +245,39 @@ export function AuthProvider({ children }) {
         router.push(AUTH.ROUTES.DASHBOARD);
         return response;
       } else {
-        handleAuthError(response);
-        return response;
+        // Check for special error handling cases
+        if (response.shouldShowToast || response.error?.shouldShowToast) {
+          const errorObj = {
+            message: response.message || response.error?.message || 'Failed to log in. Please check your credentials.',
+            code: response.code || response.error?.code || 'auth_error',
+            shouldShowToast: true
+          };
+          setError(errorObj);
+          setLoading(false);
+          return { success: false, error: errorObj };
+        } else {
+          handleAuthError(response);
+          return response;
+        }
       }
     } catch (error) {
-      handleAuthError({ error: { message: error.message } });
-      return { success: false, error: { message: error.message } };
+      // If it's a Firebase auth error, pass it directly to handleAuthError
+      if (error.code && error.code.startsWith('auth/')) {
+        handleAuthError(error);
+        // Create a standardized error response
+        return { 
+          success: false, 
+          error: {
+            message: error.message,
+            code: error.code,
+            shouldShowToast: true
+          }
+        };
+      } else {
+        // Handle other errors
+        handleAuthError({ error: { message: error.message } });
+        return { success: false, error: { message: error.message } };
+      }
     }
   };
 
