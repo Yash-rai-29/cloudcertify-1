@@ -12,10 +12,10 @@ import { API, AUTH } from '../constants';
  * Handle the setting of auth cookies consistently
  * 
  * @param {Object} user - Firebase user object
- * @param {number} expiryDays - Days until cookie expires
+ * @param {number} expiryDays - Days until cookie expires (defaults to constant)
  * @returns {Promise<string>} - Authentication token
  */
-const setAuthCookies = async (user, expiryDays = 7) => {
+const setAuthCookies = async (user, expiryDays = AUTH.TOKEN.DEFAULT_EXPIRY_DAYS) => {
   try {
     const token = await user.getIdToken();
     Cookies.set(AUTH.COOKIE_NAMES.AUTH_TOKEN, token, { expires: expiryDays });

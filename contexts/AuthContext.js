@@ -177,12 +177,12 @@ export function AuthProvider({ children }) {
           // Check token validity
           const tokenResult = await user.getIdTokenResult(true);
           
-          // Check if token is close to expiration (within 5 minutes)
+          // Check if token is close to expiration based on threshold from constants
           const expirationTime = new Date(tokenResult.expirationTime).getTime();
           const currentTime = Date.now();
-          const fiveMinutes = 5 * 60 * 1000; // 5 minutes in milliseconds
+          const refreshThreshold = AUTH.TOKEN.REFRESH_THRESHOLD_MINUTES * 60 * 1000; // convert minutes to milliseconds
           
-          if (expirationTime - currentTime < fiveMinutes) {
+          if (expirationTime - currentTime < refreshThreshold) {
             // Token is about to expire, try to refresh it
             try {
               await user.getIdToken(true); // Force token refresh
@@ -191,8 +191,8 @@ export function AuthProvider({ children }) {
               console.error('Failed to refresh token:', refreshError);
               // Handle failed token refresh
               const errorObj = {
-                message: 'Your session is about to expire and could not be refreshed. Please log in again.',
-                code: 'session_expiring',
+                message: ERRORS.AUTH.SESSION_EXPIRING.message,
+                code: ERRORS.AUTH.SESSION_EXPIRING.code,
                 shouldShowToast: true
               };
               setError(errorObj);
@@ -223,8 +223,8 @@ export function AuthProvider({ children }) {
               tokenError.code === 'auth/id-token-revoked') {
             // Handle expired or revoked tokens
             const errorObj = {
-              message: 'Your session has expired. Please log in again.',
-              code: 'session_expired',
+              message: ERRORS.AUTH.SESSION_EXPIRED.message,
+              code: ERRORS.AUTH.SESSION_EXPIRED.code,
               shouldShowToast: true
             };
             setError(errorObj);
@@ -265,8 +265,8 @@ export function AuthProvider({ children }) {
             });
             
             setError({
-              message: 'There was a problem with your session. Some features may be unavailable.',
-              code: 'token_error',
+              message: ERRORS.AUTH.TOKEN_ERROR.message,
+              code: ERRORS.AUTH.TOKEN_ERROR.code,
               shouldShowToast: true
             });
           }

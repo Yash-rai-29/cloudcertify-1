@@ -44,11 +44,20 @@ export const AUTH = {
     AUTH_TOKEN: 'auth_token',
     REFRESH_TOKEN: 'refresh_token'
   },
+  TOKEN: {
+    // How many minutes before token expiration to attempt refresh
+    REFRESH_THRESHOLD_MINUTES: 5,
+    // Default expiration time in days for auth cookies
+    DEFAULT_EXPIRY_DAYS: 7,
+    // Token refresh failure handling - whether to auto-logout on refresh failure
+    LOGOUT_ON_REFRESH_FAILURE: true
+  },
   ROUTES: {
     LOGIN: '/login',
     SIGNUP: '/signup',
     DASHBOARD: '/dashboard',
-    PROTECTED_ROUTES: ['/dashboard', '/profile']
+    PROFILE: '/profile',
+    PROTECTED_ROUTES: ['/dashboard', '/profile', '/tests', '/resources', '/leaderboard', '/chat']
   }
 };
 
@@ -98,6 +107,18 @@ export const ERRORS = {
     VALIDATION_ERROR: {
       code: 'validation_error',
       message: 'Please check the form for errors and try again.'
+    },
+    SESSION_EXPIRED: {
+      code: 'session_expired',
+      message: 'Your session has expired. Please log in again to continue.'
+    },
+    SESSION_EXPIRING: {
+      code: 'session_expiring',
+      message: 'Your session is about to expire. Please save your work and log in again soon.'
+    },
+    TOKEN_ERROR: {
+      code: 'token_error',
+      message: 'There was a problem with your authentication token. Please log in again.'
     }
   }
 };
