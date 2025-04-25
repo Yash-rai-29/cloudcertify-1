@@ -1,4 +1,4 @@
-import { cn } from '../../utils/helpers';
+import React from 'react';
 
 /**
  * Dashboard section component with consistent spacing and styling
@@ -10,51 +10,40 @@ import { cn } from '../../utils/helpers';
  * @param {string} props.className - Additional CSS classes for container
  * @param {string} props.contentClassName - Additional CSS classes for content area
  * @param {string} props.headerClassName - Additional CSS classes for header
+ * @param {React.ReactNode} props.children - Section content
  */
 export default function Section({
   title,
   description,
   headerContent,
-  children,
-  className,
-  contentClassName,
-  headerClassName
+  className = '',
+  contentClassName = '',
+  headerClassName = '',
+  children
 }) {
   return (
-    <div className={cn('space-y-4 relative', className)}>
-      {/* Section Header */}
+    <div className={`mb-8 ${className}`}>
+      {/* Section header */}
       {(title || description || headerContent) && (
-        <div className={cn(
-          'flex flex-col md:flex-row md:items-center md:justify-between relative',
-          headerClassName
-        )}>
-          {/* Title and Description */}
-          {(title || description) && (
+        <div className={`mb-4 ${headerClassName}`}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               {title && (
-                <h2 className="text-lg font-medium text-gray-900">
-                  {title}
-                </h2>
+                <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
               )}
               {description && (
-                <p className="mt-1 text-sm text-gray-500">
-                  {description}
-                </p>
+                <p className="mt-1 text-sm text-gray-500">{description}</p>
               )}
             </div>
-          )}
-          
-          {/* Header Right Content */}
-          {headerContent && (
-            <div className="mt-2 md:mt-0">
-              {headerContent}
-            </div>
-          )}
+            {headerContent && (
+              <div className="ml-auto">{headerContent}</div>
+            )}
+          </div>
         </div>
       )}
       
-      {/* Content */}
-      <div className={cn('relative', contentClassName)}>
+      {/* Section content */}
+      <div className={contentClassName}>
         {children}
       </div>
     </div>

@@ -1,147 +1,137 @@
-import { useState } from 'react';
-import { IconFlame } from '@tabler/icons-react';
-import { getDailyQuestion } from '../../utils/services/dashboardService';
-import QuestionModal from './QuestionModal';
+import { useState, useEffect } from 'react';
+import { FiFire, FiCalendar, FiChevronRight } from 'react-icons/fi';
+import { getDailyQuestion, trackUserActivity } from '../../utils/services/activityService';
 import Section from './Section';
-import Button from '../ui/Button';
-import Badge from '../ui/Badge';
-import { showError } from '../../utils/toast';
+import QuestionModal from './QuestionModal';
+import { showSuccess, showError } from '../../utils/toast';
 
 /**
  * Daily Streak Challenge component for dashboard
  * @param {Object} props - Component props
- * @param {Object} props.question - Daily question data (fetch indicator)
  * @param {Object} props.streak - User streak data
  * @param {Function} props.onStreakUpdate - Callback when streak is updated
  * @param {string} props.className - Additional CSS classes
  */
-export default function DailyQuestionSection({ question: initialQuestion, streak, onStreakUpdate, className }) {
+export default function DailyQuestionSection({ streak, onStreakUpdate, className }) {
+  const [loading, setLoading] = useState(true);
+  const [question, setQuestion] = useState(null);
+  const [questionAttempted, setQuestionAttempted] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [questionData, setQuestionData] = useState(initialQuestion); 
- 
-  // Handle click on Take Question button
-  const handleTakeQuestion = async () => {
-    setIsLoading(true);
-    
-    try {
-      // Fetch the daily question when user clicks "Take Question"
-      const response = await getDailyQuestion();
-      
-      if (response.success && response.data?.question) {
-        setQuestionData(response.data.question);
-        setIsModalOpen(true);
-      } else {
-        showError('Failed to load the daily question. Please try again later.');
+
+  useEffect(() => {
+    const fetchDailyQuestion = async () => {
+      setLoading(true);
+      try {
+        const response = await getDailyQuestion();
+        if (response.success) {
+          setQuestion(response.data.question);
+          setQuestionAttempted(response.data.attempted || false);
+        }
+      } catch (error) {
+        console.error('Error fetching daily question:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching daily question:', error);
-      showError('An error occurred while loading the daily question.');
-    } finally {
-      setIsLoading(false);
+    };
+
+    fetchDailyQuestion();
+  }, []);
+
+  const handleTakeQuestion = () => {
+    if (questionAttempted) {
+      showSuccess('You\'ve already answered today\'s question. Come back tomorrow!');
+      return;
     }
+    
+    trackUserActivity('open_daily_question');
+    setIsModalOpen(true);
   };
-  
-  // Called when a daily question is successfully answered
-  const handleQuestionSubmitted = (updatedStreak) => {
-    if (onStreakUpdate) {
+
+  const handleQuestionSuccess = (updatedStreak) => {
+    setQuestionAttempted(true);
+    if (onStreakUpdate && updatedStreak) {
       onStreakUpdate(updatedStreak);
     }
+
+    // Show success message
+    const streakMessage = updatedStreak?.current_streak > 1 
+      ? `Your streak is now ${updatedStreak.current_streak} days!` 
+      : 'Great job on your first daily question!';
+      
+    showSuccess(`Correct answer! ${streakMessage}`);
   };
-  
-  // Close the modal
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
+
+  const handleQuestionError = (error) => {
+    showError(error || 'There was a problem submitting your answer.');
   };
-  
-  // Generate streak display
-  const renderStreakIndicator = () => {
-    const streakCount = streak?.streak || 0;
-    const streakClass = streakCount > 0 ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200';
-    
-    return (
-      <div className={`flex items-center px-4 py-2 rounded-t-lg border ${streakClass} border-b-0`}>
-        <div className={`p-1.5 rounded-full ${streakCount > 0 ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-500'}`}>
-          <IconFlame size={18} />
-        </div>
-        <div className="ml-2">
-          <p className={`text-sm font-medium ${streakCount > 0 ? 'text-amber-800' : 'text-gray-700'}`}>
-            {streakCount === 0 
-              ? 'Start your streak today!' 
-              : `${streakCount} day${streakCount !== 1 ? 's' : ''} streak! 🔥`
-            }
-          </p>
-        </div>
-        
-        <div className="ml-auto">
-          <Badge variant="orange" size="sm">
-            Day {streakCount}
-          </Badge>
-        </div>
-      </div>
-    );
-  };
-  
+
   return (
-    <>
-      <Section
-        title="Daily Streak Challenge"
-        description="Maintain Your Learning Streak"
-        className={className}
-        headerContent={
-          <Badge 
-            variant="blue"
-            size="sm"
-          >
-            Question of the Day
-          </Badge>
-        }
-      >
-        <div className="overflow-hidden relative">
-          {renderStreakIndicator()}
-          
-          <div className="bg-white rounded-b-lg border border-gray-200 overflow-hidden px-5 py-4">
-            <p className="text-sm text-gray-600 mb-1">
-              Consistency is key to mastering GCP. Complete the daily question to maintain your streak.
-            </p>
-            
-            <div className="flex justify-between items-center mt-3">
-              <p className="text-sm text-gray-500">
-                Answer one question to maintain your streak
-              </p>
-              
-              <Button
-                onClick={handleTakeQuestion}
-                isLoading={isLoading}
-                disabled={isLoading}
-                className="bg-blue-600 hover:bg-blue-700 focus:ring-blue-500"
-                size="sm"
-                leftIcon={
-                  <div className="w-5 h-5 rounded-full bg-white bg-opacity-30 flex items-center justify-center text-white">
-                    {streak?.streak > 0 ? '🔥' : '✓'}
-                  </div>
-                }
-              >
-                Take Question
-              </Button>
+    <Section
+      title="Daily Streak Challenge"
+      description="Answer a question every day to build your streak and improve your knowledge."
+      className={className}
+    >
+      <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="p-5 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="flex flex-wrap gap-4 items-center justify-between mb-2">
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <FiFire className="text-amber-500" size={20} />
+                <span className="text-gray-700 font-medium">Current Streak:</span>
+                <span className="text-amber-500 font-semibold text-xl">{streak?.current_streak || 0}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <FiCalendar className="text-blue-500" size={20} />
+                <span className="text-gray-700 font-medium">Longest Streak:</span>
+                <span className="text-blue-500 font-semibold text-xl">{streak?.longest_streak || 0}</span>
+              </div>
             </div>
-            
-            <div className="mt-4 pt-3 border-t border-gray-100">
-              <p className="text-xs text-gray-500">
-                <strong>Pro tip:</strong> Answer daily questions to boost your readiness for the exam.
-              </p>
+            <div>
+              <button 
+                onClick={handleTakeQuestion}
+                disabled={loading || !question}
+                className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium shadow-sm ${
+                  questionAttempted 
+                    ? 'bg-green-100 text-green-700 cursor-default'
+                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                } ${loading || !question ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <span>
+                  {loading 
+                    ? 'Loading...' 
+                    : questionAttempted
+                      ? 'Completed Today'
+                      : 'Take Daily Question'}
+                </span>
+                {!loading && !questionAttempted && (
+                  <FiChevronRight className="ml-1" size={16} />
+                )}
+              </button>
             </div>
           </div>
+          
+          <div className="bg-white rounded-lg p-4 shadow-sm">
+            <h4 className="font-medium text-gray-800 mb-1">Today's Question</h4>
+            {loading ? (
+              <div className="animate-pulse h-5 bg-gray-200 rounded w-3/4 mb-4"></div>
+            ) : question ? (
+              <p className="text-gray-600 mb-2 line-clamp-2">{question.text}</p>
+            ) : (
+              <p className="text-gray-500 italic">No question available for today.</p>
+            )}
+          </div>
         </div>
-      </Section>
-      
-      {/* Question Modal */}
-      <QuestionModal
-        question={questionData}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onSubmitSuccess={handleQuestionSubmitted}
-      />
-    </>
+      </div>
+
+      {question && (
+        <QuestionModal
+          question={question}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmitSuccess={handleQuestionSuccess}
+          onSubmitError={handleQuestionError}
+        />
+      )}
+    </Section>
   );
 }

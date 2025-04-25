@@ -1,24 +1,24 @@
 import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
-import ProtectedRoute from '../common/ProtectedRoute';
-import Avatar from '../ui/Avatar';
-import {
-  IconLayoutDashboard,
-  IconFileDescription,
-  IconCertificate,
-  IconBookmarks,
-  IconTrophy,
-  IconRobot,
-  IconLogout,
-  IconMenu2,
-  IconX,
-  IconCloud,
-  IconBell,
-  IconChevronDown
-} from '@tabler/icons-react';
+import { getDailyStreak } from '../../utils/services/activityService';
+import { trackUserActivity } from '../../utils/services/activityService';
+import { Toaster } from 'react-hot-toast';
+import DashboardHeader from '../dashboard/DashboardHeader';
+import { 
+  FiHome, 
+  FiBook, 
+  FiActivity, 
+  FiFileText, 
+  FiMessageSquare, 
+  FiAward,
+  FiUser, 
+  FiLogOut, 
+  FiMenu, 
+  FiX,
+  FiCloud
+} from 'react-icons/fi';
 
 /**
  * Dashboard layout component with sidebar navigation for authenticated users
@@ -27,214 +27,232 @@ import {
  * @param {React.ReactNode} props.children - Child components
  * @param {string} props.title - Page title
  */
-export default function DashboardLayout({ 
-  children, 
-  title = 'Dashboard' 
-}) {
+export default function DashboardLayout({ children, title = 'Dashboard' }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [streak, setStreak] = useState({ current_streak: 0, longest_streak: 0 });
+  const [loading, setLoading] = useState(true);
   const { user, signOut } = useAuth();
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: IconLayoutDashboard, exact: true },
-    { name: 'Test Library', href: '/dashboard/tests', icon: IconFileDescription },
-    { name: 'Test History', href: '/dashboard/history', icon: IconCertificate },
-    { name: 'Resources', href: '/dashboard/resources', icon: IconBookmarks },
-    { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: IconTrophy },
-    { name: 'AI Chatbot', href: '/dashboard/chat', icon: IconRobot },
+  // Navigation items for the sidebar
+  const navItems = [
+    { 
+      name: 'Dashboard', 
+      icon: <FiHome size={20} />, 
+      href: '/dashboard',
+      onClick: () => trackUserActivity('navigate_to_dashboard')
+    },
+    { 
+      name: 'Test Library', 
+      icon: <FiBook size={20} />, 
+      href: '/dashboard/tests',
+      onClick: () => trackUserActivity('navigate_to_tests')
+    },
+    { 
+      name: 'My History', 
+      icon: <FiActivity size={20} />, 
+      href: '/dashboard/history',
+      onClick: () => trackUserActivity('navigate_to_history')
+    },
+    { 
+      name: 'Resources', 
+      icon: <FiFileText size={20} />, 
+      href: '/dashboard/resources',
+      onClick: () => trackUserActivity('navigate_to_resources')
+    },
+    { 
+      name: 'Leaderboard', 
+      icon: <FiAward size={20} />, 
+      href: '/dashboard/leaderboard',
+      onClick: () => trackUserActivity('navigate_to_leaderboard')
+    },
+    { 
+      name: 'AI Chatbot', 
+      icon: <FiMessageSquare size={20} />, 
+      href: '/dashboard/chat',
+      onClick: () => trackUserActivity('navigate_to_chat')
+    },
+    { 
+      name: 'Profile', 
+      icon: <FiUser size={20} />, 
+      href: '/dashboard/profile',
+      onClick: () => trackUserActivity('navigate_to_profile')
+    },
   ];
 
-  const handleSignOut = async () => {
-    await signOut();
-    router.push('/');
+  // Fetch user streak
+  useEffect(() => {
+    const fetchStreak = async () => {
+      setLoading(true);
+      try {
+        const response = await getDailyStreak();
+        if (response.success) {
+          setStreak(response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching user streak:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchStreak();
+    }
+  }, [user]);
+
+  // Handle responsive sidebar
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth < 768) {
+        setIsOpen(false);
+      } else {
+        setIsOpen(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Handle logout click
+  const handleLogout = async () => {
+    try {
+      await trackUserActivity('user_logout');
+      await signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  // Handle navigation item click
+  const handleNavItemClick = (item) => {
+    if (item.onClick) {
+      item.onClick();
+    }
+    if (isMobile) {
+      setIsOpen(false);
+    }
   };
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50 relative">
-        <Head>
-          <title>{title} | Cloud Certify</title>
-        </Head>
-
-        {/* Mobile sidebar */}
-        <div className="lg:hidden">
-          {sidebarOpen && (
-            <div className="fixed inset-0 z-40 flex">
-              {/* Overlay */}
-              <div 
-                className="fixed inset-0 bg-gray-600 bg-opacity-75"
-                onClick={() => setSidebarOpen(false)}
-              ></div>
-              
-              {/* Sidebar */}
-              <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white z-50">
-                <div className="absolute top-0 right-0 -mr-12 pt-2 z-50">
-                  <button
-                    className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    <span className="sr-only">Close sidebar</span>
-                    <IconX className="h-6 w-6 text-white" />
-                  </button>
-                </div>
-                
-                <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-                  <div className="flex-shrink-0 flex items-center px-4 relative">
-                    <div className="flex items-center">
-                      <IconCloud className="h-8 w-8 text-blue-600 mr-2" />
-                      <span className="text-xl font-bold text-blue-600 z-20">Cloud Certify</span>
-                    </div>
-                  </div>
-                  <nav className="mt-5 px-2 space-y-1 relative">
-                    {navigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={`group flex items-center px-2 py-2 text-base font-medium rounded-md z-20 ${
-                          (item.exact ? router.pathname === item.href : 
-                           router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
-                      >
-                        <item.icon
-                          className={`mr-4 flex-shrink-0 h-6 w-6 ${
-                            (item.exact ? router.pathname === item.href : 
-                             router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
-                              ? 'text-blue-600'
-                              : 'text-gray-400 group-hover:text-gray-500'
-                          }`}
-                        />
-                        <span className="relative">{item.name}</span>
-                      </Link>
-                    ))}
-                  </nav>
-                </div>
-                
-                <div className="flex-shrink-0 flex border-t border-gray-200 p-4 justify-between items-center relative z-20">
-                  <div className="flex items-center">
-                    <div className="relative">
-                      <Avatar 
-                        src={user?.photoURL}
-                        initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
-                        size="md"
-                      />
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-700 truncate">
-                        {user?.displayName || user?.email}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleSignOut}
-                    className="ml-2 p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                  >
-                    <IconLogout className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="flex-shrink-0 w-14">
-                {/* Force sidebar to shrink to fit close icon */}
-              </div>
-            </div>
-          )}
+    <div className="flex h-screen bg-gray-50">
+      {/* Toast notifications container */}
+      <Toaster position="top-right" />
+      
+      {/* Mobile menu toggle */}
+      {isMobile && (
+        <div className="fixed top-4 left-4 z-50">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="p-2 rounded-lg bg-white shadow-md text-gray-700 hover:bg-gray-50"
+            aria-label={isOpen ? "Close menu" : "Open menu"}
+          >
+            {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+          </button>
         </div>
+      )}
 
-        {/* Static sidebar for desktop */}
-        <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:bg-white lg:z-30">
-          <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-            <div className="flex-shrink-0 flex items-center px-4 relative">
-              <IconCloud className="h-8 w-8 text-blue-600 mr-2" />
-              <span className="text-xl font-bold text-blue-600">Cloud Certify</span>
-            </div>
-            <nav className="mt-8 flex-1 px-4 space-y-1 relative">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`group z-20 flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                    (item.exact ? router.pathname === item.href : 
-                     router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <item.icon
-                    className={`mr-3 flex-shrink-0 h-5 w-5 ${
-                      (item.exact ? router.pathname === item.href : 
-                       router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
-                        ? 'text-blue-600'
-                        : 'text-gray-400 group-hover:text-gray-500'
-                    }`}
-                  />
-                  <span className="relative">{item.name}</span>
-                </Link>
-              ))}
-            </nav>
+      {/* Sidebar */}
+      <div
+        className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transform ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto`}
+      >
+        <div className="flex flex-col h-full">
+          {/* Logo */}
+          <div className="flex items-center justify-center h-16 px-6 border-b">
+            <Link href="/dashboard" 
+              className="flex items-center gap-2"
+              onClick={() => trackUserActivity('click_logo')}
+            >
+              <FiCloud className="text-blue-600 text-2xl" />
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                Cloud Certify
+              </span>
+            </Link>
           </div>
-          
-          <div className="flex-shrink-0 flex border-t border-gray-200 p-4 justify-between items-center relative z-20">
-            <div className="flex items-center">
-              <div className="relative">
-                <Avatar 
-                  src={user?.photoURL}
-                  initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
-                  size="md"
-                />
+
+          {/* User info */}
+          <div className="px-6 py-4 border-b">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-medium">
+                {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
               </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700 truncate">
-                  {user?.displayName || user?.email}
+              <div className="overflow-hidden">
+                <p className="font-medium text-gray-800 truncate">
+                  {user?.displayName || user?.email || 'User'}
                 </p>
+                {user?.email && (
+                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                )}
               </div>
             </div>
-            <button
-              onClick={handleSignOut}
-              className="ml-2 p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              title="Sign out"
-            >
-              <IconLogout className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Main content */}
-        <div className="lg:pl-64 flex flex-col flex-1 relative">
-          {/* Mobile top navigation */}
-          <div className="sticky top-0 z-10 lg:hidden flex items-center justify-between bg-white px-4 py-2 border-b border-gray-200 sm:px-6 relative">
-            <button
-              type="button"
-              className="p-2 rounded-md text-gray-500 hover:text-gray-900 focus:outline-none"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <span className="sr-only">Open sidebar</span>
-              <IconMenu2 className="h-6 w-6" />
-            </button>
-            <div className="flex items-center">
-              <IconCloud className="h-6 w-6 text-blue-600 mr-2" />
-              <span className="text-lg font-bold text-blue-600 relative">Cloud Certify</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200">
-                <IconBell size={20} />
-              </button>
-              <Avatar 
-                src={user?.photoURL}
-                initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
-                size="sm"
-              />
-            </div>
           </div>
 
-          {/* Page content */}
-          <main className="flex-1 relative">
-            {children}
-          </main>
+          {/* Navigation */}
+          <nav className="flex-1 px-3 py-4 overflow-y-auto">
+            <ul className="space-y-1">
+              {navItems.map((item, index) => (
+                <li key={index}>
+                  <Link href={item.href}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                      router.pathname === item.href || router.pathname.startsWith(`${item.href}/`)
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                    onClick={() => handleNavItemClick(item)}
+                  >
+                    <span className={`${
+                      router.pathname === item.href || router.pathname.startsWith(`${item.href}/`) 
+                        ? 'text-blue-600' 
+                        : 'text-gray-500'
+                    }`}>
+                      {item.icon}
+                    </span>
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* Logout button */}
+          <div className="px-3 py-4 border-t">
+            <button
+              onClick={handleLogout}
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <span className="text-gray-500">
+                <FiLogOut size={20} />
+              </span>
+              <span className="font-medium">Logout</span>
+            </button>
+          </div>
         </div>
       </div>
-    </ProtectedRoute>
+
+      {/* Main content */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Fixed header */}
+        <DashboardHeader 
+          streak={streak} 
+          user={user} 
+          title={title}
+          onStreakUpdate={setStreak}
+        />
+        
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+          {children}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -246,7 +264,5 @@ export default function DashboardLayout({
  * @returns {React.ReactNode} - The wrapped page
  */
 export const getDashboardLayout = (page, pageTitle) => (
-  <DashboardLayout title={pageTitle}>
-    {page}
-  </DashboardLayout>
+  <DashboardLayout title={pageTitle}>{page}</DashboardLayout>
 );

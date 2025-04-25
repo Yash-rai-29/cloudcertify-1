@@ -1,5 +1,4 @@
-import { IconRocket } from '@tabler/icons-react';
-import Button from '../ui/Button';
+import { FiArrowRight } from 'react-icons/fi';
 
 /**
  * Call to Action Card component for dashboard
@@ -12,36 +11,25 @@ import Button from '../ui/Button';
  * @param {string} props.className - Additional CSS classes
  */
 export default function CTACard({
-  title = "Ready to elevate your cloud skills?",
-  description = "Take a practice test, explore our resources, or use the AI assistant to help with your certification journey.",
-  buttonText = "Take Practice Test",
+  title,
+  description,
+  buttonText = 'Get Started',
   onButtonClick,
-  className
+  className = ''
 }) {
   return (
-    <div className={`bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg overflow-hidden relative ${className || ''}`}>
-      <div className="p-6 sm:p-8 relative z-10">
-        <div className="flex items-start">
-          <div className="flex-1">
-            <h3 className="font-semibold text-xl text-white">{title}</h3>
-            <p className="mt-2 text-blue-100">{description}</p>
-            
-            <div className="mt-4 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-              <Button
-                className="bg-white text-blue-600 hover:bg-blue-50 font-medium"
-                onClick={onButtonClick}
-                leftIcon={<IconRocket size={18} />}
-              >
-                {buttonText}
-              </Button>
-            </div>
-          </div>
-        </div>
+    <div className={`rounded-lg overflow-hidden ${className}`}>
+      <div className="p-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <h3 className="text-xl font-semibold mb-2">{title}</h3>
+        <p className="mb-4 opacity-90">{description}</p>
+        <button
+          onClick={onButtonClick}
+          className="flex items-center px-5 py-2.5 bg-white text-blue-700 rounded-md font-medium hover:bg-blue-50 transition-colors shadow-sm"
+        >
+          {buttonText}
+          <FiArrowRight className="ml-2" size={16} />
+        </button>
       </div>
-      
-      {/* Background decoration */}
-      <div className="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-blue-500 bg-opacity-20 rounded-full"></div>
-      <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-indigo-500 bg-opacity-20 rounded-full"></div>
     </div>
   );
 }
