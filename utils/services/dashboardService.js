@@ -6,6 +6,76 @@ import {
   asyncTryCatch
 } from "../helpers/errorHandling";
 
+// Mock data for development until the actual API endpoints are available
+// This will be replaced with actual API calls when the endpoints are ready
+const MOCK_API_RESPONSES = {
+  DAILY_STREAK: {
+    streak: 3,
+    last_streak_date: "2025-04-24"
+  },
+  DAILY_QUESTION: {
+    question: {
+      id: "dq-123",
+      question_text: "What is the default VPC in GCP?",
+      options: ["A. One VPC per project", "B. No default VPC", "C. One global VPC", "D. One VPC per region"]
+    },
+    user_attempted: false
+  },
+  USER_ACTIVITIES: {
+    activities: [
+      {
+        id: "a1",
+        type: "TEST_COMPLETED",
+        title: "Cloud Network Engineer",
+        timestamp: "2025-04-25T14:30:00Z"
+      },
+      {
+        id: "a2",
+        type: "FLASHCARD_REVIEWED",
+        title: "GCP Services",
+        timestamp: "2025-04-25T10:15:00Z"
+      },
+      {
+        id: "a3",
+        type: "AI_CHAT",
+        title: "Kubernetes Concepts",
+        timestamp: "2025-04-24T16:45:00Z"
+      }
+    ]
+  },
+  RECOMMENDATIONS: {
+    recommendations: [
+      {
+        id: "test-1",
+        title: "Professional Cloud Architect",
+        questions_count: 60,
+        duration_minutes: 120,
+        tag: "Practice"
+      },
+      {
+        id: "test-2",
+        title: "Cloud Network Engineer",
+        questions_count: 50,
+        duration_minutes: 90,
+        tag: "Recommended"
+      },
+      {
+        id: "test-3",
+        title: "Professional Data Engineer",
+        questions_count: 70,
+        duration_minutes: 150,
+        tag: "New"
+      }
+    ]
+  },
+  SUBMIT_DAILY_QUESTION: {
+    streak: 4,
+    last_streak_date: "2025-04-25",
+    is_correct: true,
+    explanation: "The correct answer is B. Google Cloud Platform does not create default VPCs unlike AWS. You need to explicitly create a VPC in GCP."
+  }
+};
+
 /**
  * Get all the data needed for the user dashboard
  * Centralized function to fetch all data that the dashboard needs
@@ -69,7 +139,13 @@ export const getUserInfo = asyncTryCatch(async () => {
  * @returns {Promise} User streak data
  */
 export const getDailyStreak = asyncTryCatch(async () => {
-  return await apiRequest("get", API.ENDPOINTS.DAILY_STREAK);
+  // For development, use mock data
+  return {
+    success: true,
+    data: MOCK_API_RESPONSES.DAILY_STREAK
+  };
+  // When API is ready, uncomment:
+  // return await apiRequest("get", API.ENDPOINTS.DAILY_STREAK);
 }, "getDailyStreak");
 
 /**
@@ -78,7 +154,13 @@ export const getDailyStreak = asyncTryCatch(async () => {
  * @returns {Promise} Daily question data
  */
 export const getDailyQuestion = asyncTryCatch(async () => {
-  return await apiRequest("get", API.ENDPOINTS.DAILY_QUESTION);
+  // For development, use mock data
+  return {
+    success: true,
+    data: MOCK_API_RESPONSES.DAILY_QUESTION
+  };
+  // When API is ready, uncomment:
+  // return await apiRequest("get", API.ENDPOINTS.DAILY_QUESTION);
 }, "getDailyQuestion");
 
 /**
@@ -87,7 +169,13 @@ export const getDailyQuestion = asyncTryCatch(async () => {
  * @returns {Promise} Test recommendations
  */
 export const getTestRecommendations = asyncTryCatch(async () => {
-  return await apiRequest("get", API.ENDPOINTS.RECOMMENDATIONS);
+  // For development, use mock data
+  return {
+    success: true,
+    data: MOCK_API_RESPONSES.RECOMMENDATIONS
+  };
+  // When API is ready, uncomment:
+  // return await apiRequest("get", API.ENDPOINTS.RECOMMENDATIONS);
 }, "getTestRecommendations");
 
 /**
@@ -97,7 +185,13 @@ export const getTestRecommendations = asyncTryCatch(async () => {
  * @returns {Promise} User activities
  */
 export const getUserActivities = asyncTryCatch(async (limit = 10) => {
-  return await apiRequest("get", API.ENDPOINTS.USER_ACTIVITIES, null, { limit });
+  // For development, use mock data
+  return {
+    success: true,
+    data: MOCK_API_RESPONSES.USER_ACTIVITIES
+  };
+  // When API is ready, uncomment:
+  // return await apiRequest("get", API.ENDPOINTS.USER_ACTIVITIES, null, { limit });
 }, "getUserActivities");
 
 /**
@@ -200,10 +294,17 @@ export const submitDailyAnswer = asyncTryCatch(async (questionId, optionId) => {
     );
   }
   
-  return await apiRequest("post", API.ENDPOINTS.SUBMIT_DAILY_QUESTION, {
-    question_id: questionId,
-    option_id: optionId,
-  });
+  // For development, use mock data
+  return {
+    success: true,
+    data: MOCK_API_RESPONSES.SUBMIT_DAILY_QUESTION
+  };
+  
+  // When API is ready, uncomment:
+  // return await apiRequest("post", API.ENDPOINTS.SUBMIT_DAILY_QUESTION, {
+  //   question_id: questionId,
+  //   option_id: optionId,
+  // });
 }, "submitDailyAnswer");
 
 /**
