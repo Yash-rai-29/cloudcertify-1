@@ -180,7 +180,7 @@ export default function TestHistory() {
       const response = await resumeTestAttempt(attemptId);
       if (response.success) {
         success('Resuming your test...');
-        window.location.href = `/dashboard/test-attempt/${attemptId}`;
+        window.location.href = `/dashboard/take-test/${attemptId}?mode=${response.data.mode}`;
       } else {
         error('Failed to resume test');
       }
@@ -267,9 +267,8 @@ export default function TestHistory() {
 
   return (
     <div 
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 overflow-auto"
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12"
       ref={containerRef}
-      style={{ maxHeight: 'calc(100vh - 64px)' }}
     >
       {/* Page Header */}
       <div className="py-6 md:py-8 border-b border-gray-200">
@@ -316,10 +315,10 @@ export default function TestHistory() {
               <div className="ml-4">
                 <p className="text-sm text-gray-500">Average Score</p>
                 <p className="text-2xl font-semibold text-gray-900">
-                  {userStats?.avg_score.toFixed(2) || 0}%
+                  {userStats?.avg_score.toFixed(2) || 0}
                 </p>
                 <p className="text-xs text-gray-500">
-                  Best Score: {userStats?.best_score.toFixed(2) || 0}%
+                  Best Score: {userStats?.best_score.toFixed(2) || 0}
                 </p>
               </div>
             </div>
@@ -484,183 +483,185 @@ export default function TestHistory() {
             <span className="text-gray-600">Loading history...</span>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Test Name
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Score
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Progress
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mode
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {testHistory.length > 0 ? (
-                  testHistory.map((attempt) => {
-                    const testData = attempt.test_data || {};
-                    const isInProgress = attempt.status === 'in-progress';
-                    const isCompleted = attempt.status === 'completed';
-                    const progressPercent = isCompleted 
-                      ? 100 
-                      : Math.round((attempt.attempted_questions / attempt.total_questions) * 100) || 0;
-                    
-                    return (
-                      <tr key={attempt.attempt_id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-gray-100 rounded-lg">
-                              {testData.cloud_provider === 'GCP' ? (
-                                <div className="w-6 h-6 text-blue-500">
-                                  <IconBrandGoogle size={24} />
+          <div className="overflow-hidden">
+            <div className="inline-block min-w-full align-middle">
+              <table className="min-w-full divide-y divide-gray-200 table-fixed">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4">
+                      Test Name
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/7">
+                      Date
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
+                      Score
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/7">
+                      Progress
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
+                      Mode
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">
+                      Status
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {testHistory.length > 0 ? (
+                    testHistory.map((attempt) => {
+                      const testData = attempt.test_data || {};
+                      const isInProgress = attempt.status === 'in-progress';
+                      const isCompleted = attempt.status === 'completed';
+                      const progressPercent = isCompleted 
+                        ? 100 
+                        : Math.round((attempt.attempted_questions / attempt.total_questions) * 100) || 0;
+                      
+                      return (
+                        <tr key={attempt.attempt_id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10 flex items-center justify-center bg-gray-100 rounded-lg">
+                                {testData.cloud_provider === 'GCP' ? (
+                                  <div className="w-6 h-6 text-blue-500">
+                                    <IconBrandGoogle size={24} />
+                                  </div>
+                                ) : testData.cloud_provider === 'AWS' ? (
+                                  <div className="w-6 h-6 text-orange-500">
+                                    <IconBrandAws size={24} />
+                                  </div>
+                                ) : testData.cloud_provider === 'Azure' ? (
+                                  <div className="w-6 h-6 text-blue-600">
+                                    <IconBrandAzure size={24} />
+                                  </div>
+                                ) : (
+                                  <IconCertificate size={24} className="text-gray-500" />
+                                )}
+                              </div>
+                              <div className="ml-4 ">
+                                <div className="text-sm font-medium text-gray-900 ">{testData.title}</div>
+                                <div className="text-xs text-gray-500 ">
+                                  {testData.category} • {testData.difficulty}
                                 </div>
-                              ) : testData.cloud_provider === 'AWS' ? (
-                                <div className="w-6 h-6 text-orange-500">
-                                  <IconBrandAws size={24} />
-                                </div>
-                              ) : testData.cloud_provider === 'Azure' ? (
-                                <div className="w-6 h-6 text-blue-600">
-                                  <IconBrandAzure size={24} />
-                                </div>
-                              ) : (
-                                <IconCertificate size={24} className="text-gray-500" />
-                              )}
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{testData.title}</div>
-                              <div className="text-xs text-gray-500">
-                                {testData.category} • {testData.difficulty}
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {formatTime(attempt.start_time)}
-                          </div>
-                          {isCompleted && (
-                            <div className="text-xs text-gray-500">
-                              Completed {formatDuration(attempt.end_time - attempt.start_time)}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="text-sm text-gray-900">
+                              {formatTime(attempt.start_time)}
                             </div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {isCompleted ? (
-                            <Badge 
-                              variant={
-                                attempt.score >= 80 
-                                  ? 'green' 
-                                  : attempt.score >= 60 
-                                    ? 'amber' 
-                                    : 'red'
-                              }
-                            >
-                              {attempt.score}%
-                            </Badge>
-                          ) : (
-                            <span className="text-sm text-gray-500">—</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="w-full bg-gray-200 rounded-full h-2 mr-2 max-w-[100px]">
-                              <div 
-                                className="h-2 bg-blue-500 rounded-full" 
-                                style={{ width: `${progressPercent}%` }}
-                              ></div>
+                            {isCompleted && (
+                              <div className="text-xs text-gray-500">
+                                Completed {formatDuration(attempt.end_time - attempt.start_time)}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            {isCompleted ? (
+                              <Badge 
+                                variant={
+                                  attempt.score >= 80 
+                                    ? 'green' 
+                                    : attempt.score >= 60 
+                                      ? 'amber' 
+                                      : 'red'
+                                }
+                              >
+                                {attempt.score}%
+                              </Badge>
+                            ) : (
+                              <span className="text-sm text-gray-500">—</span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex items-center">
+                              <div className="w-full bg-gray-200 rounded-full h-2 mr-2 max-w-[100px]">
+                                <div 
+                                  className="h-2 bg-blue-500 rounded-full" 
+                                  style={{ width: `${progressPercent}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-gray-500">
+                                {isCompleted 
+                                  ? 'Complete' 
+                                  : `${attempt.attempted_questions || 0}/${attempt.total_questions || 0}`}
+                              </span>
                             </div>
-                            <span className="text-xs text-gray-500">
-                              {isCompleted 
-                                ? 'Complete' 
-                                : `${attempt.attempted_questions || 0}/${attempt.total_questions || 0}`}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge variant={attempt.mode === 'practice' ? 'blue' : 'purple'}>
-                            {attempt.mode === 'practice' ? 'Practice' : 'Exam'}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {isCompleted ? (
-                            <Badge 
-                              variant={attempt.score >= 70 ? 'green' : 'red'} 
-                              leftIcon={
-                                attempt.score >= 70 
-                                  ? <IconCheck size={14} /> 
-                                  : <IconX size={14} />
-                              }
-                            >
-                              {attempt.score >= 70 ? 'Passed' : 'Failed'}
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge variant={attempt.mode === 'practice' ? 'blue' : 'purple'}>
+                              {attempt.mode === 'practice' ? 'Practice' : 'Exam'}
                             </Badge>
-                          ) : (
-                            <Badge variant="amber">In Progress</Badge>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          {isCompleted ? (
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleViewDetails(attempt.attempt_id)}
-                              leftIcon={
-                                <IconExternalLink size={16} stroke={1.5} />
-                              }
-                            >
-                              View Details
-                            </Button>
-                          ) : (
-                            <Button 
-                              variant="primary" 
-                              size="sm"
-                              onClick={() => handleResumeTest(attempt.attempt_id)}
-                              leftIcon={
-                                <IconPlayerPlay size={16} stroke={1.5} />
-                              }
-                              isLoading={resumingAttempt === attempt.attempt_id}
-                            >
-                              Resume Test
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan="7" className="px-6 py-10 text-center text-sm text-gray-500">
-                      <div className="flex flex-col items-center">
-                        <IconCalendarEvent size={40} className="text-gray-300 mb-2" />
-                        <p className="mb-2">You haven't taken any tests yet.</p>
-                        <Button 
-                          variant="primary" 
-                          size="sm"
-                          href="/dashboard/tests"
-                        >
-                          Start Practicing
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                          </td>
+                          <td className="px-6 py-4">
+                            {isCompleted ? (
+                              <Badge 
+                                variant={attempt.score >= 70 ? 'green' : 'red'} 
+                                leftIcon={
+                                  attempt.score >= 70 
+                                    ? <IconCheck size={14} /> 
+                                    : <IconX size={14} />
+                                }
+                              >
+                                {attempt.score >= 70 ? 'Passed' : 'Failed'}
+                              </Badge>
+                            ) : (
+                              <Badge variant="amber">In Progress</Badge>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            {isCompleted ? (
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => handleViewDetails(attempt.attempt_id)}
+                                leftIcon={
+                                  <IconExternalLink size={16} stroke={1.5} />
+                                }
+                              >
+                                View Details
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="primary" 
+                                size="sm"
+                                onClick={() => handleResumeTest(attempt.attempt_id)}
+                                leftIcon={
+                                  <IconPlayerPlay size={16} stroke={1.5} />
+                                }
+                                isLoading={resumingAttempt === attempt.attempt_id}
+                              >
+                                Resume Test
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="7" className="px-6 py-10 text-center text-sm text-gray-500">
+                        <div className="flex flex-col items-center">
+                          <IconCalendarEvent size={40} className="text-gray-300 mb-2" />
+                          <p className="mb-2">You haven't taken any tests yet.</p>
+                          <Button 
+                            variant="primary" 
+                            size="sm"
+                            href="/dashboard/tests"
+                          >
+                            Start Practicing
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
         

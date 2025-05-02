@@ -2,8 +2,6 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/dashboard/take-test/[attemptId]": "pages/dashboard/take-test/[attemptId].js",
   "/dashboard/history": "pages/dashboard/history.js",
-  "/dashboard/test-results/[id]": "pages/dashboard/test-results/[id].js",
-  "/dashboard/tests": "pages/dashboard/tests.js"
+  "/dashboard/take-test/[attemptId]": "pages/dashboard/take-test/[attemptId].js"
 }

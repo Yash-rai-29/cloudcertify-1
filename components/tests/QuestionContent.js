@@ -1,4 +1,4 @@
-import { IconFlag, IconCheck, IconX } from '@tabler/icons-react';
+import { IconFlag, IconCheck, IconX, IconInfoCircle } from '@tabler/icons-react';
 import Button from '../ui/Button';
 
 /**
@@ -66,6 +66,16 @@ export function QuestionContent({
             {question.context}
           </div>
         )}
+        
+        {/* Question Type Indicator */}
+        <div className="flex items-center text-sm text-gray-500 mb-3">
+          <IconInfoCircle size={16} className="mr-1" />
+          <span>
+            {isMultipleChoice 
+              ? "Select all that apply (multiple answers)" 
+              : "Select one answer only (single choice)"}
+          </span>
+        </div>
       </div>
       
       {/* Answer Options */}
@@ -74,16 +84,35 @@ export function QuestionContent({
           // Determine if this option is selected
           const isSelected = selectedOptions.includes(option.id);
           
-          // For practice mode with feedback, determine if this option is correct
-          const isCorrectOption = answerFeedback && option.id === question.correct_option;
+          // Determine if this option is correct based on the API response
+          let isCorrectOption = false;
+          
+          if (answerFeedback) {
+            if (answerFeedback.correctOption === option.id) {
+              isCorrectOption = true;
+            } else if (answerFeedback.correctOptionIds && 
+                      Array.isArray(answerFeedback.correctOptionIds) && 
+                      answerFeedback.correctOptionIds.includes(option.id)) {
+              isCorrectOption = true;
+            }
+          }
+              
           const isIncorrectSelection = answerFeedback && isSelected && !isCorrectOption;
           
           // Styling based on selection and feedback state
-          let optionClass = 'border rounded-md p-3 transition cursor-pointer';
+          let optionClass = 'border rounded-md p-3 transition-all duration-150';
           if (isSelected) {
             optionClass += ' border-blue-500 bg-blue-50';
           } else {
             optionClass += ' border-gray-200 hover:border-blue-200 hover:bg-blue-50/30';
+          }
+          
+          // Make options non-clickable when feedback is shown or in review mode
+          const isClickable = !answerFeedback && mode !== 'review';
+          if (isClickable) {
+            optionClass += ' cursor-pointer';
+          } else {
+            optionClass += ' cursor-default';
           }
           
           // Additional styling for feedback in practice mode
@@ -99,20 +128,40 @@ export function QuestionContent({
             <div
               key={option.id}
               className={optionClass}
-              onClick={() => !answerFeedback && onSelectOption(option.id)}
+              onClick={() => {
+                if (!isClickable) return;
+                onSelectOption(option.id, isMultipleChoice);
+              }}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isSelected}
+              onKeyDown={(e) => {
+                if ((e.key === 'Enter' || e.key === ' ') && isClickable) {
+                  e.preventDefault();
+                  onSelectOption(option.id, isMultipleChoice);
+                }
+              }}
             >
               <div className="flex items-center">
                 <div className="flex-shrink-0 mr-3">
                   {isMultipleChoice ? (
-                    <div className={`w-5 h-5 rounded border ${
-                      isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
-                    } flex items-center justify-center`}>
+                    // Checkbox for multiple choice
+                    <div 
+                      className={`w-5 h-5 rounded border ${
+                        isSelected ? 'bg-blue-500 border-blue-500' : 'border-gray-300'
+                      } flex items-center justify-center transition-colors`}
+                      aria-hidden="true"
+                    >
                       {isSelected && <IconCheck size={12} className="text-white" />}
                     </div>
                   ) : (
-                    <div className={`w-5 h-5 rounded-full border ${
-                      isSelected ? 'border-blue-500' : 'border-gray-300'
-                    } flex items-center justify-center`}>
+                    // Radio button for single choice
+                    <div 
+                      className={`w-5 h-5 rounded-full border ${
+                        isSelected ? 'border-blue-500' : 'border-gray-300'
+                      } flex items-center justify-center transition-colors`}
+                      aria-hidden="true"
+                    >
                       {isSelected && <div className="w-3 h-3 rounded-full bg-blue-500"></div>}
                     </div>
                   )}
@@ -157,9 +206,9 @@ export function QuestionContent({
               <h4 className="text-sm font-medium mb-1">
                 {answerFeedback.isCorrect ? 'Correct Answer!' : 'Incorrect Answer'}
               </h4>
-              {!answerFeedback.isCorrect && (
+              {!answerFeedback.isCorrect && answerFeedback.correctOption && (
                 <p className="text-sm text-gray-700 mb-2">
-                  Correct answer: <span className="font-medium">{question.options[answerFeedback.correctOption]}</span>
+                  Correct answer: {question.options[answerFeedback.correctOption] || ''}
                 </p>
               )}
               {answerFeedback.explanation && (

@@ -80,20 +80,26 @@ export async function getTestDetails(testId) {
  * Submit answer for a question
  * 
  * @param {string} attemptId - ID of the test attempt
- * @param {string} questionId - ID of the question
- * @param {string[]} selectedOption - Selected option(s)
- * @param {number} timeTaken - Time taken to answer in seconds
+ * @param {Object} answerData - Answer data
+ * @param {string} answerData.question_id - ID of the question
+ * @param {string|string[]} answerData.selected_option_ids - Selected option(s)
+ * @param {number} answerData.time_taken - Time taken to answer in seconds
  * @returns {Promise<Object>} API response
  */
-export async function submitAnswer(attemptId, questionId, selectedOption, timeTaken) {
+export async function submitAnswer(attemptId, answerData) {
   try {
+    // Format the payload according to API expectations
+    const payload = {
+      question_id: answerData.question_id,
+      selected_option: Array.isArray(answerData.selected_option_ids) 
+        ? answerData.selected_option_ids  // Keep it as an array
+        : [answerData.selected_option_ids], // Convert to array if it's a single string
+      time_taken: answerData.time_taken
+    };
+    
     const response = await apiClient.post(
       `${API.BASE_URL}/b/test_library/attempts/${attemptId}/answer`,
-      {
-        question_id: questionId,
-        selected_option: selectedOption,
-        time_taken: timeTaken
-      }
+      payload
     );
     
     return {
@@ -256,8 +262,8 @@ export async function getTestPerformanceAnalytics(params = {}) {
  */
 export async function resumeTestAttempt(attemptId) {
   try {
-    const response = await apiClient.post(
-      `${API.BASE_URL}/b/test_library/attempts/${attemptId}/resume`
+    const response = await apiClient.get(
+      `${API.BASE_URL}/b/test_library/attempts/${attemptId}`
     );
     
     return {

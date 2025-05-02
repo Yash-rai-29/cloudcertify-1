@@ -14,7 +14,7 @@ import {
 } from "@tabler/icons-react";
 import Link from "next/link";
 import Sidebar from "./Sidebar";
-import { getDailyStreak } from "../../utils/services/dashboardService";
+import { getDailyStreak, getUserInfo } from "../../utils/services/dashboardService";
 import DailyQuizModal from "../dashboard/DailyQuizModal";
 
 /**
@@ -24,13 +24,15 @@ import DailyQuizModal from "../dashboard/DailyQuizModal";
  * @param {string} props.title - Page title
  */
 export default function DashboardLayout({ children, title = "Dashboard" }) {
-  const { user, userProfile, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [streakData, setStreakData] = useState({ current_streak: 0 });
   const [showDailyQuiz, setShowDailyQuiz] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [userInfo, setUserInfo] = useState(null);
 
+  console.log("user data  ", user);
   // Fetch user streak data
   useEffect(() => {
     async function fetchStreakData() {
@@ -46,6 +48,23 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
 
     fetchStreakData();
   }, []);
+
+  useEffect(() => {
+    async function fetchUserInfo() {
+      try {
+        const response = await getUserInfo();
+        if (response.success) {
+          setUserInfo(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user info:", error);
+      }
+    }
+
+    fetchUserInfo();
+  }, []);
+
+  console.log("user info  ", userInfo);
 
   useEffect(() => {
     // Get sidebar expanded state from localStorage on component mount
@@ -124,7 +143,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
           sidebarExpanded ? 'lg:pl-64' : 'lg:pl-20'
         }`}>
           {/* Mobile Top Navigation */}
-          <div className="sticky top-0 z-10 lg:hidden flex items-center justify-between bg-white px-4 py-2 border-b border-gray-200 sm:px-6 relative">
+          <div className="top-0 z-10 lg:hidden flex items-center justify-between bg-white px-4 py-2 border-b border-gray-200 sm:px-6 relative">
             <button
               type="button"
               className="p-2 rounded-md text-gray-500 hover:text-gray-900 focus:outline-none"
@@ -155,10 +174,10 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
               
               {/* Avatar */}
               <div onClick={toggleProfileDropdown}>
-                {user?.photoURL ? (
+                {userInfo?.photo_url ? (
                   <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
                     <img
-                      src={user.photoURL}
+                      src={userInfo?.photo_url}
                       alt="User Profile"
                       className="h-full w-full object-cover"
                       onError={(e) => {
@@ -166,7 +185,8 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
                         e.target.src = '';
                         e.target.style.display = 'none';
                         e.target.parentNode.innerHTML = `<div class="h-full w-full flex items-center justify-center bg-blue-100 text-blue-600 font-medium">
-                          ${user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+                          ${userInfo?.full_name
+                            ?.charAt(0) || userInfo?.email?.charAt(0)?.toUpperCase() || 'U'}
                         </div>`;
                       }}
                     />
@@ -174,8 +194,9 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
                 ) : (
                   <Avatar
                     initials={
-                      user?.displayName?.charAt(0) ||
-                      user?.email?.charAt(0)?.toUpperCase()
+                      userInfo?.full_name
+                      ?.charAt(0) ||
+                      userInfo?.email?.charAt(0)?.toUpperCase()
                     }
                     size="sm"
                   />
@@ -210,10 +231,10 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
                   className="flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-full focus:outline-none"
                   onClick={toggleProfileDropdown}
                 >
-                  {user?.photoURL ? (
+                  {userInfo?.photo_url ? (
                     <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
                       <img
-                        src={user.photoURL}
+                        src={userInfo?.photo_url}
                         alt="User Profile"
                         className="h-full w-full object-cover"
                         onError={(e) => {
@@ -221,7 +242,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
                           e.target.src = '';
                           e.target.style.display = 'none';
                           e.target.parentNode.innerHTML = `<div class="h-full w-full flex items-center justify-center bg-blue-100 text-blue-600 font-medium">
-                            ${user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+                            ${userInfo?.full_name?.charAt(0) || userInfo?.email?.charAt(0)?.toUpperCase() || 'U'}
                           </div>`;
                         }}
                       />
@@ -229,14 +250,14 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
                   ) : (
                     <Avatar
                       initials={
-                        user?.displayName?.charAt(0) ||
-                        user?.email?.charAt(0)?.toUpperCase()
+                        userInfo?.full_name?.charAt(0) ||
+                        userInfo?.email?.charAt(0)?.toUpperCase()
                       }
                       size="sm"
                     />
                   )}
                   <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                    {user?.displayName || user?.email}
+                    {userInfo?.full_name || userInfo?.email}
                   </span>
                   <IconChevronDown size={16} className="text-gray-500" />
                 </button>
@@ -245,8 +266,8 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
                 {profileDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
                     <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-700">{user?.displayName || "User"}</p>
-                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                      <p className="text-sm font-medium text-gray-700">{userInfo?.full_name || "User"}</p>
+                      <p className="text-xs text-gray-500 truncate">{userInfo?.email}</p>
                     </div>
                     <Link
                       href="/dashboard/settings"

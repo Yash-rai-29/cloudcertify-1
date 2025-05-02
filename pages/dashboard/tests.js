@@ -1,13 +1,27 @@
-import { useState, useEffect } from 'react';
-import { IconLayoutGrid, IconList, IconInfoCircle, IconLoader2 } from '@tabler/icons-react';
+import { useState, useEffect, useRef } from 'react';
+import { 
+  IconLayoutGrid, 
+  IconList, 
+  IconInfoCircle, 
+  IconLoader2,
+  IconChevronLeft,
+  IconChevronRight,
+  IconSearch,
+  IconSortAscending,
+  IconClock,
+  IconUsers,
+  IconStar,
+  IconCertificate,
+  IconBrandGoogle,
+  IconBrandAws,
+  IconBrandAzure
+} from '@tabler/icons-react';
 import { getDashboardLayout } from '../../components/layouts/DashboardLayout';
 import TestCard from '../../components/tests/TestCard';
-import TestFilters from '../../components/tests/TestFilters';
-import FeaturedTest from '../../components/tests/FeaturedTest';
 import TestModeSelector from '../../components/tests/TestModeSelector';
-import TestPagination from '../../components/tests/TestPagination';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
 import { fetchTests, startTestAttempt } from '../../utils/services/testLibraryService';
 import useToast from '../../hooks/useToast';
 import { useRouter } from 'next/router';
@@ -19,6 +33,7 @@ export default function TestLibrary() {
   // Toast notifications
   const { success, error } = useToast();
   const router = useRouter();
+  const carouselRef = useRef(null);
   
   // State management
   const [isLoading, setIsLoading] = useState(true);
@@ -27,19 +42,18 @@ export default function TestLibrary() {
   const [popularTest, setPopularTest] = useState(null);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [totalTests, setTotalTests] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
   const [selectedTest, setSelectedTest] = useState(null);
   const [showTestModeModal, setShowTestModeModal] = useState(false);
   const [startingTest, setStartingTest] = useState(false);
+  const [nextCursor, setNextCursor] = useState(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [activeCarouselSlide, setActiveCarouselSlide] = useState(0);
+  const [highlightedTests, setHighlightedTests] = useState([]);
   
-  // Filter state
+  // Filter and sort state
   const [filters, setFilters] = useState({
     search: '',
-    category: '',
-    cloud_provider: '',
-    difficulty: '',
-    status: '',
     sort_by: 'created_at',
     sort_order: 'desc',
     cursor: '',
@@ -57,22 +71,46 @@ export default function TestLibrary() {
       setIsLoading(true);
       try {
         const response = await fetchTests({
-          ...filters,
-          page: currentPage
+          ...filters
         });
         
         if (response.success) {
-          setTests(response.data.tests || []);
-          setTotalTests(response.data.total || 0);
+          const { 
+            tests = [], 
+            total_count = 0, 
+            next_cursor = null, 
+            featured_test = null, 
+            most_popular_test = null 
+          } = response.data;
           
-          // Set featured and popular tests if available
-          if (response.data.featured && response.data.featured.length > 0) {
-            setFeaturedTest(response.data.featured[0]);
+          setTests(tests);
+          setTotalTests(total_count);
+          setNextCursor(next_cursor);
+          
+          // Create highlighted tests array from featured and popular tests
+          const highlights = [];
+          
+          if (featured_test) {
+            highlights.push({
+              ...featured_test,
+              highlight_type: 'featured',
+              badge_text: 'Featured Test',
+              badge_color: 'bg-blue-100 text-blue-800'
+            });
+            setFeaturedTest(featured_test);
           }
           
-          if (response.data.popular && response.data.popular.length > 0) {
-            setPopularTest(response.data.popular[0]);
+          if (most_popular_test) {
+            highlights.push({
+              ...most_popular_test,
+              highlight_type: 'popular',
+              badge_text: 'Most Popular',
+              badge_color: 'bg-purple-100 text-purple-800'
+            });
+            setPopularTest(most_popular_test);
           }
+          
+          setHighlightedTests(highlights);
         } else {
           error('Failed to load tests');
         }
@@ -85,16 +123,49 @@ export default function TestLibrary() {
     };
 
     loadTests();
-  }, [filters, currentPage, error]);
-
-  // Handle filter changes
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value,
-      cursor: '', // Reset cursor when filters change
-    }));
-    setCurrentPage(1); // Reset to first page
+  }, [filters, error]);
+  
+  // Load more tests using cursor
+  const loadMoreTests = async () => {
+    if (!nextCursor || isLoadingMore) return;
+    
+    setIsLoadingMore(true);
+    try {
+      const response = await fetchTests({
+        ...filters,
+        cursor: nextCursor
+      });
+      
+      if (response.success) {
+        const { tests: newTests = [], next_cursor = null } = response.data;
+        
+        // Append new tests to existing ones
+        setTests(currentTests => [...currentTests, ...newTests]);
+        setNextCursor(next_cursor);
+      } else {
+        error('Failed to load more tests');
+      }
+    } catch (err) {
+      console.error('Error fetching more tests:', err);
+      error('An error occurred while loading more tests');
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+  
+  // Carousel navigation
+  const navigateCarousel = (direction) => {
+    if (highlightedTests.length <= 1) return;
+    
+    if (direction === 'next') {
+      setActiveCarouselSlide((current) => 
+        current === highlightedTests.length - 1 ? 0 : current + 1
+      );
+    } else {
+      setActiveCarouselSlide((current) => 
+        current === 0 ? highlightedTests.length - 1 : current - 1
+      );
+    }
   };
 
   // Handle search
@@ -110,40 +181,38 @@ export default function TestLibrary() {
       sort_order: sortOrder,
       cursor: '', // Reset cursor when sort changes
     }));
-    setCurrentPage(1); // Reset to first page
   };
 
   // Reset all filters
   const handleResetFilters = () => {
     setFilters({
       search: '',
-      category: '',
-      cloud_provider: '',
-      difficulty: '',
-      status: '',
-      sort_by: 'created_at',
+      sort_by: 'popularity',
       sort_order: 'desc',
       cursor: '',
       limit: itemsPerPage
     });
-    setCurrentPage(1);
-  };
-
-  // Handle page changes
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
   };
 
   // Handle test start
   const handleStartTest = (testId) => {
     const test = tests.find(t => t.id === testId) || 
-                 (featuredTest && featuredTest.id === testId ? featuredTest : null) ||
-                 (popularTest && popularTest.id === testId ? popularTest : null);
-                 
+                 featuredTest?.id === testId ? featuredTest : 
+                 popularTest?.id === testId ? popularTest : null;
+    
     if (test) {
       setSelectedTest(test);
       setShowTestModeModal(true);
     }
+  };
+
+  // Handle filter changes
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value,
+      cursor: '', // Reset cursor when filters change
+    }));
   };
 
   // Handle mode selection and start the test
@@ -183,7 +252,7 @@ export default function TestLibrary() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Test Library</h1>
             <p className="mt-1 text-sm text-gray-500">
-              Browse and take practice tests to prepare for your cloud certification
+              Browse our collection of certification practice tests and exam simulations
             </p>
           </div>
           <div className="mt-4 md:mt-0 flex items-center">
@@ -204,29 +273,162 @@ export default function TestLibrary() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="mt-6">
-        <TestFilters
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          onSearch={handleSearch}
-          onSortChange={handleSortChange}
-          cloudProviders={cloudProviders}
-          categories={categories}
-          difficulties={difficulties}
-          onReset={handleResetFilters}
-        />
+      {/* Search and Sort Section */}
+      <div className="mt-6 bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          {/* Search Bar */}
+          <div className="flex-1">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <IconSearch size={18} className="text-gray-400" />
+              </div>
+              <input
+                type="text"
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder="Search for tests by title, category, or topic..."
+                value={filters.search}
+                onChange={(e) => handleSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          {/* Sort Options */}
+          <div className="w-full md:w-auto flex flex-col md:flex-row gap-2">
+            {/* <div className="flex items-center">
+              <span className="text-sm text-gray-500 mr-2 whitespace-nowrap">Sort by:</span>
+              <select
+                className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                value={filters.sort_by}
+                onChange={(e) => handleSortChange(e.target.value, filters.sort_order)}
+              >
+                <option value="created_at">Newest</option>
+                <option value="title">Title</option>
+                <option value="difficulty">Difficulty</option>
+              </select>
+            </div> */}
+            
+            <div className="flex items-center">
+              <select
+                className="block w-full pl-3 pr-10 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                value={filters.sort_order}
+                onChange={(e) => handleSortChange(filters.sort_by, e.target.value)}
+              >
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </div>
+            
+            {filters.search && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleResetFilters}
+                className="md:ml-2 whitespace-nowrap"
+              >
+                Clear Filters
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Featured and Popular Tests */}
-      {(featuredTest || popularTest) && (
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          {featuredTest && (
-            <FeaturedTest test={featuredTest} type="featured" onStartTest={handleStartTest} />
-          )}
-          {popularTest && (
-            <FeaturedTest test={popularTest} type="popular" onStartTest={handleStartTest} />
-          )}
+      {/* Featured and Popular Tests Carousel */}
+      {highlightedTests.length > 0 && (
+        <div className="mt-8 relative" ref={carouselRef}>
+          <div className="overflow-hidden rounded-lg shadow-md">
+            {highlightedTests.map((highlight, index) => (
+              <div 
+                key={highlight.id} 
+                className={`transition-all duration-300 ease-in-out ${activeCarouselSlide === index ? 'block' : 'hidden'}`}
+              >
+                <div className="bg-gradient-to-r from-blue-50 to-white overflow-hidden rounded-lg p-6 border border-gray-100">
+                  <div className="flex flex-col md:flex-row items-center">
+                    <div className="flex-shrink-0 mb-4 md:mb-0 md:mr-6">
+                      <div className="h-24 w-24 rounded-lg bg-white shadow-sm border border-gray-100 flex items-center justify-center">
+                        {highlight.cloud_provider === 'GCP' ? (
+                          <IconBrandGoogle size={40} className="text-blue-500" />
+                        ) : highlight.cloud_provider === 'AWS' ? (
+                          <IconBrandAws size={40} className="text-orange-500" />
+                        ) : highlight.cloud_provider === 'Azure' ? (
+                          <IconBrandAzure size={40} className="text-blue-600" />
+                        ) : (
+                          <IconCertificate size={40} className="text-gray-500" />
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center mb-2">
+                        <Badge className={highlight.badge_color}>
+                          {highlight.badge_text}
+                        </Badge>
+                        <span className="ml-2 text-sm text-gray-500">
+                          {highlight.cloud_provider} • {highlight.category}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">{highlight.title}</h3>
+                      <p className="text-sm text-gray-600 mb-3">{highlight.description}</p>
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                        <div className="flex items-center text-sm text-gray-500">
+                          <IconClock size={16} className="mr-1" />
+                          {highlight.duration} minutes
+                        </div>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <IconUsers size={16} className="mr-1" />
+                          {Math.floor(Math.random() * 10000)} attempts
+                        </div>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <IconStar size={16} className="mr-1" />
+                          {highlight.difficulty}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 md:mt-0 md:ml-4">
+                      <Button 
+                        variant="primary"
+                        onClick={() => handleStartTest(highlight.id)}
+                      >
+                        Start Test
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {/* Carousel Navigation */}
+            {highlightedTests.length > 1 && (
+              <>
+                <button 
+                  className="absolute top-1/2 transform -translate-y-1/2 left-2 bg-white rounded-full shadow-md p-2 hover:bg-gray-50 focus:outline-none"
+                  onClick={() => navigateCarousel('prev')}
+                >
+                  <IconChevronLeft size={16} />
+                </button>
+                <button 
+                  className="absolute top-1/2 transform -translate-y-1/2 right-2 bg-white rounded-full shadow-md p-2 hover:bg-gray-50 focus:outline-none"
+                  onClick={() => navigateCarousel('next')}
+                >
+                  <IconChevronRight size={16} />
+                </button>
+                
+                {/* Dot indicators */}
+                <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                  {highlightedTests.map((_, index) => (
+                    <button
+                      key={index}
+                      className={`w-2 h-2 rounded-full ${
+                        activeCarouselSlide === index ? 'bg-blue-500' : 'bg-gray-300'
+                      }`}
+                      onClick={() => setActiveCarouselSlide(index)}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 
@@ -266,22 +468,24 @@ export default function TestLibrary() {
                 key={test.id} 
                 test={test} 
                 onStartTest={handleStartTest} 
+                view={viewMode}
               />
             ))}
           </div>
         )}
 
-        {/* Pagination */}
-        {!isLoading && tests.length > 0 && (
-          <div className="mt-8">
-            <TestPagination
-              hasNextPage={currentPage * itemsPerPage < totalTests}
-              hasPreviousPage={currentPage > 1}
-              currentPage={currentPage}
-              onPageChange={handlePageChange}
-              totalItems={totalTests}
-              itemsPerPage={itemsPerPage}
-            />
+        {/* Load More Button */}
+        {nextCursor && !isLoading && (
+          <div className="mt-8 flex justify-center">
+            <Button 
+              variant="outline"
+              size="md"
+              onClick={loadMoreTests}
+              isLoading={isLoadingMore}
+              className="px-6"
+            >
+              {isLoadingMore ? 'Loading...' : 'Load More Tests'}
+            </Button>
           </div>
         )}
       </div>

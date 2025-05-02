@@ -1,4 +1,4 @@
-import { IconClock, IconProgressCheck } from '@tabler/icons-react';
+import { IconClock, IconProgressCheck, IconMenu2 } from '@tabler/icons-react';
 import Badge from '../ui/Badge';
 
 /**
@@ -11,32 +11,44 @@ export function TestHeader({
   formatTime, 
   currentQuestionIndex, 
   totalQuestions, 
-  percentComplete 
+  percentComplete,
+  onToggleNavigation
 }) {
   if (!test) return null;
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <div className="flex items-center mb-2">
-            <h1 className="text-xl font-bold text-gray-900 mr-3">{test.title}</h1>
-            <Badge variant={mode === 'practice' ? 'blue' : 'purple'}>
-              {mode === 'practice' ? 'Practice Mode' : 'Exam Mode'}
-            </Badge>
-          </div>
+        <div className="flex items-start">
+          {/* Mobile navigation toggle button */}
+          <button 
+            className="mr-3 md:hidden p-1 rounded-md text-gray-500 hover:bg-gray-100"
+            onClick={onToggleNavigation}
+            aria-label="Toggle question navigation"
+          >
+            <IconMenu2 size={24} />
+          </button>
           
-          <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-            <div className="flex items-center">
-              <IconProgressCheck size={16} className="mr-1 text-gray-400" />
-              <span>Question {currentQuestionIndex + 1} of {totalQuestions}</span>
+          <div>
+            <div className="flex items-center mb-2">
+              <h1 className="text-xl font-bold text-gray-900 mr-3">{test.title}</h1>
+              <Badge variant={mode === 'practice' ? 'blue' : 'purple'}>
+                {mode === 'practice' ? 'Practice Mode' : 'Exam Mode'}
+              </Badge>
             </div>
             
-            {test.total_questions && (
+            <div className="flex flex-wrap gap-3 text-sm text-gray-500">
               <div className="flex items-center">
-                <span>{percentComplete}% complete</span>
+                <IconProgressCheck size={16} className="mr-1 text-gray-400" />
+                <span>Question {currentQuestionIndex + 1} of {totalQuestions}</span>
               </div>
-            )}
+              
+              {test.total_questions && (
+                <div className="flex items-center">
+                  <span>{percentComplete}% complete</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         
