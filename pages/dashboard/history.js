@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   IconCalendarEvent, 
   IconCheck, 
@@ -17,13 +17,16 @@ import {
   IconCertificate,
   IconBrandGoogle,
   IconBrandAws,
-  IconBrandAzure
+  IconBrandAzure,
+  IconClock,
+  IconBulb,
+  IconTarget
 } from '@tabler/icons-react';
 import { getDashboardLayout } from '../../components/layouts/DashboardLayout';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import TestPagination from '../../components/tests/TestPagination';
-import { getUserTestAttempts, getTestPerformanceAnalytics, resumeTestAttempt } from '../../utils/services/testLibraryService';
+import { getUserTestAttempts, resumeTestAttempt, getUserStatistics } from '../../utils/services/testLibraryService';
 import useToast from '../../hooks/useToast';
 
 /**
@@ -35,20 +38,24 @@ export default function TestHistory() {
   const [testHistory, setTestHistory] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
   const [totalTests, setTotalTests] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
-  const [analytics, setAnalytics] = useState(null);
-  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(true);
+  const [userStats, setUserStats] = useState(null);
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
   const [resumingAttempt, setResumingAttempt] = useState(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   
   // Filters
   const [filters, setFilters] = useState({
-    search: '',
-    status: '',
-    mode: '',
-    test_id: '',
     page_size: itemsPerPage
   });
+  
+  // Filter dropdowns
+  const [searchInput, setSearchInput] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedMode, setSelectedMode] = useState('');
+  
+  // Reference to the scrollable container for infinite scrolling
+  const containerRef = useRef(null);
   
   // Status options
   const statusOptions = [
@@ -64,20 +71,38 @@ export default function TestHistory() {
     { value: 'exam', label: 'Exam' }
   ];
   
-  // Load test attempts
+  // Prepare query parameters by removing empty string values
+  const prepareQueryParams = (params) => {
+    const result = { ...params };
+    
+    // Remove empty string values to avoid validation issues
+    Object.keys(result).forEach(key => {
+      if (result[key] === '') {
+        delete result[key];
+      }
+    });
+    
+    return result;
+  };
+  
+  // Load initial test attempts
   useEffect(() => {
     const fetchTestHistory = async () => {
       setIsLoading(true);
       try {
-        const response = await getUserTestAttempts({
+        const queryParams = prepareQueryParams({
           ...filters,
-          cursor: currentPage > 1 ? nextCursor : undefined
+          search: searchInput,
+          status: selectedStatus,
+          mode: selectedMode
         });
+        
+        const response = await getUserTestAttempts(queryParams);
         
         if (response.success) {
           setTestHistory(response.data.attempts || []);
           setNextCursor(response.data.next_cursor || null);
-          setTotalTests(response.data.total || testHistory.length || 0);
+          setTotalTests(response.data.total || 0);
         } else {
           error('Failed to load test history');
         }
@@ -90,29 +115,58 @@ export default function TestHistory() {
     };
 
     fetchTestHistory();
-  }, [currentPage, filters, error]);
+  }, [filters, searchInput, selectedStatus, selectedMode, error]);
   
-  // Load analytics
+  // Load more test attempts when scrolling or clicking load more
+  const loadMoreAttempts = useCallback(async () => {
+    if (!nextCursor || isLoadingMore) return;
+    
+    setIsLoadingMore(true);
+    try {
+      const queryParams = prepareQueryParams({
+        ...filters,
+        search: searchInput,
+        status: selectedStatus,
+        mode: selectedMode,
+        cursor: nextCursor
+      });
+      
+      const response = await getUserTestAttempts(queryParams);
+      
+      if (response.success) {
+        setTestHistory(prev => [...prev, ...(response.data.attempts || [])]);
+        setNextCursor(response.data.next_cursor || null);
+      } else {
+        error('Failed to load more test history');
+      }
+    } catch (err) {
+      console.error('Error fetching more test history:', err);
+      error('An error occurred while loading more of your test history');
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [nextCursor, isLoadingMore, filters, searchInput, selectedStatus, selectedMode, error]);
+  
+  // Load user statistics
   useEffect(() => {
-    const fetchAnalytics = async () => {
-      setIsLoadingAnalytics(true);
+    const fetchUserStats = async () => {
+      setIsLoadingStats(true);
       try {
-        const response = await getTestPerformanceAnalytics({
-          period: 'all'
-        });
-        
+        const response = await getUserStatistics();
         if (response.success) {
-          setAnalytics(response.data);
+          setUserStats(response.data);
+        } else {
+          error('Failed to load user statistics');
         }
       } catch (err) {
-        console.error('Error fetching analytics:', err);
+        console.error('Error fetching user statistics:', err);
       } finally {
-        setIsLoadingAnalytics(false);
+        setIsLoadingStats(false);
       }
     };
     
-    fetchAnalytics();
-  }, []);
+    fetchUserStats();
+  }, [error]);
 
   // Handle viewing test details
   const handleViewDetails = (attemptId) => {
@@ -138,36 +192,20 @@ export default function TestHistory() {
     }
   };
 
-  // Handle page changes
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
-  
-  // Handle filter changes
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
-    setCurrentPage(1); // Reset to first page when filters change
-  };
-  
   // Handle search input
-  const handleSearch = (e) => {
+  const handleSearchSubmit = (e) => {
     if (e.key === 'Enter') {
-      handleFilterChange('search', e.target.value);
+      // Reset cursor when applying new search
+      setNextCursor(null);
     }
   };
   
   // Clear all filters
   const handleClearFilters = () => {
-    setFilters({
-      search: '',
-      status: '',
-      mode: '',
-      test_id: '',
-      page_size: itemsPerPage
-    });
+    setSearchInput('');
+    setSelectedStatus('');
+    setSelectedMode('');
+    setNextCursor(null);
   };
   
   // Format time string
@@ -183,47 +221,56 @@ export default function TestHistory() {
     }).format(date);
   };
   
-  // Format duration
+  // Format duration as hours, minutes and seconds
   const formatDuration = (seconds) => {
     if (!seconds) return 'N/A';
-    const minutes = Math.floor(seconds / 60);
+    
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
     const remainingSeconds = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m ${remainingSeconds}s`;
+    }
     return `${minutes}m ${remainingSeconds}s`;
   };
-  
-  // Calculate performance metrics
-  const getPerformanceMetrics = () => {
-    if (!analytics) {
-      return {
-        averageScore: 0,
-        testsCompleted: 0,
-        passRate: 0,
-        totalTime: 0
-      };
-    }
-    
-    return {
-      averageScore: analytics.average_score || 0,
-      testsCompleted: analytics.total_attempts || 0,
-      passRate: analytics.pass_rate || 0,
-      totalTime: analytics.total_time_spent || 0
-    };
-  };
-  
-  const metrics = getPerformanceMetrics();
   
   // Get active filter count
   const getActiveFilterCount = () => {
     let count = 0;
-    if (filters.search) count++;
-    if (filters.status) count++;
-    if (filters.mode) count++;
-    if (filters.test_id) count++;
+    if (searchInput) count++;
+    if (selectedStatus) count++;
+    if (selectedMode) count++;
     return count;
   };
+  
+  // Handle scroll events for infinite scrolling
+  const handleScroll = useCallback(() => {
+    if (!containerRef.current || !nextCursor || isLoadingMore) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
+    const atBottom = scrollTop + clientHeight >= scrollHeight - 200; // Load more when near bottom
+    
+    if (atBottom) {
+      loadMoreAttempts();
+    }
+  }, [nextCursor, isLoadingMore, loadMoreAttempts]);
+  
+  // Setup scroll event listener
+  useEffect(() => {
+    const currentRef = containerRef.current;
+    if (currentRef) {
+      currentRef.addEventListener('scroll', handleScroll);
+      return () => currentRef.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+    <div 
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 overflow-auto"
+      ref={containerRef}
+      style={{ maxHeight: 'calc(100vh - 64px)' }}
+    >
       {/* Page Header */}
       <div className="py-6 md:py-8 border-b border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -255,91 +302,123 @@ export default function TestHistory() {
       </div>
 
       {/* Stats Summary */}
-      <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-blue-50 rounded-full">
-              <IconReportAnalytics size={24} className="text-blue-500" />
+      {isLoadingStats ? (
+        <div className="mt-8 flex justify-center">
+          <IconLoader2 size={30} className="animate-spin text-blue-500" />
+        </div>
+      ) : (
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-blue-50 rounded-full">
+                <IconReportAnalytics size={24} className="text-blue-500" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm text-gray-500">Average Score</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {userStats?.avg_score.toFixed(2) || 0}%
+                </p>
+                <p className="text-xs text-gray-500">
+                  Best Score: {userStats?.best_score.toFixed(2) || 0}%
+                </p>
+              </div>
             </div>
-            <div className="ml-4">
-              <p className="text-sm text-gray-500">Average Score</p>
-              <p className="text-2xl font-semibold text-gray-900">{metrics.averageScore}%</p>
+            <div className="mt-2">
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  className={`h-2 rounded-full ${
+                    (userStats?.avg_score || 0) >= 80 
+                      ? 'bg-green-500' 
+                      : (userStats?.avg_score || 0) >= 60 
+                        ? 'bg-amber-500' 
+                        : 'bg-red-500'
+                  }`}
+                  style={{ width: `${userStats?.avg_score || 0}%` }}
+                ></div>
+              </div>
             </div>
           </div>
-          <div className="mt-2">
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className={`h-2 rounded-full ${
-                  metrics.averageScore >= 80 
-                    ? 'bg-green-500' 
-                    : metrics.averageScore >= 60 
-                      ? 'bg-amber-500' 
-                      : 'bg-red-500'
-                }`}
-                style={{ width: `${metrics.averageScore}%` }}
-              ></div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-green-50 rounded-full">
+                <IconCalendarEvent size={24} className="text-green-500" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm text-gray-500">Tests Taken</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {userStats?.total_tests_attempted || 0}
+                </p>
+              </div>
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-500">Practice</span>
+                <span className="font-medium text-blue-600">
+                  {userStats?.total_practice_tests || 0}
+                </span>
+              </div>
+              <div className="h-8 w-px bg-gray-200"></div>
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-500">Exam</span>
+                <span className="font-medium text-purple-600">
+                  {userStats?.total_real_tests || 0}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-purple-50 rounded-full">
+                <IconTarget size={24} className="text-purple-500" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm text-gray-500">Accuracy Rate</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {userStats?.accuracy_rate.toFixed(2) || 0}%
+                </p>
+              </div>
+            </div>
+            <div className="mt-2">
+              <div className="flex text-xs text-gray-500 justify-between">
+                <span>Attempted: {userStats?.total_questions_attempted || 0}</span>
+                <span>Correct: {userStats?.total_correct_answers || 0}</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                <div 
+                  className="h-2 bg-purple-500 rounded-full"
+                  style={{ width: `${userStats?.accuracy_rate || 0}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center">
+              <div className="p-3 bg-amber-50 rounded-full">
+                <IconClockHour4 size={24} className="text-amber-500" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm text-gray-500">Time Spent</p>
+                <p className="text-2xl font-semibold text-gray-900">
+                  {formatDuration(userStats?.total_time_spent || 0)}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 text-sm text-gray-700">
+              <div className="flex justify-between items-center">
+                <span className="text-xs text-gray-500">
+                  Avg. time per test:
+                </span>
+                <span className="font-medium">
+                  {formatDuration(userStats?.avg_time_per_test || 0)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-green-50 rounded-full">
-              <IconCalendarEvent size={24} className="text-green-500" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm text-gray-500">Tests Completed</p>
-              <p className="text-2xl font-semibold text-gray-900">{metrics.testsCompleted}</p>
-            </div>
-          </div>
-          <div className="mt-4 text-sm text-gray-500">
-            {metrics.testsCompleted > 0 ? (
-              <p>Keep up the good work! Regular practice improves your scores.</p>
-            ) : (
-              <p>Take your first test to start tracking your progress.</p>
-            )}
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-purple-50 rounded-full">
-              <IconCheck size={24} className="text-purple-500" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm text-gray-500">Pass Rate</p>
-              <p className="text-2xl font-semibold text-gray-900">{metrics.passRate}%</p>
-            </div>
-          </div>
-          <div className="mt-2">
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="h-2 bg-purple-500 rounded-full"
-                style={{ width: `${metrics.passRate}%` }}
-              ></div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="p-3 bg-amber-50 rounded-full">
-              <IconClockHour4 size={24} className="text-amber-500" />
-            </div>
-            <div className="ml-4">
-              <p className="text-sm text-gray-500">Total Time Spent</p>
-              <p className="text-2xl font-semibold text-gray-900">{formatDuration(metrics.totalTime)}</p>
-            </div>
-          </div>
-          <div className="mt-4 text-sm text-gray-500">
-            {metrics.totalTime > 0 ? (
-              <p>You've been building your skills effectively!</p>
-            ) : (
-              <p>Track your time spent on practice tests.</p>
-            )}
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Filters & History Table */}
       <div className="mt-8 bg-white rounded-lg shadow">
@@ -354,16 +433,17 @@ export default function TestHistory() {
                 type="text"
                 placeholder="Search tests by title..."
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                onKeyDown={handleSearch}
-                defaultValue={filters.search}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={handleSearchSubmit}
               />
             </div>
             
             <div className="flex flex-wrap gap-2">
               <select
                 className="block w-full md:w-auto pl-3 pr-10 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                value={filters.status}
-                onChange={(e) => handleFilterChange('status', e.target.value)}
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
               >
                 {statusOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -374,8 +454,8 @@ export default function TestHistory() {
               
               <select
                 className="block w-full md:w-auto pl-3 pr-10 py-2 text-base border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                value={filters.mode}
-                onChange={(e) => handleFilterChange('mode', e.target.value)}
+                value={selectedMode}
+                onChange={(e) => setSelectedMode(e.target.value)}
               >
                 {modeOptions.map(option => (
                   <option key={option.value} value={option.value}>
@@ -490,11 +570,6 @@ export default function TestHistory() {
                                     ? 'amber' 
                                     : 'red'
                               }
-                              leftIcon={
-                                attempt.score >= 70 
-                                  ? <IconCheck size={14} /> 
-                                  : <IconX size={14} />
-                              }
                             >
                               {attempt.score}%
                             </Badge>
@@ -589,17 +664,16 @@ export default function TestHistory() {
           </div>
         )}
         
-        {/* Pagination */}
-        {testHistory.length > 0 && (
-          <div className="px-4 py-3 border-t border-gray-200">
-            <TestPagination
-              hasNextPage={!!nextCursor}
-              hasPreviousPage={currentPage > 1}
-              currentPage={currentPage}
-              onPageChange={handlePageChange}
-              totalItems={totalTests}
-              itemsPerPage={itemsPerPage}
-            />
+        {/* Load More instead of Pagination */}
+        {nextCursor && !isLoading && (
+          <div className="px-4 py-4 border-t border-gray-200 flex justify-center">
+            <Button
+              variant="outline"
+              onClick={loadMoreAttempts}
+              isLoading={isLoadingMore}
+            >
+              {isLoadingMore ? 'Loading...' : 'Load More'}
+            </Button>
           </div>
         )}
       </div>

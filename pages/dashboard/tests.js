@@ -10,6 +10,7 @@ import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import { fetchTests, startTestAttempt } from '../../utils/services/testLibraryService';
 import useToast from '../../hooks/useToast';
+import { useRouter } from 'next/router';
 
 /**
  * Test Library page
@@ -17,6 +18,7 @@ import useToast from '../../hooks/useToast';
 export default function TestLibrary() {
   // Toast notifications
   const { success, error } = useToast();
+  const router = useRouter();
   
   // State management
   const [isLoading, setIsLoading] = useState(true);
@@ -154,8 +156,8 @@ export default function TestLibrary() {
       if (response.success) {
         success(`Starting ${mode} test: ${selectedTest.title}`);
         
-        // Redirect to the test attempt page
-        window.location.href = `/dashboard/test-attempt/${response.data.attempt_id}`;
+        // Directly navigate to the new take-test route
+        window.location.href = `/dashboard/take-test/${response.data.attempt_id}?mode=${mode}`;
       } else {
         error('Failed to start test');
       }

@@ -268,3 +268,23 @@ export async function resumeTestAttempt(attemptId) {
     return handleApiError(error);
   }
 }
+
+/**
+ * Get user statistics for test performance and history
+ * 
+ * @returns {Promise<Object>} API response with user statistics
+ */
+export async function getUserStatistics() {
+  try {
+    const response = await apiClient.get(
+      `${API.BASE_URL}${API.USER_STATISTICS}`
+    );
+    
+    return {
+      success: true,
+      data: response.data
+    };
+  } catch (error) {
+    return handleApiError(error);
+  }
+}

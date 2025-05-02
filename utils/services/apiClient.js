@@ -58,6 +58,18 @@ apiClient.interceptors.response.use(
     // Extract the original request to retry after potential token refresh
     const originalRequest = error.config;
     
+    // Check if this is a test-related API call
+    const isTestRelatedCall = originalRequest?.url && (
+      originalRequest.url.includes('/test_library/') ||
+      originalRequest.url.includes('/test-attempt/')
+    );
+    
+    // For test-related endpoints, don't trigger logout flow for certain errors
+    if (isTestRelatedCall && error.response && [404, 422].includes(error.response.status)) {
+      console.error('Test API error:', error.response.status, error.response.data);
+      return Promise.reject(error);
+    }
+    
     // Handle 401 Unauthorized errors (expired token)
     if (error.response && error.response.status === HTTP_STATUS.UNAUTHORIZED && !originalRequest._retry) {
       originalRequest._retry = true;
