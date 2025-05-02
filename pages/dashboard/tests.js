@@ -9,14 +9,14 @@ import TestPagination from '../../components/tests/TestPagination';
 import Modal from '../../components/ui/Modal';
 import Button from '../../components/ui/Button';
 import { fetchTests, startTestAttempt } from '../../utils/services/testLibraryService';
-import { useToast } from '../../hooks/useToast';
+import useToast from '../../hooks/useToast';
 
 /**
  * Test Library page
  */
 export default function TestLibrary() {
   // Toast notifications
-  const toast = useToast();
+  const { success, error } = useToast();
   
   // State management
   const [isLoading, setIsLoading] = useState(true);
@@ -72,18 +72,18 @@ export default function TestLibrary() {
             setPopularTest(response.data.popular[0]);
           }
         } else {
-          toast.error('Failed to load tests');
+          error('Failed to load tests');
         }
-      } catch (error) {
-        console.error('Error fetching tests:', error);
-        toast.error('An error occurred while loading tests');
+      } catch (err) {
+        console.error('Error fetching tests:', err);
+        error('An error occurred while loading tests');
       } finally {
         setIsLoading(false);
       }
     };
 
     loadTests();
-  }, [filters, currentPage, toast]);
+  }, [filters, currentPage, error]);
 
   // Handle filter changes
   const handleFilterChange = (key, value) => {
@@ -152,16 +152,16 @@ export default function TestLibrary() {
     try {
       const response = await startTestAttempt(selectedTest.id, mode);
       if (response.success) {
-        toast.success(`Starting ${mode} test: ${selectedTest.title}`);
+        success(`Starting ${mode} test: ${selectedTest.title}`);
         
         // Redirect to the test attempt page
         window.location.href = `/dashboard/test-attempt/${response.data.attempt_id}`;
       } else {
-        toast.error('Failed to start test');
+        error('Failed to start test');
       }
-    } catch (error) {
-      console.error('Error starting test:', error);
-      toast.error('An error occurred while starting the test');
+    } catch (err) {
+      console.error('Error starting test:', err);
+      error('An error occurred while starting the test');
     } finally {
       setStartingTest(false);
       setShowTestModeModal(false);

@@ -14,20 +14,23 @@ import {
   IconReportAnalytics,
   IconPlayerPlay,
   IconExternalLink,
-  IconCertificate
+  IconCertificate,
+  IconBrandGoogle,
+  IconBrandAws,
+  IconBrandAzure
 } from '@tabler/icons-react';
 import { getDashboardLayout } from '../../components/layouts/DashboardLayout';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import TestPagination from '../../components/tests/TestPagination';
 import { getUserTestAttempts, getTestPerformanceAnalytics, resumeTestAttempt } from '../../utils/services/testLibraryService';
-import { useToast } from '../../hooks/useToast';
+import useToast from '../../hooks/useToast';
 
 /**
  * Test History page - shows a log of all tests taken by the user with detailed analytics
  */
 export default function TestHistory() {
-  const toast = useToast();
+  const { success, error } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [testHistory, setTestHistory] = useState([]);
   const [nextCursor, setNextCursor] = useState(null);
@@ -76,18 +79,18 @@ export default function TestHistory() {
           setNextCursor(response.data.next_cursor || null);
           setTotalTests(response.data.total || testHistory.length || 0);
         } else {
-          toast.error('Failed to load test history');
+          error('Failed to load test history');
         }
-      } catch (error) {
-        console.error('Error fetching test history:', error);
-        toast.error('An error occurred while loading your test history');
+      } catch (err) {
+        console.error('Error fetching test history:', err);
+        error('An error occurred while loading your test history');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchTestHistory();
-  }, [currentPage, filters, toast]);
+  }, [currentPage, filters, error]);
   
   // Load analytics
   useEffect(() => {
@@ -101,8 +104,8 @@ export default function TestHistory() {
         if (response.success) {
           setAnalytics(response.data);
         }
-      } catch (error) {
-        console.error('Error fetching analytics:', error);
+      } catch (err) {
+        console.error('Error fetching analytics:', err);
       } finally {
         setIsLoadingAnalytics(false);
       }
@@ -122,14 +125,14 @@ export default function TestHistory() {
     try {
       const response = await resumeTestAttempt(attemptId);
       if (response.success) {
-        toast.success('Resuming your test...');
+        success('Resuming your test...');
         window.location.href = `/dashboard/test-attempt/${attemptId}`;
       } else {
-        toast.error('Failed to resume test');
+        error('Failed to resume test');
       }
-    } catch (error) {
-      console.error('Error resuming test:', error);
-      toast.error('An error occurred while trying to resume your test');
+    } catch (err) {
+      console.error('Error resuming test:', err);
+      error('An error occurred while trying to resume your test');
     } finally {
       setResumingAttempt(null);
     }
@@ -234,7 +237,9 @@ export default function TestHistory() {
             <Button 
               variant="outline" 
               size="sm"
-              leftIcon={<IconDownload size={16} />}
+              leftIcon={
+                <IconDownload size={16} stroke={1.5} />
+              }
             >
               Export History
             </Button>
@@ -485,6 +490,11 @@ export default function TestHistory() {
                                     ? 'amber' 
                                     : 'red'
                               }
+                              leftIcon={
+                                attempt.score >= 70 
+                                  ? <IconCheck size={14} /> 
+                                  : <IconX size={14} />
+                              }
                             >
                               {attempt.score}%
                             </Badge>
@@ -516,7 +526,11 @@ export default function TestHistory() {
                           {isCompleted ? (
                             <Badge 
                               variant={attempt.score >= 70 ? 'green' : 'red'} 
-                              leftIcon={attempt.score >= 70 ? <IconCheck size={14} /> : <IconX size={14} />}
+                              leftIcon={
+                                attempt.score >= 70 
+                                  ? <IconCheck size={14} /> 
+                                  : <IconX size={14} />
+                              }
                             >
                               {attempt.score >= 70 ? 'Passed' : 'Failed'}
                             </Badge>
@@ -530,7 +544,9 @@ export default function TestHistory() {
                               variant="outline" 
                               size="sm"
                               onClick={() => handleViewDetails(attempt.attempt_id)}
-                              leftIcon={<IconExternalLink size={16} />}
+                              leftIcon={
+                                <IconExternalLink size={16} stroke={1.5} />
+                              }
                             >
                               View Details
                             </Button>
@@ -539,7 +555,9 @@ export default function TestHistory() {
                               variant="primary" 
                               size="sm"
                               onClick={() => handleResumeTest(attempt.attempt_id)}
-                              leftIcon={<IconPlayerPlay size={16} />}
+                              leftIcon={
+                                <IconPlayerPlay size={16} stroke={1.5} />
+                              }
                               isLoading={resumingAttempt === attempt.attempt_id}
                             >
                               Resume Test

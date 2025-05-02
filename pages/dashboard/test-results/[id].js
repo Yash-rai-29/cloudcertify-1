@@ -23,7 +23,7 @@ import useToast from '../../../hooks/useToast';
 export default function TestResults() {
   const router = useRouter();
   const { id: attemptId } = router.query;
-  const { showError } = useToast();
+  const { error } = useToast();
   
   // State management
   const [isLoading, setIsLoading] = useState(true);
@@ -42,12 +42,12 @@ export default function TestResults() {
         if (response.success) {
           setTestResults(response.data);
         } else {
-          showError('Failed to load test results');
+          error('Failed to load test results');
           router.push('/dashboard/tests');
         }
-      } catch (error) {
-        console.error('Error fetching test results:', error);
-        showError('An error occurred while loading the test results');
+      } catch (err) {
+        console.error('Error loading test results:', err);
+        error('An error occurred while loading the test results');
         router.push('/dashboard/tests');
       } finally {
         setIsLoading(false);
@@ -55,7 +55,7 @@ export default function TestResults() {
     };
     
     fetchTestResults();
-  }, [attemptId, router, showError]);
+  }, [attemptId, router, error]);
   
   const handleGoBack = () => {
     router.push('/dashboard/history');
