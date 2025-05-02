@@ -47,6 +47,46 @@ export default function TestResultsView({ testAttempt, test, questions, mode }) 
     setShowQuestionDetails(prev => !prev);
   };
 
+  // Helper function to safely get the user's answer for a question
+  const getUserAnswer = (questionId) => {
+    try {
+      if (!testAttempt.answers) return null;
+      
+      // Handle different answer formats
+      const answer = testAttempt.answers[questionId];
+      
+      // If the answer is an object, extract the selected_option
+      if (answer && typeof answer === 'object' && answer.selected_option) {
+        return Array.isArray(answer.selected_option) 
+          ? answer.selected_option[0] 
+          : answer.selected_option;
+      }
+      
+      // If the answer is an array, take the first element
+      if (Array.isArray(answer)) {
+        return answer[0];
+      }
+      
+      // Otherwise return the answer directly if it's a primitive
+      return typeof answer === 'object' ? null : answer;
+    } catch (e) {
+      console.error('Error processing answer:', e);
+      return null;
+    }
+  };
+  
+  // Helper function to check if an answer is correct
+  const isAnswerCorrect = (question, userAnswer) => {
+    if (!userAnswer || !question.correct_option) return false;
+    
+    // Handle different correct answer formats
+    if (Array.isArray(question.correct_option)) {
+      return question.correct_option.includes(userAnswer);
+    }
+    
+    return userAnswer.toString() === question.correct_option.toString();
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-6">
@@ -153,8 +193,8 @@ export default function TestResultsView({ testAttempt, test, questions, mode }) 
           {showQuestionDetails && (
             <div className="divide-y divide-gray-200">
               {questions.map((question, index) => {
-                const userAnswer = testAttempt.answers && testAttempt.answers[question.id];
-                const isCorrect = userAnswer && userAnswer.toString() === question.correct_option.toString();
+                const userAnswer = getUserAnswer(question.id);
+                const isCorrect = isAnswerCorrect(question, userAnswer);
                 
                 return (
                   <div key={question.id} className="p-4">
@@ -180,7 +220,9 @@ export default function TestResultsView({ testAttempt, test, questions, mode }) 
                             <p className="font-medium mt-1">
                               Correct answer: 
                               <span className="text-green-600 ml-1">
-                                {question.options[question.correct_option]}
+                                {Array.isArray(question.correct_option) 
+                                  ? question.correct_option.map(opt => question.options[opt]).join(', ')
+                                  : question.options[question.correct_option]}
                               </span>
                             </p>
                           )}

@@ -27,7 +27,7 @@ export function QuestionNavigation({
           
           return (
             <button
-              key={question.id}
+              key={`question-${index}-${question.id}`}
               className={`w-8 h-8 text-xs font-medium flex items-center justify-center rounded transition-all 
                 ${isCurrent ? 'ring-2 ring-blue-500 bg-blue-50' : ''}
                 ${isAnswered ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}

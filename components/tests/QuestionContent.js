@@ -112,11 +112,6 @@ export function QuestionContent({
           if (isClickable) {
             optionClass += ' cursor-pointer';
           } else {
-            optionClass += ' cursor-default';
-          }
-          
-          // Additional styling for feedback in practice mode
-          if (answerFeedback) {
             if (isCorrectOption) {
               optionClass = 'border rounded-md p-3 border-green-500 bg-green-50';
             } else if (isIncorrectSelection) {
@@ -126,7 +121,7 @@ export function QuestionContent({
           
           return (
             <div
-              key={option.id}
+              key={`${question.id}-option-${option.id}`}
               className={optionClass}
               onClick={() => {
                 if (!isClickable) return;
