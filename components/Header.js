@@ -137,7 +137,7 @@ const Header = () => {
         </div>
 
         {/* Mobile menu */}
-        <MobileMenu 
+        <MobileMenu
           isOpen={isOpen}
           onClose={closeMenu}
           navItems={navItems}

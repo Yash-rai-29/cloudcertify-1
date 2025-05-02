@@ -101,7 +101,7 @@ const ValueProposition = () => {
   const opacity = useTransform(scrollYProgress, [0, 0.3], [0.6, 1]);
 
   return (
-    <section id="value-proposition" className="py-24 relative">
+    <section id="value-proposition" className="py-4 md:py-8 relative">
       {/* Decorative animated backgrounds */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div

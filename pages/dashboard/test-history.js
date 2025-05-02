@@ -1,4 +1,4 @@
-import { getLayout } from '../../components/dashboard/DashboardLayout';
+import { getDashboardLayout } from '../../components/layouts/DashboardLayout';
 import { FiTrendingUp, FiTrendingDown, FiActivity, FiCalendar, FiClock } from 'react-icons/fi';
 
 // Test history data
@@ -262,4 +262,4 @@ export default function TestHistory() {
 }
 
 // Use the DashboardLayout for this page
-TestHistory.getLayout = getLayout;
+TestHistory.getLayout = getDashboardLayout;

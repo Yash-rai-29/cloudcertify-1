@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getLayout } from '../../components/dashboard/DashboardLayout';
+import { getDashboardLayout } from '../../components/layouts/DashboardLayout';
 import { FiBookOpen, FiClock, FiHelpCircle, FiStar } from 'react-icons/fi';
 
 // Test categories and certification types
@@ -225,4 +225,4 @@ export default function TestLibrary() {
 }
 
 // Use the DashboardLayout for this page
-TestLibrary.getLayout = getLayout;
+TestLibrary.getLayout = getDashboardLayout;

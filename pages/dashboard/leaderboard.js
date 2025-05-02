@@ -64,30 +64,6 @@ export default function Leaderboard() {
         </div>
       </div>
 
-      {/* Time Frame Selector */}
-      <div className="mt-8 mb-6">
-        <div className="flex justify-center space-x-4">
-          <Button 
-            variant={timeFrame === 'weekly' ? 'primary' : 'secondary'}
-            onClick={() => handleTimeFrameChange('weekly')}
-          >
-            Weekly
-          </Button>
-          <Button 
-            variant={timeFrame === 'monthly' ? 'primary' : 'secondary'}
-            onClick={() => handleTimeFrameChange('monthly')}
-          >
-            Monthly
-          </Button>
-          <Button 
-            variant={timeFrame === 'allTime' ? 'primary' : 'secondary'}
-            onClick={() => handleTimeFrameChange('allTime')}
-          >
-            All Time
-          </Button>
-        </div>
-      </div>
-
       {/* User Ranking Card */}
       {userRanking && (
         <Section 
@@ -120,7 +96,7 @@ export default function Leaderboard() {
                 </div>
                 <div className="mt-4 grid grid-cols-3 gap-4 text-center">
                   <div>
-                    <div className="text-lg font-semibold text-gray-900">{userRanking.avg_score.toFixed(1)}</div>
+                    <div className="text-lg font-semibold text-gray-900">{userRanking.avg_score.toFixed(2)}</div>
                     <p className="text-xs text-gray-500">Avg Score</p>
                   </div>
                   <div>
@@ -128,7 +104,7 @@ export default function Leaderboard() {
                     <p className="text-xs text-gray-500">Tests Taken</p>
                   </div>
                   <div>
-                    <div className="text-lg font-semibold text-gray-900">{(userRanking.percentile * 100).toFixed(0)}%</div>
+                    <div className="text-lg font-semibold text-gray-900">{(userRanking.percentile).toFixed(0)}%</div>
                     <p className="text-xs text-gray-500">Percentile</p>
                   </div>
                 </div>

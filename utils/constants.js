@@ -10,6 +10,9 @@ export const API = {
   USERS: '/b/manage_user/users',
   USER_INFO: '/b/manage_user/users/me',
   CHECK_USER_EXISTS: '/b/manage_user/users/check-exists',
+  UPLOAD_USER_IMAGE: '/b/manage_user/users/upload-image',
+  UPDATE_PASSWORD: '/b/manage_user/users/password',
+  CERTIFICATION_OPTIONS: '/b/manage_user/certification-options',
   
   // Dashboard endpoints
   USER_STATISTICS: '/b/user_statistics/user-statistics',
@@ -42,7 +45,8 @@ export const API = {
 export const AUTH = {
   COOKIE_NAMES: {
     AUTH_TOKEN: 'auth_token',
-    REFRESH_TOKEN: 'refresh_token'
+    REFRESH_TOKEN: 'refresh_token',
+    TOKEN_EXPIRY: 'token_expiry'
   },
   TOKEN: {
     // How many minutes before token expiration to attempt refresh

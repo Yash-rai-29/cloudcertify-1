@@ -5,9 +5,12 @@ import {
   signUp as apiSignUp, 
   signIn as apiSignIn,
   signOut as apiSignOut,
-  resetPassword as apiResetPassword
+  resetPassword as apiResetPassword,
+  refreshAuthToken,
+  needsTokenRefresh
 } from '../utils/services/authService';
 import { AUTH } from '../utils/constants';
+import { ERRORS } from '../utils/constants';
 
 /**
  * Default context state
@@ -46,6 +49,35 @@ export function AuthProvider({ children }) {
    */
   const clearError = () => setError(null);
 
+  // Set up token refresh interval
+  useEffect(() => {
+    // Initial token check and refresh if needed
+    const checkAndRefreshToken = async () => {
+      if (auth.currentUser && needsTokenRefresh()) {
+        try {
+          await refreshAuthToken();
+        } catch (error) {
+          console.error('Failed to refresh token on initial check:', error);
+        }
+      }
+    };
+
+    checkAndRefreshToken();
+
+    // Set up periodic token refresh
+    const refreshInterval = setInterval(async () => {
+      if (auth.currentUser && needsTokenRefresh()) {
+        try {
+          await refreshAuthToken();
+        } catch (error) {
+          console.error('Failed to refresh token on interval:', error);
+        }
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+
+    return () => clearInterval(refreshInterval);
+  }, []);
+
   /**
    * Set authentication error from failed operations
    * 
@@ -63,13 +95,13 @@ export function AuthProvider({ children }) {
       };
       setError(formattedError);
       
-      // Redirect to login with the appropriate parameters
-      const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-      const returnUrl = currentPath !== '/' && !currentPath.includes('/login') ? 
-                       currentPath : undefined;
-      
-      // Only redirect if we're in the browser
-      if (typeof window !== 'undefined') {
+      // Only redirect if we're not already on the login page
+      if (typeof window !== 'undefined' && !router.pathname.includes(AUTH.ROUTES.LOGIN)) {
+        // Redirect to login with the appropriate parameters
+        const currentPath = window.location.pathname;
+        const returnUrl = currentPath !== '/' && !currentPath.includes('/login') ? 
+                        currentPath : undefined;
+        
         // Build the redirect URL with query parameters
         let redirectUrl = AUTH.ROUTES.LOGIN;
         const params = new URLSearchParams();
@@ -171,33 +203,35 @@ export function AuthProvider({ children }) {
 
   // Listen for Firebase auth state changes
   useEffect(() => {
+    let unsubscribed = false;
+    
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (unsubscribed) return;
+      
       if (user) {
         try {
-          // Check token validity
-          const tokenResult = await user.getIdTokenResult(true);
-          
-          // Check if token is close to expiration based on threshold from constants
-          const expirationTime = new Date(tokenResult.expirationTime).getTime();
-          const currentTime = Date.now();
-          const refreshThreshold = AUTH.TOKEN.REFRESH_THRESHOLD_MINUTES * 60 * 1000; // convert minutes to milliseconds
-          
-          if (expirationTime - currentTime < refreshThreshold) {
-            // Token is about to expire, try to refresh it
+          // Check token validity and refresh if needed
+          if (needsTokenRefresh()) {
             try {
-              await user.getIdToken(true); // Force token refresh
-              console.log('Token refreshed successfully');
+              await refreshAuthToken(); // Refresh token if needed
+              console.log('Token refreshed during auth state change');
             } catch (refreshError) {
               console.error('Failed to refresh token:', refreshError);
-              // Handle failed token refresh
-              const errorObj = {
-                message: ERRORS.AUTH.SESSION_EXPIRING.message,
-                code: ERRORS.AUTH.SESSION_EXPIRING.code,
-                shouldShowToast: true
-              };
-              setError(errorObj);
+              
+              // Only handle critical refresh errors that would affect the session
+              if (refreshError.code === 'auth/id-token-expired' || 
+                  refreshError.code === 'auth/id-token-revoked' ||
+                  refreshError.code === 'auth/user-token-expired') {
+                
+                throw refreshError; // Let the catch block below handle session errors
+              }
+              
+              // For other refresh errors, we can still proceed with the current user
             }
           }
+          
+          // Get token result for expiration info
+          const tokenResult = await user.getIdTokenResult();
           
           // User is signed in and token is valid
           setUser({
@@ -259,9 +293,9 @@ export function AuthProvider({ children }) {
             setUser({
               uid: user.uid,
               email: user.email,
-              displayName: user.displayName,
+              displayName: user.full_name,
               emailVerified: user.emailVerified,
-              photoURL: user.photoURL,
+              photoURL: user.photo_url,
             });
             
             setError({
@@ -300,7 +334,10 @@ export function AuthProvider({ children }) {
     });
 
     // Cleanup subscription on unmount
-    return () => unsubscribe();
+    return () => {
+      unsubscribed = true;
+      unsubscribe();
+    };
   }, [router]);
 
   /**

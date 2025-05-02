@@ -45,7 +45,7 @@ const TestLibrary = () => {
   ];
 
   return (
-    <section id="test-library" className="py-20 bg-gradient-to-b from-white to-gray-50">
+    <section id="test-library" className="py-4 md:py-8 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <motion.div

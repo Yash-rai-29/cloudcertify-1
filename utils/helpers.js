@@ -19,7 +19,25 @@ export function cn(...inputs) {
  * @returns {string} - Formatted date string
  */
 export function formatDate(date, options = {}) {
-  const dateObj = date instanceof Date ? date : new Date(date);
+  if (!date) {
+    return 'N/A';
+  }
+  
+  let dateObj;
+  
+  // Check if the date is already a Date object
+  if (date instanceof Date) {
+    dateObj = date;
+  } else {
+    // Try to convert the date to a Date object
+    dateObj = new Date(date);
+    
+    // Check if the date is valid
+    if (isNaN(dateObj.getTime())) {
+      console.warn('Invalid date value:', date);
+      return 'Invalid date';
+    }
+  }
   
   const defaultOptions = {
     year: 'numeric',

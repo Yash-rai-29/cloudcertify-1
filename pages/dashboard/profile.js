@@ -1,294 +1,194 @@
 import { useState, useEffect } from 'react';
+import { getDashboardLayout } from '../../components/layouts/DashboardLayout';
 import { useAuth } from '../../contexts/AuthContext';
-import { getLayout } from '../../components/dashboard/DashboardLayout';
-import DashboardCard from '../../components/ui/DashboardCard';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import ErrorMessage from '../../components/ui/ErrorMessage';
-import Button from '../../components/ui/Button';
+import { getUserInfo } from '../../utils/services/dashboardService';
+import { updateUserProfile, uploadProfileImage, updatePassword } from '../../utils/services/userService';
+import { showSuccess, showError } from '../../utils/toast';
 
-// Profile components
-import ProfileForm from '../../components/profile/ProfileForm';
-import PreferenceForm from '../../components/profile/PreferenceForm';
-import UserProfileDisplay from '../../components/profile/UserProfileDisplay';
-import PreferenceDisplay from '../../components/profile/PreferenceDisplay';
-import AchievementItem from '../../components/profile/AchievementItem';
-import ResourceItem from '../../components/profile/ResourceItem';
-import SubscriptionCard from '../../components/profile/SubscriptionCard';
+// Import our new components
+import ProfileTabs from '../../components/profile/ProfileTabs';
+import UserProfileTab from '../../components/profile/UserProfileTab';
+import AccountTab from '../../components/profile/AccountTab';
+import AboutTab from '../../components/profile/AboutTab';
 
-import { getUserInfo, updateUserProfile } from '../../utils/services/dashboardService';
-import { 
-  FiEdit2,
-  FiClock,
-  FiAward,
-  FiCheckSquare,
-  FiFileText
-} from 'react-icons/fi';
-
+/**
+ * User profile page with tabbed interface for profile, account and about sections
+ */
 export default function ProfilePage() {
   const { user: authUser } = useAuth();
+  const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [editing, setEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    certificationTarget: '',
-    avatarUrl: '',
-    preferences: {
-      dailyReminder: true,
-      emailNotifications: true,
-      theme: 'light',
-      studyGoalMinutesPerDay: 30
-    }
-  });
-  const [saving, setSaving] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Fetch user data
+  // Load user data when component mounts
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await getUserInfo();
-        if (response.success) {
-          setUserData(response.data);
-          setFormData({
-            firstName: response.data.firstName || '',
-            lastName: response.data.lastName || '',
-            certificationTarget: response.data.certificationTarget || '',
-            avatarUrl: response.data.avatarUrl || '',
-            preferences: {
-              dailyReminder: response.data.preferences?.dailyReminder !== false,
-              emailNotifications: response.data.preferences?.emailNotifications !== false,
-              theme: response.data.preferences?.theme || 'light',
-              studyGoalMinutesPerDay: response.data.preferences?.studyGoalMinutesPerDay || 30
-            }
-          });
-        } else {
-          setError(response.error.message);
+    if (authUser) {
+      fetchUserData();
+    }
+  }, [authUser]);
+
+  // Fetch user data from API
+  const fetchUserData = async () => {
+    setLoading(true);
+    try {
+      const response = await getUserInfo();
+      if (response.success && response.data) {
+        setUserData(response.data);
+        
+        // Set photo preview if user has a profile photo
+        if (response.data.photo_url) {
+          setPhotoPreview(response.data.photo_url);
         }
-      } catch (err) {
-        setError('Failed to fetch user information');
-      } finally {
-        setLoading(false);
       }
-    };
-
-    fetchUserData();
-  }, []);
-
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setError('Failed to load user information. Please try again later.');
+      showError('Failed to load user information. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Handle preference changes
-  const handlePreferenceChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  // Handle profile photo change
+  const handlePhotoChange = (file) => {
+    setPhotoFile(file);
     
-    setFormData(prev => ({
-      ...prev,
-      preferences: {
-        ...prev.preferences,
-        [name]: type === 'checkbox' ? checked : value
-      }
-    }));
+    // Create a preview URL
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  // Save profile changes
-  const handleSaveProfile = async () => {
-    setSaving(true);
+  // Handle profile form submission
+  const handleProfileSubmit = async (data) => {
+    setIsSaving(true);
     
     try {
-      const response = await updateUserProfile({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        certificationTarget: formData.certificationTarget,
-        avatarUrl: formData.avatarUrl,
-        preferences: formData.preferences
+      let photoUrl = userData?.photo_url;
+      
+      // If there's a new photo, upload it first
+      if (photoFile) {
+        const uploadResponse = await uploadProfileImage(photoFile);
+        if (uploadResponse.success && uploadResponse.data) {
+          photoUrl = uploadResponse.data.image_url;
+        } else {
+          throw new Error('Failed to upload profile image');
+        }
+      }
+      
+      // Update user profile with form data and possibly new photo URL
+      const updateResponse = await updateUserProfile({
+        first_name: data.firstName,
+        last_name: data.lastName,
+        certification_target: data.certificationTarget,
+        bio: data.bio,
+        photo_url: photoUrl
       });
       
-      if (response.success) {
-        setUserData(response.data);
-        setEditing(false);
+      if (updateResponse.success) {
+        showSuccess('Profile updated successfully!');
+        // Refresh user data
+        fetchUserData();
       } else {
-        setError(response.error.message);
+        throw new Error('Failed to update profile');
       }
-    } catch (err) {
-      setError('Failed to update profile');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      showError(error.message || 'Failed to update profile. Please try again.');
     } finally {
-      setSaving(false);
+      setIsSaving(false);
     }
   };
 
-  // Toggle edit mode
-  const toggleEdit = () => setEditing(!editing);
-  
-  // Cancel edit
-  const cancelEdit = () => setEditing(false);
-
-  // Render action buttons
-  const renderActionButtons = () => {
-    if (editing) {
-      return null; // Buttons are now in the ProfileForm component
-    } else {
-      return (
-        <Button
-          variant="primary"
-          leftIcon={<FiEdit2 size={14} />}
-          onClick={toggleEdit}
-        >
-          Edit Profile
-        </Button>
-      );
+  // Handle password change
+  const handlePasswordChange = async (newPassword) => {
+    setIsSaving(true);
+    
+    try {
+      const response = await updatePassword(newPassword);
+      
+      if (response.success) {
+        showSuccess('Password updated successfully!');
+      } else {
+        throw new Error('Failed to update password');
+      }
+    } catch (error) {
+      console.error('Error updating password:', error);
+      showError(error.message || 'Failed to update password. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
-
-  // If loading, display a loading spinner
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <LoadingSpinner size="large" text="Loading profile data..." />
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">
-          My Profile
-        </h1>
-        {renderActionButtons()}
-      </div>
-
-      {error && (
-        <ErrorMessage
-          title="Error"
-          message={error}
-          retry={() => window.location.reload()}
-        />
-      )}
-
-      {userData && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* User Information Card */}
-          <DashboardCard title="User Information" className="lg:col-span-2">
-            {editing ? (
-              <ProfileForm
-                formData={formData}
-                handleInputChange={handleInputChange}
-                handlePreferenceChange={handlePreferenceChange}
-                userData={userData}
-                handleSaveProfile={handleSaveProfile}
-                saving={saving}
-                cancelEdit={cancelEdit}
-              />
-            ) : (
-              <UserProfileDisplay userData={userData} />
-            )}
-          </DashboardCard>
-
-          {/* Subscription Details */}
-          <DashboardCard title="Subscription Details">
-            <SubscriptionCard subscription={userData.subscription} />
-          </DashboardCard>
-
-          {/* Preferences */}
-          <DashboardCard title="Preferences">
-            {editing ? (
-              <PreferenceForm 
-                formData={formData}
-                handlePreferenceChange={handlePreferenceChange}
-              />
-            ) : (
-              <PreferenceDisplay preferences={userData.preferences} />
-            )}
-          </DashboardCard>
-
-          {/* Achievements */}
-          <DashboardCard title="Achievements">
-            <div className="space-y-4">
-              <AchievementItem
-                icon={<FiAward size={20} />}
-                title="Streak Master"
-                description={`Longest streak: ${userData.activity?.streakCount || 0} days`}
-                bgClass="bg-amber-50 border-amber-100"
-                iconClass="bg-amber-100 text-amber-700"
-                stars={3}
-              />
-
-              <AchievementItem
-                icon={<FiClock size={20} />}
-                title="Study Champion"
-                description={`Total study time: ${Math.round((userData.activity?.studyTimeMinutes || 0) / 60)} hours`}
-                bgClass="bg-blue-50 border-blue-100"
-                iconClass="bg-blue-100 text-blue-700"
-                stars={2}
-              />
-            </div>
-          </DashboardCard>
-
-          {/* Completed Modules & Saved Resources */}
-          <DashboardCard title="Completed Modules & Resources" className="lg:col-span-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
-                  <FiCheckSquare className="text-blue-500" />
-                  Completed Modules
-                </h3>
-                
-                {userData.completedModules && userData.completedModules.length > 0 ? (
-                  <div className="space-y-2">
-                    {userData.completedModules.map((module, index) => (
-                      <ResourceItem
-                        key={index}
-                        icon={<FiCheckSquare size={16} />}
-                        title={module}
-                        iconColor="bg-green-100 text-green-700"
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-100">
-                    <p className="text-gray-500">No completed modules yet</p>
-                  </div>
-                )}
+    <div className="py-6">
+      {/* Page container */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {loading ? (
+          // Loading state
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : error ? (
+          // Error state
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
               </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          // Content when data is loaded
+          <>
+            {/* Tab navigation */}
+            <ProfileTabs 
+              activeTab={activeTab} 
+              onChange={setActiveTab} 
+            />
+            
+            {/* Tab content */}
+            <div className="mt-6">
+              {activeTab === 'profile' && userData && (
+                <UserProfileTab 
+                  userData={userData}
+                  photoPreview={photoPreview}
+                  onPhotoChange={handlePhotoChange}
+                  onSubmit={handleProfileSubmit}
+                  isSaving={isSaving}
+                />
+              )}
               
-              <div>
-                <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
-                  <FiFileText className="text-indigo-500" />
-                  Saved Resources
-                </h3>
-                
-                {userData.savedResources && userData.savedResources.length > 0 ? (
-                  <div className="space-y-2">
-                    {userData.savedResources.map((resource, index) => (
-                      <ResourceItem
-                        key={index}
-                        icon={<FiFileText size={16} />}
-                        title={resource}
-                        iconColor="bg-indigo-100 text-indigo-700"
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-100">
-                    <p className="text-gray-500">No saved resources yet</p>
-                  </div>
-                )}
-              </div>
+              {activeTab === 'account' && (
+                <AccountTab 
+                  onPasswordChange={handlePasswordChange}
+                  isSaving={isSaving}
+                />
+              )}
+              
+              {activeTab === 'about' && (
+                <AboutTab />
+              )}
             </div>
-          </DashboardCard>
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
 
-// Use the DashboardLayout for this page
-ProfilePage.getLayout = getLayout;
+// Set the dashboard layout for this page
+ProfilePage.getLayout = (page) => getDashboardLayout(page, 'Profile');

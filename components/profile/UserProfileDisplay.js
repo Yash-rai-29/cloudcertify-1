@@ -37,14 +37,14 @@ const UserProfileDisplay = ({ userData }) => {
           <FiCalendar className="text-blue-500" />
           <div className="relative">
             <p className="text-sm text-gray-500">Account Created</p>
-            <p className="font-medium">{formatDate(userData.createdAt)}</p>
+            <p className="font-medium">{userData.createdAt ? formatDate(userData.createdAt) : 'N/A'}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 relative">
           <FiClock className="text-indigo-500" />
           <div className="relative">
             <p className="text-sm text-gray-500">Last Login</p>
-            <p className="font-medium">{formatDate(userData.activity?.lastLogin)}</p>
+            <p className="font-medium">{userData.activity?.lastLogin ? formatDate(userData.activity.lastLogin) : 'N/A'}</p>
           </div>
         </div>
       </div>

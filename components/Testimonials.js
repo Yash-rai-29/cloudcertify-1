@@ -72,7 +72,7 @@ const Testimonials = () => {
   };
   
   return (
-    <section id="testimonials" className="py-24 relative overflow-hidden bg-white">
+    <section id="testimonials" className="py-4 md:py-8 relative overflow-hidden bg-white">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div

@@ -1,52 +1,112 @@
-import { useState, useEffect } from 'react';
-import Head from 'next/head';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useAuth } from '../../contexts/AuthContext';
-import ProtectedRoute from '../common/ProtectedRoute';
-import Avatar from '../ui/Avatar';
-import {
-  IconLayoutDashboard,
-  IconFileDescription,
-  IconCertificate,
-  IconBookmarks,
-  IconTrophy,
-  IconRobot,
+import { useState, useEffect } from "react";
+import Head from "next/head";
+import { useAuth } from "../../contexts/AuthContext";
+import ProtectedRoute from "../common/ProtectedRoute";
+import Avatar from "../ui/Avatar";
+import { 
+  IconMenu2, 
+  IconCloud, 
+  IconBell, 
+  IconChevronDown,
+  IconSettings,
   IconLogout,
-  IconMenu2,
-  IconX,
-  IconCloud,
-  IconBell,
-  IconChevronDown
-} from '@tabler/icons-react';
+  IconFlame
+} from "@tabler/icons-react";
+import Link from "next/link";
+import Sidebar from "./Sidebar";
+import { getDailyStreak } from "../../utils/services/dashboardService";
+import DailyQuizModal from "../dashboard/DailyQuizModal";
 
 /**
  * Dashboard layout component with sidebar navigation for authenticated users
- * 
  * @param {Object} props - Component props
  * @param {React.ReactNode} props.children - Child components
  * @param {string} props.title - Page title
  */
-export default function DashboardLayout({ 
-  children, 
-  title = 'Dashboard' 
-}) {
-  const { user, signOut } = useAuth();
-  const router = useRouter();
+export default function DashboardLayout({ children, title = "Dashboard" }) {
+  const { user, userProfile, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [streakData, setStreakData] = useState({ current_streak: 0 });
+  const [showDailyQuiz, setShowDailyQuiz] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
-  const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: IconLayoutDashboard, exact: true },
-    { name: 'Test Library', href: '/dashboard/tests', icon: IconFileDescription },
-    { name: 'Test History', href: '/dashboard/history', icon: IconCertificate },
-    { name: 'Resources', href: '/dashboard/resources', icon: IconBookmarks },
-    { name: 'Leaderboard', href: '/dashboard/leaderboard', icon: IconTrophy },
-    { name: 'AI Chatbot', href: '/dashboard/chat', icon: IconRobot },
-  ];
+  // Fetch user streak data
+  useEffect(() => {
+    async function fetchStreakData() {
+      try {
+        const response = await getDailyStreak();
+        if (response.success) {
+          setStreakData(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch streak data:", error);
+      }
+    }
 
+    fetchStreakData();
+  }, []);
+
+  useEffect(() => {
+    // Get sidebar expanded state from localStorage on component mount
+    const savedExpandedState = localStorage.getItem('sidebarExpanded');
+    if (savedExpandedState !== null) {
+      setSidebarExpanded(savedExpandedState === 'true');
+    }
+    
+    // Listen for changes to localStorage and update state
+    const handleStorageChange = () => {
+      const currentState = localStorage.getItem('sidebarExpanded');
+      if (currentState !== null) {
+        setSidebarExpanded(currentState === 'true');
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Custom event listener for sidebar toggle from within the app
+    const handleSidebarToggle = (e) => {
+      setSidebarExpanded(e.detail.expanded);
+    };
+    
+    window.addEventListener('sidebarToggle', handleSidebarToggle);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('sidebarToggle', handleSidebarToggle);
+    };
+  }, []);
+
+  // Handle profile dropdown toggle
+  const toggleProfileDropdown = () => {
+    setProfileDropdownOpen(!profileDropdownOpen);
+  };
+
+  // Handle sign out
   const handleSignOut = async () => {
     await signOut();
-    router.push('/');
+  };
+
+  // Handle toggle daily quiz modal
+  const toggleDailyQuiz = () => {
+    setShowDailyQuiz(!showDailyQuiz);
+  };
+
+  // Update streak data after daily quiz submission
+  const onQuizSubmit = (newStreakData) => {
+    setStreakData(newStreakData);
+  };
+
+  // Handle sidebar toggle
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  // Close sidebar when clicking outside on mobile
+  const closeSidebarOnMobileClick = () => {
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
+    }
   };
 
   return (
@@ -56,153 +116,14 @@ export default function DashboardLayout({
           <title>{title} | Cloud Certify</title>
         </Head>
 
-        {/* Mobile sidebar */}
-        <div className="lg:hidden">
-          {sidebarOpen && (
-            <div className="fixed inset-0 z-40 flex">
-              {/* Overlay */}
-              <div 
-                className="fixed inset-0 bg-gray-600 bg-opacity-75"
-                onClick={() => setSidebarOpen(false)}
-              ></div>
-              
-              {/* Sidebar */}
-              <div className="relative flex-1 flex flex-col max-w-xs w-full bg-white z-50">
-                <div className="absolute top-0 right-0 -mr-12 pt-2 z-50">
-                  <button
-                    className="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    <span className="sr-only">Close sidebar</span>
-                    <IconX className="h-6 w-6 text-white" />
-                  </button>
-                </div>
-                
-                <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-                  <div className="flex-shrink-0 flex items-center px-4 relative">
-                    <div className="flex items-center">
-                      <IconCloud className="h-8 w-8 text-blue-600 mr-2" />
-                      <span className="text-xl font-bold text-blue-600 z-20">Cloud Certify</span>
-                    </div>
-                  </div>
-                  <nav className="mt-5 px-2 space-y-1 relative">
-                    {navigation.map((item) => (
-                      <Link
-                        key={item.name}
-                        href={item.href}
-                        className={`group flex items-center px-2 py-2 text-base font-medium rounded-md z-20 ${
-                          (item.exact ? router.pathname === item.href : 
-                           router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                        }`}
-                      >
-                        <item.icon
-                          className={`mr-4 flex-shrink-0 h-6 w-6 ${
-                            (item.exact ? router.pathname === item.href : 
-                             router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
-                              ? 'text-blue-600'
-                              : 'text-gray-400 group-hover:text-gray-500'
-                          }`}
-                        />
-                        <span className="relative">{item.name}</span>
-                      </Link>
-                    ))}
-                  </nav>
-                </div>
-                
-                <div className="flex-shrink-0 flex border-t border-gray-200 p-4 justify-between items-center relative z-20">
-                  <div className="flex items-center">
-                    <div className="relative">
-                      <Avatar 
-                        src={user?.photoURL}
-                        initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
-                        size="md"
-                      />
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-700 truncate">
-                        {user?.displayName || user?.email}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleSignOut}
-                    className="ml-2 p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                  >
-                    <IconLogout className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-              
-              <div className="flex-shrink-0 w-14">
-                {/* Force sidebar to shrink to fit close icon */}
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Sidebar Component */}
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        {/* Static sidebar for desktop */}
-        <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:bg-white lg:z-30">
-          <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-            <div className="flex-shrink-0 flex items-center px-4 relative">
-              <IconCloud className="h-8 w-8 text-blue-600 mr-2" />
-              <span className="text-xl font-bold text-blue-600">Cloud Certify</span>
-            </div>
-            <nav className="mt-8 flex-1 px-4 space-y-1 relative">
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`group z-20 flex items-center px-3 py-2 text-sm font-medium rounded-md ${
-                    (item.exact ? router.pathname === item.href : 
-                     router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                  }`}
-                >
-                  <item.icon
-                    className={`mr-3 flex-shrink-0 h-5 w-5 ${
-                      (item.exact ? router.pathname === item.href : 
-                       router.pathname === item.href || router.pathname.startsWith(`${item.href}/`))
-                        ? 'text-blue-600'
-                        : 'text-gray-400 group-hover:text-gray-500'
-                    }`}
-                  />
-                  <span className="relative">{item.name}</span>
-                </Link>
-              ))}
-            </nav>
-          </div>
-          
-          <div className="flex-shrink-0 flex border-t border-gray-200 p-4 justify-between items-center relative z-20">
-            <div className="flex items-center">
-              <div className="relative">
-                <Avatar 
-                  src={user?.photoURL}
-                  initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
-                  size="md"
-                />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700 truncate">
-                  {user?.displayName || user?.email}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleSignOut}
-              className="ml-2 p-2 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-              title="Sign out"
-            >
-              <IconLogout className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Main content */}
-        <div className="lg:pl-64 flex flex-col flex-1 relative">
-          {/* Mobile top navigation */}
+        {/* Main Content */}
+        <div className={`flex flex-col flex-1 transition-all duration-300 ease-in-out ${
+          sidebarExpanded ? 'lg:pl-64' : 'lg:pl-20'
+        }`}>
+          {/* Mobile Top Navigation */}
           <div className="sticky top-0 z-10 lg:hidden flex items-center justify-between bg-white px-4 py-2 border-b border-gray-200 sm:px-6 relative">
             <button
               type="button"
@@ -214,25 +135,152 @@ export default function DashboardLayout({
             </button>
             <div className="flex items-center">
               <IconCloud className="h-6 w-6 text-blue-600 mr-2" />
-              <span className="text-lg font-bold text-blue-600 relative">Cloud Certify</span>
+              <span className="text-lg font-bold text-blue-600 relative">
+                Cloud Certify
+              </span>
             </div>
+            
+            {/* Mobile Header Actions */}
             <div className="flex items-center space-x-2">
+              {/* Streak Counter */}
+              <div className="flex items-center text-orange-500 mr-1" onClick={toggleDailyQuiz}>
+                <IconFlame className="h-5 w-5" />
+                <span className="text-sm font-medium ml-1">{streakData.current_streak}</span>
+              </div>
+              
+              {/* Notifications */}
               <button className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200">
                 <IconBell size={20} />
               </button>
-              <Avatar 
-                src={user?.photoURL}
-                initials={user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase()}
-                size="sm"
-              />
+              
+              {/* Avatar */}
+              <div onClick={toggleProfileDropdown}>
+                {user?.photoURL ? (
+                  <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
+                    <img
+                      src={user.photoURL}
+                      alt="User Profile"
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '';
+                        e.target.style.display = 'none';
+                        e.target.parentNode.innerHTML = `<div class="h-full w-full flex items-center justify-center bg-blue-100 text-blue-600 font-medium">
+                          ${user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+                        </div>`;
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <Avatar
+                    initials={
+                      user?.displayName?.charAt(0) ||
+                      user?.email?.charAt(0)?.toUpperCase()
+                    }
+                    size="sm"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+          
+          {/* Desktop Header */}
+          <div className="hidden lg:flex sticky top-0 z-10 items-center justify-end bg-white px-6 py-3 border-b border-gray-200">
+            {/* Header Actions */}
+            <div className="flex items-center space-x-4">
+              {/* Streak Counter */}
+              <div 
+                className="flex items-center text-orange-500 cursor-pointer hover:bg-orange-50 px-3 py-1.5 rounded-full"
+                onClick={toggleDailyQuiz}
+              >
+                <IconFlame className="h-5 w-5" />
+                <span className="text-sm font-medium ml-1">{streakData.current_streak}</span>
+              </div>
+              
+              {/* Notifications */}
+              <button className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 relative">
+                <IconBell size={20} />
+                {/* Notification indicator dot */}
+                <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+              </button>
+              
+              {/* User Profile Dropdown */}
+              <div className="relative">
+                <button
+                  className="flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-full focus:outline-none"
+                  onClick={toggleProfileDropdown}
+                >
+                  {user?.photoURL ? (
+                    <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
+                      <img
+                        src={user.photoURL}
+                        alt="User Profile"
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '';
+                          e.target.style.display = 'none';
+                          e.target.parentNode.innerHTML = `<div class="h-full w-full flex items-center justify-center bg-blue-100 text-blue-600 font-medium">
+                            ${user?.displayName?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+                          </div>`;
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <Avatar
+                      initials={
+                        user?.displayName?.charAt(0) ||
+                        user?.email?.charAt(0)?.toUpperCase()
+                      }
+                      size="sm"
+                    />
+                  )}
+                  <span className="text-sm font-medium text-gray-700 hidden sm:block">
+                    {user?.displayName || user?.email}
+                  </span>
+                  <IconChevronDown size={16} className="text-gray-500" />
+                </button>
+                
+                {/* Dropdown Menu */}
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-700">{user?.displayName || "User"}</p>
+                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                    </div>
+                    <Link
+                      href="/dashboard/settings"
+                      className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setProfileDropdownOpen(false)}
+                    >
+                      <IconSettings size={16} className="mr-2" />
+                      Settings
+                    </Link>
+                    <button
+                      className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={handleSignOut}
+                    >
+                      <IconLogout size={16} className="mr-2" />
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Page content */}
-          <main className="flex-1 relative">
-            {children}
-          </main>
+          {/* Page Content with Title */}
+          <main className="">{children}</main>
         </div>
+        
+        {/* Daily Quiz Modal */}
+        {showDailyQuiz && (
+          <DailyQuizModal 
+            isOpen={showDailyQuiz} 
+            onClose={toggleDailyQuiz}
+            onSubmit={onQuizSubmit}
+          />
+        )}
       </div>
     </ProtectedRoute>
   );
@@ -240,13 +288,10 @@ export default function DashboardLayout({
 
 /**
  * Helper function to wrap a page with the dashboard layout
- * 
  * @param {React.ReactNode} page - The page component to wrap
  * @param {string} pageTitle - The title for the page
  * @returns {React.ReactNode} - The wrapped page
  */
 export const getDashboardLayout = (page, pageTitle) => (
-  <DashboardLayout title={pageTitle}>
-    {page}
-  </DashboardLayout>
+  <DashboardLayout title={pageTitle}>{page}</DashboardLayout>
 );

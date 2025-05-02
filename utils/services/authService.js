@@ -2,7 +2,9 @@ import apiClient from './apiClient';
 import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
-  signOut as firebaseSignOut
+  signOut as firebaseSignOut,
+  getAuth,
+  getIdTokenResult
 } from 'firebase/auth';
 import { auth } from '../firebase';
 import Cookies from 'js-cookie';
@@ -17,12 +19,89 @@ import { API, AUTH } from '../constants';
  */
 const setAuthCookies = async (user, expiryDays = AUTH.TOKEN.DEFAULT_EXPIRY_DAYS) => {
   try {
+    // Get the ID token and refresh token
     const token = await user.getIdToken();
-    Cookies.set(AUTH.COOKIE_NAMES.AUTH_TOKEN, token, { expires: expiryDays });
+    const refreshToken = user.refreshToken;
+    
+    // Set cookies with secure attributes
+    const cookieOptions = { 
+      expires: expiryDays, 
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict'
+    };
+    
+    // Store both tokens
+    Cookies.set(AUTH.COOKIE_NAMES.AUTH_TOKEN, token, cookieOptions);
+    
+    // Store refresh token if available
+    if (refreshToken) {
+      Cookies.set(AUTH.COOKIE_NAMES.REFRESH_TOKEN, refreshToken, cookieOptions);
+    }
+    
+    // Also store the expiry timestamp to check for refresh needs
+    const tokenResult = await user.getIdTokenResult();
+    const expiryTime = new Date(tokenResult.expirationTime).getTime();
+    Cookies.set(AUTH.COOKIE_NAMES.TOKEN_EXPIRY, expiryTime.toString(), cookieOptions);
+    
     return token;
   } catch (error) {
     console.error('Error setting auth cookies:', error);
     throw error;
+  }
+};
+
+/**
+ * Get stored auth token from cookies
+ * 
+ * @returns {string|null} - Auth token or null if not found
+ */
+export const getStoredAuthToken = () => {
+  return Cookies.get(AUTH.COOKIE_NAMES.AUTH_TOKEN) || null;
+};
+
+/**
+ * Get stored refresh token from cookies
+ * 
+ * @returns {string|null} - Refresh token or null if not found
+ */
+export const getStoredRefreshToken = () => {
+  return Cookies.get(AUTH.COOKIE_NAMES.REFRESH_TOKEN) || null;
+};
+
+/**
+ * Check if token needs refreshing
+ * 
+ * @returns {boolean} - Whether token needs refreshing
+ */
+export const needsTokenRefresh = () => {
+  const expiryTime = Cookies.get(AUTH.COOKIE_NAMES.TOKEN_EXPIRY);
+  if (!expiryTime) return true;
+  
+  const currentTime = Date.now();
+  const refreshThreshold = AUTH.TOKEN.REFRESH_THRESHOLD_MINUTES * 60 * 1000;
+  
+  return (parseInt(expiryTime) - currentTime) < refreshThreshold;
+};
+
+/**
+ * Refresh the auth token if needed
+ * 
+ * @returns {Promise<string|null>} - New token or null if refresh failed
+ */
+export const refreshAuthToken = async () => {
+  try {
+    if (!auth.currentUser) return null;
+    
+    const token = await auth.currentUser.getIdToken(true);
+    if (token) {
+      // Update cookies with new token
+      await setAuthCookies(auth.currentUser);
+      return token;
+    }
+    return null;
+  } catch (error) {
+    console.error('Failed to refresh auth token:', error);
+    return null;
   }
 };
 
@@ -32,6 +111,7 @@ const setAuthCookies = async (user, expiryDays = AUTH.TOKEN.DEFAULT_EXPIRY_DAYS)
 const clearAuthCookies = () => {
   Cookies.remove(AUTH.COOKIE_NAMES.AUTH_TOKEN);
   Cookies.remove(AUTH.COOKIE_NAMES.REFRESH_TOKEN);
+  Cookies.remove(AUTH.COOKIE_NAMES.TOKEN_EXPIRY);
 };
 
 /**
