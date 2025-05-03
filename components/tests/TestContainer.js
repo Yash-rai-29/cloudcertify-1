@@ -129,8 +129,8 @@ const TestContainer = ({
     );
   }
   
-  // Check if the status is completed from URL query
-  const isCompleted = testAttempt?.status === 'completed' || router.query.status === 'completed';
+  // Check if test is completed based on attempt status
+  const isCompleted = testAttempt?.status === 'completed';
   
   // Get current test title
   const currentTestTitle = test?.title || testTitle || 'Take Test';
@@ -144,10 +144,11 @@ const TestContainer = ({
           testAttempt={testAttempt}
           test={test}
           questions={questions}
-          mode={mode}
+          mode={testAttempt?.mode || mode}
           showSuccess={showSuccess}
           showError={showError}
           testTitle={currentTestTitle}
+          attemptId={attemptId}
         />
       ) : (
         // Display test questions if in progress
@@ -155,7 +156,7 @@ const TestContainer = ({
           testAttempt={testAttempt}
           test={test}
           questions={questions}
-          mode={mode}
+          mode={testAttempt?.mode || mode}
           attemptId={attemptId}
           showSuccess={showSuccess}
           showError={showError}

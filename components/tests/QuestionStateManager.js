@@ -8,37 +8,96 @@ export const QuestionStateManager = ({
   setCurrentQuestionIndex,
   questions,
   setAnswerFeedback,
-  startTimeRef
+  startTimeRef,
+  mode,
+  handleSubmitAnswer,
+  submittedQuestions,
+  questionFeedbackData
 }) => {
+  // Clear or set feedback for a specific question
+  const updateAnswerFeedbackForQuestion = useCallback((questionId) => {
+    // Check if this question was already submitted
+    if (questionId && submittedQuestions?.includes(questionId) && questionFeedbackData?.[questionId]) {
+      // Show stored feedback for this question
+      setAnswerFeedback(questionFeedbackData[questionId]);
+    } else {
+      // No feedback to show
+      setAnswerFeedback(null);
+    }
+  }, [submittedQuestions, questionFeedbackData, setAnswerFeedback]);
+
   // Navigate to previous question
   const handlePreviousQuestion = useCallback(() => {
     if (currentQuestionIndex > 0) {
-      // Reset the answer feedback and timer
-      setAnswerFeedback(null);
+      const newIndex = currentQuestionIndex - 1;
+      const prevQuestionId = questions[newIndex]?.id;
+      
+      // Reset the timer for the new question
       startTimeRef.current = Date.now();
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
+      
+      // Update feedback for the previous question
+      updateAnswerFeedbackForQuestion(prevQuestionId);
+      
+      setCurrentQuestionIndex(newIndex);
     }
-  }, [currentQuestionIndex, setAnswerFeedback, setCurrentQuestionIndex, startTimeRef]);
+  }, [currentQuestionIndex, setCurrentQuestionIndex, startTimeRef, 
+      questions, updateAnswerFeedbackForQuestion]);
   
   // Navigate to next question
-  const handleNextQuestion = useCallback(() => {
-    if (currentQuestionIndex < questions.length - 1) {
-      // Reset the answer feedback and timer
-      setAnswerFeedback(null);
-      startTimeRef.current = Date.now();
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+  const handleNextQuestion = useCallback(async () => {
+    // For exam mode, try to submit the answer before moving to the next question
+    if (mode === 'exam' && typeof handleSubmitAnswer === 'function') {
+      const submitted = await handleSubmitAnswer();
+      // Only proceed to next question if submission succeeded or there was no submission attempt
+      if (!submitted) {
+        return; // Stop if submission failed or wasn't completed
+      }
     }
-  }, [currentQuestionIndex, questions.length, setAnswerFeedback, setCurrentQuestionIndex, startTimeRef]);
+    
+    if (currentQuestionIndex < questions.length - 1) {
+      const newIndex = currentQuestionIndex + 1;
+      const nextQuestionId = questions[newIndex]?.id;
+      
+      // Reset the timer for the new question
+      startTimeRef.current = Date.now();
+      
+      // Update feedback for the next question
+      updateAnswerFeedbackForQuestion(nextQuestionId);
+      
+      setCurrentQuestionIndex(newIndex);
+    }
+  }, [
+    currentQuestionIndex, 
+    questions.length, 
+    setCurrentQuestionIndex, 
+    startTimeRef, 
+    mode, 
+    handleSubmitAnswer,
+    questions,
+    updateAnswerFeedbackForQuestion
+  ]);
   
   // Jump to a specific question by index
   const handleJumpToQuestion = useCallback((index) => {
     if (index >= 0 && index < questions.length && index !== currentQuestionIndex) {
-      // Reset the answer feedback and timer
-      setAnswerFeedback(null);
+      const jumpQuestionId = questions[index]?.id;
+      
+      // Reset the timer for the new question
       startTimeRef.current = Date.now();
+      
+      // Update feedback for the jumped-to question
+      updateAnswerFeedbackForQuestion(jumpQuestionId);
+      
       setCurrentQuestionIndex(index);
     }
-  }, [currentQuestionIndex, questions.length, setAnswerFeedback, setCurrentQuestionIndex, startTimeRef]);
+  }, [
+    currentQuestionIndex, 
+    questions.length, 
+    setCurrentQuestionIndex, 
+    startTimeRef,
+    questions,
+    updateAnswerFeedbackForQuestion
+  ]);
   
   // Calculate progress percentage
   const getProgressPercentage = useCallback(() => {

@@ -1,6 +1,9 @@
 import { useCallback } from 'react';
 import { submitAnswer, finishTestAttempt } from '../../utils/services/testLibraryService';
 
+// Constants
+const FLAGGED_QUESTIONS_KEY = 'flagged_questions_';
+
 /**
  * Handles answer submission, feedback, and flagging functionality
  */
@@ -17,7 +20,11 @@ const AnswerManager = ({
   setIsSubmitting,
   showSuccess,
   showError,
-  router
+  router,
+  submittedQuestions,
+  setSubmittedQuestions,
+  questionFeedbackData,
+  setQuestionFeedbackData
 }) => {
   // Calculate time spent on current question
   const getTimeTaken = useCallback(() => {
@@ -61,11 +68,18 @@ const AnswerManager = ({
     const questionId = currentQuestion.id;
     
     setFlaggedQuestions(prev => {
-      return prev.includes(questionId)
+      const updatedFlags = prev.includes(questionId)
         ? prev.filter(id => id !== questionId)
         : [...prev, questionId];
+      
+      // Save to local storage
+      if (typeof window !== 'undefined' && attemptId) {
+        localStorage.setItem(`${FLAGGED_QUESTIONS_KEY}${attemptId}`, JSON.stringify(updatedFlags));
+      }
+      
+      return updatedFlags;
     });
-  }, [currentQuestion, setFlaggedQuestions]);
+  }, [currentQuestion, setFlaggedQuestions, attemptId]);
 
   // Helper function to safely extract error messages without causing React rendering issues
   const safelyExtractErrorMessage = useCallback((error) => {
@@ -110,9 +124,18 @@ const AnswerManager = ({
 
   // Submit the current answer
   const handleSubmitAnswer = useCallback(async () => {
-    if (!currentQuestion || !attemptId) return;
+    if (!currentQuestion || !attemptId) return false;
     
     const questionId = currentQuestion.id;
+
+    // Check if this question has already been submitted
+    if (submittedQuestions && submittedQuestions.includes(questionId)) {
+      if (typeof showError === 'function') {
+        showError('This question has already been submitted');
+      }
+      return false;
+    }
+    
     const selectedOptions = userAnswers[questionId] || [];
     
     // Skip if no options selected
@@ -122,7 +145,7 @@ const AnswerManager = ({
       } else {
         console.error('Please select an answer before submitting');
       }
-      return;
+      return false; // Return false to indicate submission was not attempted
     }
     
     setIsSubmitting(true);
@@ -140,15 +163,59 @@ const AnswerManager = ({
       const response = await submitAnswer(attemptId, payload);
       
       if (response.success) {
+        // Add question to submitted questions list
+        if (setSubmittedQuestions) {
+          setSubmittedQuestions(prev => [...prev, questionId]);
+        }
+        
+        // Get correct answer data
+        let correctOption = response.data?.correct_option || '';
+        let correctOptionIds = [];
+        
+        // If correct option not in response data, try to get from question data
+        if ((!correctOption || correctOption === '') && currentQuestion) {
+          // Try different possible field names in the question data
+          if (currentQuestion.correct_options) {
+            correctOption = currentQuestion.correct_options;
+          } else if (currentQuestion.correct_answer) {
+            correctOption = currentQuestion.correct_answer;
+          } else if (currentQuestion.correct_option) {
+            correctOption = currentQuestion.correct_option;
+          } else if (currentQuestion.answer) {
+            // Some question data might store the answer under 'answer' field
+            correctOption = currentQuestion.answer;
+          }
+        }
+        
+        // Convert to array format for consistency
+        if (correctOption) {
+          // Handle both comma-separated strings and single values
+          correctOptionIds = typeof correctOption === 'string' && correctOption.includes(',') 
+            ? correctOption.split(',').map(opt => opt.trim())
+            : [correctOption.trim()];
+        }
+        
+        // Create feedback data
+        const feedbackData = {
+          isCorrect: response.data?.is_correct || false,
+          correctOption: correctOption,
+          correctOptionIds: correctOptionIds,
+          explanation: response.data?.explanation || 
+            currentQuestion.explanation || 
+            'No explanation available for this question.',
+          timeTaken: timeTaken
+        };
+        
+        // Store feedback data for this question
+        if (setQuestionFeedbackData) {
+          setQuestionFeedbackData(prev => ({
+            ...prev,
+            [questionId]: feedbackData
+          }));
+        }
+        
         // In practice mode, show feedback
         if (mode === 'practice') {
-          // Safely handle the API response
-          const feedbackData = {
-            isCorrect: response.data?.is_correct || false,
-            correctOption: response.data?.correct_option || '',
-            explanation: response.data?.explanation || currentQuestion.explanation || ''
-          };
-          
           setAnswerFeedback(feedbackData);
         }
         
@@ -158,6 +225,8 @@ const AnswerManager = ({
           startTimeRef.current = Date.now();
           setAnswerFeedback(null);
         }
+        
+        return true; // Return true to indicate successful submission
       } else {
         // Handle API error responses
         const errorMessage = safelyExtractErrorMessage(response.error);
@@ -167,6 +236,8 @@ const AnswerManager = ({
         } else {
           console.error('Error submitting answer:', errorMessage);
         }
+        
+        return false; // Return false to indicate submission failed
       }
     } catch (error) {
       // Handle unexpected errors
@@ -178,6 +249,8 @@ const AnswerManager = ({
       if (typeof showError === 'function') {
         showError(errorMessage);
       }
+      
+      return false; // Return false to indicate submission failed
     } finally {
       setIsSubmitting(false);
     }
@@ -189,7 +262,10 @@ const AnswerManager = ({
     setIsSubmitting, 
     getTimeTaken, 
     mode, 
-    setAnswerFeedback
+    setAnswerFeedback,
+    submittedQuestions,
+    setSubmittedQuestions,
+    setQuestionFeedbackData
   ]);
 
   // Finish the test and submit all answers
@@ -209,12 +285,10 @@ const AnswerManager = ({
           console.log('Test completed successfully');
         }
         
-        // Redirect to results page
-        if (response.data && response.data.attempt_id) {
-          router.push(`/dashboard/take-test/${response.data.attempt_id}?status=completed&mode=${mode}`);
-        } else {
-          router.push('/dashboard/tests');
-        }
+        // Simply reload the current page to show results
+        // This will trigger the TestContainer to fetch updated attempt data
+        // with the 'completed' status and display results
+        router.push(`/dashboard/take-test/${attemptId}`);
       } else {
         // Handle API error responses
         const errorMessage = safelyExtractErrorMessage(response.error);
@@ -239,7 +313,7 @@ const AnswerManager = ({
       }
       setIsSubmitting(false);
     }
-  }, [attemptId, setIsSubmitting, showSuccess, showError, router, mode]);
+  }, [attemptId, setIsSubmitting, showSuccess, showError, router]);
 
   return {
     handleSelectAnswer,

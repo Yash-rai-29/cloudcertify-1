@@ -1,5 +1,6 @@
-import { IconFlag, IconCheck, IconX, IconInfoCircle } from '@tabler/icons-react';
+import { IconFlag, IconCheck, IconX, IconInfoCircle, IconClock } from '@tabler/icons-react';
 import Button from '../ui/Button';
+import { useState, useEffect } from 'react';
 
 /**
  * Question Content component for displaying a test question and handling answer selection
@@ -13,20 +14,44 @@ export function QuestionContent({
   onToggleFlag, 
   answerFeedback,
   mode,
-  totalQuestions
+  totalQuestions,
+  startTimeRef,
+  submittedQuestions
 }) {
   if (!question) {
     return <div className="text-center p-4">No question available</div>;
   }
 
   // Determine if this is a multiple choice question
-  const isMultipleChoice = question.assessment_type === 'multiple_choice';
+  const isMultipleChoice = question.assessment_type === 'multi_select';
   
   // Convert options object to array for rendering
   const optionsArray = Object.entries(question.options).map(([key, value]) => ({
     id: key,
     text: value
   }));
+
+  // State for elapsed time
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  // Update elapsed time every second
+  useEffect(() => {
+    if (!startTimeRef) return;
+    
+    const timer = setInterval(() => {
+      const timeSpent = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      setElapsedTime(timeSpent);
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [startTimeRef]);
+  
+  // Format seconds to MM:SS
+  const formatElapsedTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div>
@@ -36,16 +61,22 @@ export function QuestionContent({
           <span className="inline-block bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded mb-2">
             Question {questionIndex + 1} of {totalQuestions || '?'}
           </span>
-          {question.topic && (
-            <span className="inline-block bg-gray-100 text-gray-800 text-sm font-medium ml-2 px-2.5 py-0.5 rounded mb-2">
-              {question.topic}
-            </span>
-          )}
+          {question.topic && question.topic.split(',').map((topic, index) => (
+  <span
+    key={index}
+    className="inline-block bg-gray-100 text-gray-800 text-sm font-medium ml-2 px-2.5 py-0.5 rounded mb-2"
+  >
+    {topic.trim()}
+  </span>
+))}
           {question.difficulty && (
             <span className="inline-block bg-gray-100 text-gray-800 text-sm font-medium ml-2 px-2.5 py-0.5 rounded mb-2">
               {question.difficulty}
             </span>
           )}
+          <span className="inline-block bg-gray-100 text-gray-800 text-sm font-medium ml-2 px-2.5 py-0.5 rounded mb-2">
+            Time: {formatElapsedTime(elapsedTime)}
+          </span>
         </div>
         
         <Button
@@ -88,35 +119,72 @@ export function QuestionContent({
           let isCorrectOption = false;
           
           if (answerFeedback) {
+            // Check for single correct option (exact match)
             if (answerFeedback.correctOption === option.id) {
               isCorrectOption = true;
-            } else if (answerFeedback.correctOptionIds && 
-                      Array.isArray(answerFeedback.correctOptionIds) && 
-                      answerFeedback.correctOptionIds.includes(option.id)) {
+            } 
+            // Check for multiple correct options using correctOptionIds array
+            else if (answerFeedback.correctOptionIds && 
+                    Array.isArray(answerFeedback.correctOptionIds) && 
+                    answerFeedback.correctOptionIds.includes(option.id)) {
+              isCorrectOption = true;
+            }
+            // Backward compatibility for comma-separated string
+            else if (answerFeedback.correctOption && 
+                    typeof answerFeedback.correctOption === 'string' &&
+                    answerFeedback.correctOption.includes(',') &&
+                    answerFeedback.correctOption.split(',').map(opt => opt.trim()).includes(option.id)) {
               isCorrectOption = true;
             }
           }
-              
+          
+          // Determine if this selection is incorrect (selected but not correct)
           const isIncorrectSelection = answerFeedback && isSelected && !isCorrectOption;
           
           // Styling based on selection and feedback state
-          let optionClass = 'border rounded-md p-3 transition-all duration-150';
-          if (isSelected) {
-            optionClass += ' border-blue-500 bg-blue-50';
+          let optionClass = 'border rounded-md p-3 transition-all duration-150 relative';
+          
+          // Apply different styling based on mode and submission status
+          if (mode === 'exam') {
+            // In exam mode, only highlight the selected option without indicating correctness
+            if (isSelected) {
+              optionClass += ' border-blue-500 bg-blue-50';
+            } else {
+              optionClass += ' border-gray-200 hover:bg-blue-50/30';
+            }
           } else {
-            optionClass += ' border-gray-200 hover:border-blue-200 hover:bg-blue-50/30';
+            // In practice mode, show correctness indicators
+            if (isSelected) {
+              if (answerFeedback) {
+                // Show correctness after submission
+                optionClass += isCorrectOption 
+                  ? ' border-green-500 bg-green-50' 
+                  : ' border-red-500 bg-red-50';
+              } else {
+                // Just show as selected before submission
+                optionClass += ' border-blue-500 bg-blue-50';
+              }
+            } else if (answerFeedback && isCorrectOption) {
+              // Highlight correct options even if not selected
+              optionClass += ' border-green-500 bg-green-50/30';
+            } else {
+              optionClass += ' border-gray-200 hover:bg-blue-50/30';
+            }
           }
           
-          // Make options non-clickable when feedback is shown or in review mode
-          const isClickable = !answerFeedback && mode !== 'review';
+          // Determine if the option should be clickable
+          // Not clickable when feedback is shown, in review mode, or if the question was already submitted in exam mode
+          const isAlreadySubmitted = submittedQuestions && submittedQuestions.includes(question.id);
+          const isClickable = 
+            !answerFeedback && 
+            mode !== 'review' && 
+            !(mode === 'exam' && isAlreadySubmitted);
+          
+          // Add cursor styles based on clickability
           if (isClickable) {
             optionClass += ' cursor-pointer';
           } else {
-            if (isCorrectOption) {
-              optionClass = 'border rounded-md p-3 border-green-500 bg-green-50';
-            } else if (isIncorrectSelection) {
-              optionClass = 'border rounded-md p-3 border-red-500 bg-red-50';
-            }
+            optionClass += ' cursor-default';
           }
           
           return (
@@ -128,8 +196,9 @@ export function QuestionContent({
                 onSelectOption(option.id, isMultipleChoice);
               }}
               role="button"
-              tabIndex={0}
+              tabIndex={isClickable ? 0 : -1}
               aria-pressed={isSelected}
+              aria-disabled={!isClickable}
               onKeyDown={(e) => {
                 if ((e.key === 'Enter' || e.key === ' ') && isClickable) {
                   e.preventDefault();
@@ -167,14 +236,18 @@ export function QuestionContent({
                   <span className="text-sm text-gray-700">{option.text}</span>
                 </div>
                 
-                {/* Feedback indicators for practice mode */}
-                {answerFeedback && (
+                {/* Feedback indicators - Only show in practice mode */}
+                {answerFeedback && mode !== 'exam' && (
                   <div className="ml-2">
                     {isCorrectOption && (
-                      <IconCheck size={20} className="text-green-500" />
+                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-green-100">
+                        <IconCheck size={16} className="text-green-500" />
+                      </div>
                     )}
                     {isIncorrectSelection && (
-                      <IconX size={20} className="text-red-500" />
+                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-red-100">
+                        <IconX size={16} className="text-red-500" />
+                      </div>
                     )}
                   </div>
                 )}
@@ -184,33 +257,67 @@ export function QuestionContent({
         })}
       </div>
       
-      {/* Answer Feedback (Practice Mode) */}
-      {mode === 'practice' && answerFeedback && (
+      {/* Answer Feedback - Only show detailed feedback in practice mode */}
+      {answerFeedback && (
         <div className={`mt-4 p-4 rounded-md ${
-          answerFeedback.isCorrect ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+          mode === 'exam' 
+            ? 'bg-gray-50 border border-gray-200' 
+            : (answerFeedback.isCorrect 
+                ? 'bg-green-50 border border-green-200' 
+                : 'bg-red-50 border border-red-200')
         }`}>
           <div className="flex items-start">
             <div className="flex-shrink-0">
-              {answerFeedback.isCorrect ? (
-                <IconCheck size={20} className="text-green-500" />
+              {mode !== 'exam' ? (
+                answerFeedback.isCorrect ? (
+                  <IconCheck size={20} className="text-green-500" />
+                ) : (
+                  <IconX size={20} className="text-red-500" />
+                )
               ) : (
-                <IconX size={20} className="text-red-500" />
+                <IconCheck size={20} className="text-gray-500" />
               )}
             </div>
             <div className="ml-3">
               <h4 className="text-sm font-medium mb-1">
-                {answerFeedback.isCorrect ? 'Correct Answer!' : 'Incorrect Answer'}
+                {mode === 'exam' 
+                  ? 'Answer Submitted' 
+                  : (answerFeedback.isCorrect ? 'Correct Answer!' : 'Incorrect Answer')}
               </h4>
-              {!answerFeedback.isCorrect && answerFeedback.correctOption && (
+              
+              {/* Only show correct answer in practice mode */}
+              {!answerFeedback.isCorrect && mode !== 'exam' && (
                 <p className="text-sm text-gray-700 mb-2">
-                  Correct answer: {question.options[answerFeedback.correctOption] || ''}
+                  Correct answer: {
+                    Array.isArray(answerFeedback.correctOptionIds) && answerFeedback.correctOptionIds.length > 0 
+                      // Show all correct options with their text if available
+                      ? answerFeedback.correctOptionIds.map(optId => {
+                          // Make sure to properly handle options that might not exist in the question data
+                          return question.options && question.options[optId] 
+                            ? `${optId} (${question.options[optId]})` 
+                            : optId;
+                        }).join(', ')
+                      // Fallback to correctOption if correctOptionIds is not available
+                      : (question.options && answerFeedback.correctOption && question.options[answerFeedback.correctOption] 
+                          ? `${answerFeedback.correctOption} (${question.options[answerFeedback.correctOption]})` 
+                          : answerFeedback.correctOption || 'Not available')
+                  }
                 </p>
               )}
-              {answerFeedback.explanation && (
+              
+              {/* Only show explanation in practice mode */}
+              {answerFeedback.explanation && mode !== 'exam' && (
                 <div className="text-sm">
                   <p className="font-medium mb-1">Explanation:</p>
                   <p className="text-gray-700">{answerFeedback.explanation}</p>
                 </div>
+              )}
+              
+              {/* Show simple confirmation in exam mode */}
+              {mode === 'exam' && (
+                <p className="text-sm text-gray-600">
+                  Your answer has been submitted. Continue to the next question.
+                </p>
               )}
             </div>
           </div>

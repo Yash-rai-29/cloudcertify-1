@@ -22,18 +22,23 @@ const TestQuestion = ({
   onFinishTest,
   onSubmitAnswer,
   isSubmitting,
-  userAnswers
+  userAnswers,
+  startTimeRef,
+  submittedQuestions
 }) => {
   if (!currentQuestion) {
     return <div className="text-center py-10">No question available</div>;
   }
   
+  // Determine if the question has been submitted already
+  const isQuestionSubmitted = submittedQuestions && submittedQuestions.includes(currentQuestion.id);
+  
   // Determine if the previous/next buttons should be disabled
   const isPreviousDisabled = currentQuestionIndex === 0;
   const isNextDisabled = currentQuestionIndex === questions.length - 1;
   
-  // Determine if the submit button should be disabled (no selection made)
-  const isSubmitDisabled = !selectedOptions || selectedOptions.length === 0;
+  // Determine if the submit button should be disabled (no selection made or already submitted)
+  const isSubmitDisabled = !selectedOptions || selectedOptions.length === 0 || isQuestionSubmitted;
 
   // Calculate how many questions have been answered for display in the footer
   const answeredCount = Object.keys(userAnswers).length;
@@ -53,6 +58,8 @@ const TestQuestion = ({
         answerFeedback={answerFeedback}
         mode={mode}
         totalQuestions={questions.length}
+        startTimeRef={startTimeRef}
+        submittedQuestions={submittedQuestions}
       />
       
       {/* Navigation Controls */}
@@ -76,7 +83,7 @@ const TestQuestion = ({
         </div>
         
         <div className="flex flex-wrap md:flex-nowrap gap-2 order-2 md:order-3">
-          {mode === 'practice' && !answerFeedback && (
+          {mode === 'practice' && !answerFeedback && !isQuestionSubmitted && (
             <Button
               variant="primary"
               onClick={onSubmitAnswer}
@@ -88,13 +95,11 @@ const TestQuestion = ({
             </Button>
           )}
           
-          <Button
-            variant="danger"
-            onClick={onFinishTest}
-            className="flex-1"
-          >
-            Finish Test
-          </Button>
+          {mode === 'practice' && isQuestionSubmitted && !answerFeedback && (
+            <div className="flex-1 flex items-center justify-center bg-gray-100 text-gray-600 rounded-md px-4 py-2 text-sm font-medium">
+              Answer Already Submitted
+            </div>
+          )}
           
           <Button
             variant="outline"

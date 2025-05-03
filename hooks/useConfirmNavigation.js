@@ -33,8 +33,19 @@ export default function useConfirmNavigation(message) {
       if (!confirmed) {
         // Prevent navigation if user cancels
         router.events.emit('routeChangeError');
-        // This error is used internally by Next.js to cancel navigation
-        throw new Error('Navigation cancelled by user');
+        
+        // Instead of throwing an error, use Next.js router to stop navigation
+        // This is a safer approach that won't cause unhandled promise rejections
+        router.events.off('routeChangeStart', handleRouteChange);
+        router.replace(router.asPath); // Replace current URL to stop navigation
+        
+        // Re-attach event listener
+        setTimeout(() => {
+          router.events.on('routeChangeStart', handleRouteChange);
+        }, 0);
+        
+        // Mark as handled to prevent unhandled promise rejection
+        return false;
       }
       return true;
     };
