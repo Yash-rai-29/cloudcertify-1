@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { getDailyQuestion, submitDailyAnswer } from '../../utils/services/dashboardService';
-import { IconX, IconFlame, IconCheck, IconX as IconClose } from '@tabler/icons-react';
+import { IconX, IconFlame, IconCheck, IconX as IconClose, IconBrain, IconConfetti } from '@tabler/icons-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
-// Motivational quotes for correct answers
 const CORRECT_QUOTES = [
   "Brilliant work! Your knowledge is expanding every day.",
   "Excellent! You're one step closer to certification mastery.",
@@ -13,7 +12,6 @@ const CORRECT_QUOTES = [
   "That's right! You're consistently proving your expertise."
 ];
 
-// Encouraging quotes for incorrect answers
 const INCORRECT_QUOTES = [
   "Learning is a journey! This explanation will help you next time.",
   "Great attempt! Every question brings new knowledge.",
@@ -22,24 +20,15 @@ const INCORRECT_QUOTES = [
   "Close! The detailed explanation will help solidify this concept."
 ];
 
-/**
- * Get a random quote from an array
- * @param {Array} quotes - Array of quote strings
- * @returns {string} A randomly selected quote
- */
 const getRandomQuote = (quotes) => {
   const randomIndex = Math.floor(Math.random() * quotes.length);
   return quotes[randomIndex];
 };
 
-/**
- * Trigger confetti animation for correct answers
- */
 const triggerConfetti = () => {
   const duration = 2000;
   const end = Date.now() + duration;
 
-  // Configure and start confetti
   confetti({
     particleCount: 100,
     spread: 70,
@@ -48,7 +37,6 @@ const triggerConfetti = () => {
     disableForReducedMotion: true
   });
 
-  // Create a more complete celebration with additional bursts
   const interval = setInterval(() => {
     if (Date.now() > end) {
       return clearInterval(interval);
@@ -65,16 +53,8 @@ const triggerConfetti = () => {
   }, 250);
 };
 
-// Helper for random number in range
 const random = (min, max) => Math.random() * (max - min) + min;
 
-/**
- * Modal component for daily quiz questions
- * @param {Object} props - Component props
- * @param {boolean} props.isOpen - Whether the modal is open
- * @param {Function} props.onClose - Function to call to close modal
- * @param {Function} props.onSubmit - Function to call after submitting answer
- */
 export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
   const [question, setQuestion] = useState(null);
   const [userAttempt, setUserAttempt] = useState(null);
@@ -86,20 +66,17 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
   const [motivationalQuote, setMotivationalQuote] = useState('');
   const [animation, setAnimation] = useState(false);
 
-  // Fetch the daily question when modal opens
   useEffect(() => {
     if (isOpen) {
       fetchDailyQuestion();
     }
   }, [isOpen]);
 
-  // Format current date as YYYY-MM-DD
   const getCurrentDate = () => {
     const today = new Date();
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   };
 
-  // Fetch daily question from API
   const fetchDailyQuestion = async () => {
     setIsLoading(true);
     setError(null);
@@ -115,7 +92,6 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
         
         if (response.data.user_attempt.attempted) {
           setSelectedAnswer(response.data.user_attempt.answer);
-          // Set appropriate quote if user has already answered
           const isCorrect = response.data.user_attempt.answer === response.data.question.correct_answer;
           setMotivationalQuote(getRandomQuote(isCorrect ? CORRECT_QUOTES : INCORRECT_QUOTES));
         }
@@ -130,17 +106,14 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
     }
   };
 
-  // Handle answer selection
   const handleSelectAnswer = (answer) => {
     if (!userAttempt.attempted) {
       setSelectedAnswer(answer);
-      // Add selection animation
       setAnimation(true);
       setTimeout(() => setAnimation(false), 300);
     }
   };
 
-  // Submit the selected answer
   const handleSubmit = async () => {
     if (!selectedAnswer || isSubmitting) return;
     
@@ -150,7 +123,6 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
       const response = await submitDailyAnswer(question.id, selectedAnswer);
       
       if (response.success) {
-        // Update user attempt state
         const isCorrect = question.correct_answer === selectedAnswer;
         
         setUserAttempt({
@@ -160,16 +132,12 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
         });
         
         setHasResult(true);
-        
-        // Set a motivational quote based on correctness
         setMotivationalQuote(getRandomQuote(isCorrect ? CORRECT_QUOTES : INCORRECT_QUOTES));
         
-        // Trigger confetti animation for correct answers
         if (isCorrect) {
           setTimeout(() => triggerConfetti(), 300);
         }
         
-        // Notify parent component about successful submission
         if (onSubmit) {
           onSubmit(response.data);
         }
@@ -184,7 +152,6 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
     }
   };
 
-  // Close button click handler with confirmation if needed
   const handleClose = () => {
     if (!userAttempt?.attempted && selectedAnswer) {
       if (confirm('You haven\'t submitted your answer yet. Are you sure you want to close?')) {
@@ -195,14 +162,12 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
     }
   };
 
-  // Determine if the selected answer is correct after submission
   const isCorrect = hasResult && question?.correct_answer === selectedAnswer;
 
   return (
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Backdrop */}
           <motion.div 
             className="fixed inset-0 bg-black bg-opacity-60" 
             onClick={handleClose}
@@ -212,7 +177,6 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
             transition={{ duration: 0.2 }}
           />
           
-          {/* Modal */}
           <motion.div 
             className="relative bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -220,7 +184,6 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: "spring", duration: 0.5 }}
           >
-            {/* Close button */}
             <button 
               className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 z-10 transition-colors"
               onClick={handleClose}
@@ -229,114 +192,199 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
               <span className="sr-only">Close</span>
             </button>
             
-            {/* Modal header */}
-            <div className="bg-blue-600 text-white px-6 py-4 rounded-t-lg flex items-center">
-              <IconFlame className="h-6 w-6 mr-2 text-orange-300" />
+            <motion.div 
+              className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-4 rounded-t-lg flex items-center"
+              initial={{ y: -20 }}
+              animate={{ y: 0 }}
+              transition={{ delay: 0.1 }}
+            >
+              <motion.div
+                animate={{ rotate: [0, 10, -10, 0] }}
+                transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+              >
+                <IconBrain className="h-6 w-6 mr-2 text-blue-200" />
+              </motion.div>
               <h3 className="text-lg font-medium">Daily Challenge</h3>
-            </div>
+            </motion.div>
             
-            {/* Modal content */}
             <div className="px-6 py-4">
               {isLoading ? (
                 <div className="py-8 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-3"></div>
-                  <p className="text-gray-500">Loading question...</p>
+                  <motion.div 
+                    className="rounded-full h-12 w-12 border-t-2 border-r-2 border-blue-500 mx-auto mb-3"
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                  />
+                  <p className="text-gray-500">Loading today's challenge...</p>
                 </div>
               ) : error ? (
-                <div className="py-6 text-center">
+                <motion.div 
+                  className="py-6 text-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
                   <p className="text-red-500 mb-3">{error}</p>
-                  <button 
+                  <motion.button 
                     className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
                     onClick={fetchDailyQuestion}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
                     Try Again
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
               ) : (
                 <>
-                  {/* Question */}
-                  <div className="mb-6">
-                    <h4 className="font-medium text-gray-900 mb-3">{question?.question}</h4>
+                  <motion.div 
+                    className="mb-6"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <h4 className="font-medium text-gray-900 mb-3 text-lg">{question?.question}</h4>
                     
-                    {/* Options */}
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {question?.options.map((option, index) => (
                         <motion.button
                           key={index}
-                          className={`w-full text-left px-4 py-3 rounded border transition-all
+                          className={`w-full text-left px-4 py-3 rounded-lg border-2 transition-all
                             ${selectedAnswer === option 
                               ? hasResult 
                                 ? option === question.correct_answer
-                                  ? 'bg-green-50 border-green-300 text-green-800'
-                                  : 'bg-red-50 border-red-300 text-red-800'
-                                : 'bg-blue-50 border-blue-300 text-blue-800'
+                                  ? 'bg-green-50 border-green-400 text-green-800'
+                                  : 'bg-red-50 border-red-400 text-red-800'
+                                : 'bg-blue-50 border-blue-400 text-blue-800'
                               : hasResult && option === question.correct_answer
-                                ? 'bg-green-50 border-green-300 text-green-800'
-                                : 'bg-white border-gray-300 hover:bg-gray-50 text-gray-700'
+                                ? 'bg-green-50 border-green-400 text-green-800'
+                                : 'bg-white border-gray-200 hover:bg-gray-50 text-gray-700 hover:border-gray-300'
                             } 
                             ${userAttempt?.attempted ? 'cursor-default' : 'cursor-pointer'}
                             ${selectedAnswer === option && animation ? 'transform scale-[1.02]' : ''}`}
                           onClick={() => !userAttempt?.attempted && handleSelectAnswer(option)}
                           disabled={userAttempt?.attempted}
-                          whileHover={!userAttempt?.attempted ? { scale: 1.01 } : {}}
+                          whileHover={!userAttempt?.attempted ? { scale: 1.01, boxShadow: "0 2px 5px rgba(0,0,0,0.05)" } : {}}
                           whileTap={!userAttempt?.attempted ? { scale: 0.99 } : {}}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.3 + (index * 0.1) }}
                         >
                           <div className="flex items-center">
                             {selectedAnswer === option && hasResult && (
-                              <span className="mr-2">
+                              <motion.span 
+                                className="mr-2"
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                              >
                                 {option === question.correct_answer ? (
                                   <IconCheck className="h-5 w-5 text-green-600" />
                                 ) : (
                                   <IconClose className="h-5 w-5 text-red-600" />
                                 )}
-                              </span>
+                              </motion.span>
                             )}
                             {option}
                           </div>
                         </motion.button>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
                   
-                  {/* Results or Submit button */}
                   {hasResult ? (
                     <motion.div 
-                      className={`p-4 rounded mb-4 ${isCorrect ? 'bg-green-50' : 'bg-red-50'}`}
+                      className={`p-5 rounded-lg mb-4 ${isCorrect ? 'bg-green-50 border border-green-100' : 'bg-red-50 border border-red-100'}`}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5 }}
+                      transition={{ type: "spring", stiffness: 100, damping: 15, delay: 0.2 }}
                     >
-                      <h5 className={`font-medium mb-2 ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
-                        {isCorrect ? 'Correct!' : 'Incorrect'} 
-                      </h5>
-                      {/* Motivational quote */}
-                      <p className={`text-${isCorrect ? 'green' : 'red'}-700 mb-3 font-medium italic`}>
+                      <div className="flex items-center mb-2">
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.4 }}
+                        >
+                          {isCorrect ? (
+                            <IconConfetti className={`h-6 w-6 mr-2 text-green-600`} />
+                          ) : (
+                            <IconBrain className={`h-6 w-6 mr-2 text-red-600`} />
+                          )}
+                        </motion.div>
+                        <h5 className={`font-medium ${isCorrect ? 'text-green-800' : 'text-red-800'}`}>
+                          {isCorrect ? 'Correct Answer!' : 'Incorrect Answer'} 
+                        </h5>
+                      </div>
+                      
+                      <motion.p 
+                        className={`text-${isCorrect ? 'green' : 'red'}-700 mb-3 font-medium italic`}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.6 }}
+                      >
                         "{motivationalQuote}"
-                      </p>
-                      <p className="text-gray-700">{question?.explanation}</p>
+                      </motion.p>
+                      
+                      <motion.div 
+                        className="mt-3 bg-white rounded-lg p-3 border border-gray-100"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                      >
+                        <p className="text-gray-800 font-medium">Explanation:</p>
+                        <p className="text-gray-700 mt-1">{question?.explanation}</p>
+                      </motion.div>
+                      
                       {isCorrect && (
-                        <div className="mt-3 flex items-center text-orange-500">
-                          <IconFlame className="h-5 w-5 mr-1" />
-                          <span className="font-medium">Current Streak: {userAttempt?.current_streak || 0}</span>
-                        </div>
+                        <motion.div 
+                          className="mt-4 flex items-center"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          transition={{ delay: 0.8 }}
+                        >
+                          <div className="mr-3 bg-orange-100 text-orange-600 rounded-full px-3 py-1 flex items-center">
+                            <motion.div
+                              animate={{ scale: [1, 1.2, 1] }}
+                              transition={{ duration: 1.5, repeat: Infinity }}
+                            >
+                              <IconFlame className="h-5 w-5 mr-1" />
+                            </motion.div>
+                            <span className="font-medium">Streak: {userAttempt?.current_streak || 0}</span>
+                          </div>
+                        </motion.div>
                       )}
                     </motion.div>
                   ) : (
-                    <div className="flex justify-end">
+                    <motion.div 
+                      className="flex justify-end"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.8 }}
+                    >
                       <motion.button
-                        className={`px-4 py-2 rounded font-medium 
+                        className={`px-5 py-2 rounded-lg font-medium flex items-center
                           ${!selectedAnswer || isSubmitting 
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
-                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
                           }`}
                         onClick={handleSubmit}
                         disabled={!selectedAnswer || isSubmitting}
-                        whileHover={selectedAnswer && !isSubmitting ? { scale: 1.05 } : {}}
+                        whileHover={selectedAnswer && !isSubmitting ? { scale: 1.05, boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)" } : {}}
                         whileTap={selectedAnswer && !isSubmitting ? { scale: 0.95 } : {}}
                       >
-                        {isSubmitting ? 'Submitting...' : 'Submit Answer'}
+                        {isSubmitting ? (
+                          <>
+                            <motion.div
+                              className="h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"
+                              animate={{ rotate: 360 }}
+                              transition={{ repeat: Infinity, duration: 0.8, ease: "linear" }}
+                            />
+                            Submitting...
+                          </>
+                        ) : (
+                          <>Submit Answer</>
+                        )}
                       </motion.button>
-                    </div>
+                    </motion.div>
                   )}
                 </>
               )}

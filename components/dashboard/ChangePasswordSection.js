@@ -33,8 +33,8 @@ export default function ChangePasswordSection({ onSubmit, isSaving }) {
 
   return (
     <form onSubmit={handleSubmit(handlePasswordSubmit)} className="space-y-8">
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-200 bg-gray-50">
+      <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-100">
+        <div className="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
           <h3 className="text-lg font-medium text-gray-900 flex items-center">
             <IconLock className="mr-2 text-blue-600" size={20} />
             Change Password

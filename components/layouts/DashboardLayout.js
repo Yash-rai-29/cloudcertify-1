@@ -32,7 +32,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [userInfo, setUserInfo] = useState(null);
 
-  console.log("user data  ", user);
+  console.log("user open title", title);
   // Fetch user streak data
   useEffect(() => {
     async function fetchStreakData() {
@@ -206,7 +206,7 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
           </div>
           
           {/* Desktop Header */}
-          <div className="hidden lg:flex sticky top-0 z-10 items-center justify-end bg-white px-6 py-3 border-b border-gray-200">
+          <div className="hidden lg:flex sticky top-0 z-20 items-center justify-end bg-white px-6 py-3 border-b border-gray-200">
             {/* Header Actions */}
             <div className="flex items-center space-x-4">
               {/* Streak Counter */}

@@ -159,7 +159,7 @@ export function TestAttemptView({ testAttempt, test, questions, mode, attemptId,
         
         {/* Desktop Question Navigation Sidebar */}
         <div className="hidden md:block md:col-span-3">
-          <div className="sticky top-24">
+          <div className=" top-24">
             <QuestionNavigation 
               questions={questions}
               currentIndex={currentQuestionIndex}

@@ -19,33 +19,33 @@ export function cn(...inputs) {
  * @returns {string} - Formatted date string
  */
 export function formatDate(date, options = {}) {
-  if (!date) {
-    return 'N/A';
-  }
-  
+  if (!date) return 'N/A';
+
   let dateObj;
-  
-  // Check if the date is already a Date object
+
+  // Convert if not a Date object
   if (date instanceof Date) {
     dateObj = date;
+  } else if (typeof date === 'number') {
+    // Assume Unix timestamp in seconds if it's too small for ms
+    dateObj = new Date(date < 1e12 ? date * 1000 : date);
   } else {
-    // Try to convert the date to a Date object
     dateObj = new Date(date);
-    
-    // Check if the date is valid
-    if (isNaN(dateObj.getTime())) {
-      console.warn('Invalid date value:', date);
-      return 'Invalid date';
-    }
   }
-  
+
+  // Check validity
+  if (isNaN(dateObj.getTime())) {
+    console.warn('Invalid date value:', date);
+    return 'Invalid date';
+  }
+
   const defaultOptions = {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-    ...options
+    ...options,
   };
-  
+
   try {
     return new Intl.DateTimeFormat('en-US', defaultOptions).format(dateObj);
   } catch (error) {
@@ -53,7 +53,6 @@ export function formatDate(date, options = {}) {
     return String(date);
   }
 }
-
 /**
  * Format a date to a time-ago string
  * @param {Date|string|number} date - Date to format

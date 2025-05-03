@@ -29,8 +29,8 @@ const HeroSection = () => {
   return (
     <section id="hero" className="relative w-full overflow-hidden">
       <SparklesBackground containerClassName="min-h-screen">
-        <div className="container mx-auto px-4 py-24 md:py-32 relative z-10">
-          <div className="max-w-5xl mx-auto text-center">
+        <div className="container mx-auto px-4 py-4 md:py-8 relative z-10">
+          <div className="max-w-5xl mt-16 mx-auto text-center">
             {/* GCP Certification Badge */}
             <HeroBadge 
               icon={<FiCloud className="text-lg" />}

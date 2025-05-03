@@ -20,20 +20,15 @@ globalThis.__BUILD_MANIFEST = {
       "static/chunks/main.js",
       "static/chunks/pages/_error.js"
     ],
-    "/dashboard": [
+    "/dashboard/settings": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/dashboard.js"
+      "static/chunks/pages/dashboard/settings.js"
     ],
-    "/dashboard/take-test/[attemptId]": [
+    "/dashboard/test-results/[id]": [
       "static/chunks/webpack.js",
       "static/chunks/main.js",
-      "static/chunks/pages/dashboard/take-test/[attemptId].js"
-    ],
-    "/dashboard/tests": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/dashboard/tests.js"
+      "static/chunks/pages/dashboard/test-results/[id].js"
     ]
   },
   "ampFirstPages": []

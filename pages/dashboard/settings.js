@@ -7,15 +7,21 @@ import { showSuccess, showError } from '../../utils/toast';
 import { 
   IconUser, 
   IconLock, 
-  IconInfoCircle
+  IconInfoCircle,
+  IconRocket,
+  IconCode,
+  IconHeart
 } from '@tabler/icons-react';
 import SettingsTabs from '../../components/dashboard/SettingsTabs';
 import ProfileSection from '../../components/dashboard/ProfileSection';
 import ChangePasswordSection from '../../components/dashboard/ChangePasswordSection';
 import AboutCloudCertifySection from '../../components/dashboard/AboutCloudCertifySection';
+import ReleaseNotesSection from '../../components/dashboard/ReleaseNotesSection';
+import TeamSection from '../../components/dashboard/TeamSection';
+import TechStackSection from '../../components/dashboard/TechStackSection';
 
 /**
- * Settings page component integrating profile management, password change, and about sections
+ * Settings page component with expanded tabs
  */
 export default function Settings() {
   const { user: authUser } = useAuth();
@@ -65,6 +71,9 @@ export default function Settings() {
         setPhotoPreview(e.target.result);
       };
       reader.readAsDataURL(file);
+    } else {
+      // If file is null (removed), clear the preview
+      setPhotoPreview(null);
     }
   };
 
@@ -89,9 +98,9 @@ export default function Settings() {
       const updateResponse = await updateUserProfile({
         first_name: data.firstName,
         last_name: data.lastName,
-        job_title: data.jobTitle,
         certification_target: data.certificationTarget,
         bio: data.bio,
+        organization: data.organization, // Added organization field
         photo_url: photoUrl
       });
       
@@ -130,11 +139,14 @@ export default function Settings() {
     }
   };
 
-  // Tab configuration
+  // Tab configuration with expanded about section tabs
   const tabItems = [
     { id: 'profile', label: 'Profile', icon: IconUser },
     { id: 'password', label: 'Password', icon: IconLock },
-    { id: 'about', label: 'About', icon: IconInfoCircle }
+    { id: 'about', label: 'About', icon: IconInfoCircle },
+    { id: 'releases', label: 'Release Notes', icon: IconRocket },
+    { id: 'team', label: 'Our Team', icon: IconHeart },
+    { id: 'tech', label: 'Technology', icon: IconCode }
   ];
 
   return (
@@ -186,6 +198,21 @@ export default function Settings() {
               {/* About tab content */}
               {activeTab === 'about' && (
                 <AboutCloudCertifySection />
+              )}
+              
+              {/* Release Notes tab content */}
+              {activeTab === 'releases' && (
+                <ReleaseNotesSection />
+              )}
+              
+              {/* Team tab content */}
+              {activeTab === 'team' && (
+                <TeamSection />
+              )}
+              
+              {/* Tech Stack tab content */}
+              {activeTab === 'tech' && (
+                <TechStackSection />
               )}
             </div>
           </div>

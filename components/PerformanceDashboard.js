@@ -52,7 +52,7 @@ const PerformanceDashboard = () => {
   return (
     <section
       id="performance-dashboard"
-      className="md:py-24 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden"
+      className="py-4 md:py-8 bg-gradient-to-b from-white to-gray-50 relative overflow-hidden"
     >
       {/* Background decorations */}
       <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-50 rounded-full opacity-50 blur-3xl -z-10"></div>
