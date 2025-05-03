@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { submitAnswer, finishTestAttempt } from '../../utils/services/testLibraryService';
+import { submitAnswer, finishTestAttempt } from '../../lib/client/testService';
 
 // Constants
 const FLAGGED_QUESTIONS_KEY = 'flagged_questions_';

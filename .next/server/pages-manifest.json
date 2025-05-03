@@ -2,9 +2,10 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
+  "/dashboard/history": "pages/dashboard/history.js",
+  "/api/tests/attempts/[id]/finish": "pages/api/tests/attempts/[id]/finish.js",
   "/dashboard/take-test/[attemptId]": "pages/dashboard/take-test/[attemptId].js",
-  "/dashboard/test-results/[id]": "pages/dashboard/test-results/[id].js",
+  "/api/tests/[id]": "pages/api/tests/[id].js",
   "/dashboard/tests": "pages/dashboard/tests.js",
-  "/dashboard": "pages/dashboard.js",
-  "/dashboard/history": "pages/dashboard/history.js"
+  "/dashboard/test-results/[id]": "pages/dashboard/test-results/[id].js"
 }

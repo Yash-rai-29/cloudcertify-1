@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
   FiTarget,
@@ -64,7 +64,12 @@ const valueItems = [
 // Fixed FeatureCard with proper hover effects
 const FeatureCard = ({ item, index }) => {
   const iconRef = useRef(null);
-  
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   return (
     <motion.div
       className="relative bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 group"
@@ -138,6 +143,11 @@ const ValueProposition = () => {
   const scale = useTransform(scrollYProgress, [0, 1], [0.95, 1]);
   const opacity = useTransform(scrollYProgress, [0, 0.3], [0.7, 1]);
   const lottieRef = useRef(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
     <section id="value-proposition" className="py-4 md:py-16 relative">
@@ -300,20 +310,22 @@ const ValueProposition = () => {
                       className="w-full max-w-md"
                     >
                       {/* Lottie animation */}
-                      <Lottie
-                        lottieRef={lottieRef}
-                        animationData={GoogleCloudAnimation}
-                        loop={true}
-                        autoplay={true}
-                        style={{ width: '100%', height: '100%' }}
-                        onMouseEnter={() => {
-                          lottieRef.current?.setSpeed(1.5);
-                          lottieRef.current?.play();
-                        }}
-                        onMouseLeave={() => {
-                          lottieRef.current?.setSpeed(1);
-                        }}
-                      />
+                      {isMounted && (
+                        <Lottie
+                          lottieRef={lottieRef}
+                          animationData={GoogleCloudAnimation}
+                          loop={true}
+                          autoplay={true}
+                          style={{ width: '100%', height: '100%' }}
+                          onMouseEnter={() => {
+                            lottieRef.current?.setSpeed(1.5);
+                            lottieRef.current?.play();
+                          }}
+                          onMouseLeave={() => {
+                            lottieRef.current?.setSpeed(1);
+                          }}
+                        />
+                      )}
                     </motion.div>
                   </div>
                 </div>

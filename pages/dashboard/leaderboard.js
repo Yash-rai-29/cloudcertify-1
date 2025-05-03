@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { 
   IconTrophy, IconCrown, IconMedal, IconUserCircle 
 } from '@tabler/icons-react';
@@ -8,16 +8,18 @@ import Section from '../../components/dashboard/Section';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import Avatar from '../../components/ui/Avatar';
-import { getLeaderboard } from '../../utils/services/dashboardService';
+import { getLeaderboard } from '../../lib/client/dashboardService';
+import { getLeaderboard as getServerLeaderboard } from '../../lib/server/dashboardService';
 
 /**
  * Enhanced Leaderboard with Aceternity UI
+ * Using server-side rendering for initial data load
  */
-export default function Leaderboard() {
-  const [isLoading, setIsLoading] = useState(true);
-  const [leaderboardData, setLeaderboardData] = useState([]);
-  const [userRanking, setUserRanking] = useState(null);
-  const [error, setError] = useState(null);
+export function Leaderboard({ initialLeaderboard, initialUserRanking, initialError }) {
+  const [isLoading, setIsLoading] = useState(false);
+  const [leaderboardData, setLeaderboardData] = useState(initialLeaderboard || []);
+  const [userRanking, setUserRanking] = useState(initialUserRanking || null);
+  const [error, setError] = useState(initialError || null);
 
   // Define fetchLeaderboardData outside of useEffect to reuse it
   const fetchLeaderboardData = async () => {
@@ -33,7 +35,7 @@ export default function Leaderboard() {
         setLeaderboardData(leaderboard);
         setUserRanking(user_ranking);
       } else {
-        console.error('Failed to fetch leaderboard:', response.message);
+        console.error('Failed to fetch leaderboard:', response.error?.message);
         setError('Unable to load leaderboard data. Please try again later.');
       }
     } catch (error) {
@@ -43,10 +45,6 @@ export default function Leaderboard() {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchLeaderboardData();
-  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
@@ -64,6 +62,16 @@ export default function Leaderboard() {
               See how you rank against other learners preparing for GCP certifications
             </p>
           </div>
+          {!isLoading && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchLeaderboardData}
+              className="mt-4 md:mt-0"
+            >
+              Refresh Data
+            </Button>
+          )}
         </div>
       </motion.div>
 
@@ -658,6 +666,65 @@ export default function Leaderboard() {
       </motion.div>
     </div>
   );
+}
+
+// Default export with SSR data fetching
+export default Leaderboard;
+
+/**
+ * Server-side data fetching for the leaderboard page
+ * This moves API calls to the server, reducing client-side network requests
+ */
+export async function getServerSideProps(context) {
+  // Get the auth token from cookies
+  const token = context.req.cookies.auth_token;
+  
+  // If no token is available, redirect to login
+  if (!token) {
+    return {
+      redirect: {
+        destination: '/login?returnUrl=/dashboard/leaderboard',
+        permanent: false,
+      }
+    };
+  }
+  
+  try {
+    // Fetch leaderboard data server-side
+    const response = await getServerLeaderboard(token, 20);
+    
+    if (!response.success) {
+      // Handle error case
+      return {
+        props: {
+          initialLeaderboard: [],
+          initialUserRanking: null,
+          initialError: response.error.message || 'Failed to load leaderboard data'
+        }
+      };
+    }
+    
+    // Extract data from response
+    const { user_ranking = null, leaderboard = [] } = response.data || {};
+    
+    // Return the leaderboard data as props
+    return {
+      props: {
+        initialLeaderboard: leaderboard,
+        initialUserRanking: user_ranking,
+        initialError: null
+      }
+    };
+  } catch (error) {
+    console.error('Error fetching leaderboard data:', error);
+    return {
+      props: {
+        initialLeaderboard: [],
+        initialUserRanking: null,
+        initialError: 'An unexpected error occurred while loading the leaderboard'
+      }
+    };
+  }
 }
 
 Leaderboard.getLayout = (page) => getDashboardLayout(page, "Leaderboard");

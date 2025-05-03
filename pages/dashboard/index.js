@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   IconCalendarStats, 
@@ -15,12 +15,7 @@ import { getDashboardLayout } from '../../components/layouts/DashboardLayout';
 import DashboardCard from '../../components/ui/DashboardCard';
 import DailyQuizCard from '../../components/dashboard/DailyQuizCard';
 import DailyQuizModal from '../../components/dashboard/DailyQuizModal';
-import { 
-  getUserInfo, 
-  getDailyStreak, 
-  getTestRecommendations, 
-  getUserActivities 
-} from '../../utils/services/dashboardService';
+import { getUserActivities } from '../../utils/services/dashboardService';
 import { useAuth } from '../../contexts/AuthContext';
 import { showError, showSuccess } from '../../utils/toast';
 import Link from 'next/link';
@@ -34,15 +29,15 @@ const fadeIn = {
   transition: { duration: 0.3 }
 };
 
-export default function Dashboard() {
+export default function Dashboard({ initialUserData, initialStreakData, initialRecommendations, initialActivities }) {
   const { user: authUser } = useAuth();
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [userData, setUserData] = useState(null);
-  const [streakData, setStreakData] = useState(null);
-  const [recommendations, setRecommendations] = useState([]);
-  const [activities, setActivities] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [userData, setUserData] = useState(initialUserData);
+  const [streakData, setStreakData] = useState(initialStreakData);
+  const [recommendations, setRecommendations] = useState(initialRecommendations || []);
+  const [activities, setActivities] = useState(initialActivities || []);
   const [showDailyQuiz, setShowDailyQuiz] = useState(false);
   const [activeTab, setActiveTab] = useState('recommended');
   
@@ -57,41 +52,6 @@ export default function Dashboard() {
       minute: '2-digit'
     });
   };
-
-  useEffect(() => {
-    if (authUser) {
-      fetchDashboardData();
-    }
-  }, [authUser]);
-  
-  const fetchDashboardData = async () => {
-    if (!authUser) return;
-    
-    setIsLoading(true);
-    try {
-      const [userResponse, streakResponse, recommendationsResponse, activitiesResponse] = 
-        await Promise.all([
-          getUserInfo(),
-          getDailyStreak(),
-          getTestRecommendations(10),
-          getUserActivities()
-        ]);
-      
-      if (userResponse.success) setUserData(userResponse.data);
-      if (streakResponse.success) setStreakData(streakResponse.data);
-      if (recommendationsResponse.success) {
-        setRecommendations(recommendationsResponse.data.recommendations || []);
-      }
-      if (activitiesResponse.success) {
-        setActivities(activitiesResponse.data.activities || []);
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      showError('Failed to load some dashboard data. Please refresh the page to try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
   
   // Handle refresh with animation
   const handleRefreshData = async () => {
@@ -100,7 +60,8 @@ export default function Dashboard() {
     setIsRefreshing(true);
     
     try {
-      await fetchDashboardData();
+      // Only refresh activities client-side to minimize network requests
+      await refreshActivities();
       showSuccess('Dashboard data refreshed');
     } catch (error) {
       console.error('Error refreshing data:', error);
@@ -124,12 +85,15 @@ export default function Dashboard() {
   
   const refreshActivities = async () => {
     try {
+      setIsLoading(true);
       const activitiesResponse = await getUserActivities();
       if (activitiesResponse.success) {
         setActivities(activitiesResponse.data.activities || []);
       }
     } catch (error) {
       console.error('Error refreshing activities:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -436,3 +400,67 @@ export default function Dashboard() {
 
 // Set the dashboard layout for this page
 Dashboard.getLayout = (page) => getDashboardLayout(page, "Dashboard");
+
+/**
+ * Server-side data fetching for the dashboard page
+ * This ensures API calls happen on the server and are not visible in browser network tab
+ */
+export async function getServerSideProps(context) {
+  // Get the auth token from cookies
+  const token = context.req.cookies.auth_token;
+  
+  // If no token is available, redirect to login
+  if (!token) {
+    return {
+      redirect: {
+        destination: '/login?returnUrl=/dashboard',
+        permanent: false,
+      }
+    };
+  }
+  
+  // Import server-side services
+  const { 
+    getUserInfo, 
+    getDailyStreak, 
+    getTestRecommendations, 
+    getUserActivities 
+  } = require('../../lib/server/dashboardService');
+  
+  try {
+    // Fetch all dashboard data server-side
+    const [userResponse, streakResponse, recommendationsResponse, activitiesResponse] = 
+      await Promise.all([
+        getUserInfo(token),
+        getDailyStreak(token),
+        getTestRecommendations(token, 10),
+        getUserActivities(token)
+      ]);
+    
+    // Return the data as props
+    return {
+      props: {
+        initialUserData: userResponse.success ? userResponse.data : null,
+        initialStreakData: streakResponse.success ? streakResponse.data : null,
+        initialRecommendations: recommendationsResponse.success 
+          ? (recommendationsResponse.data.recommendations || []) 
+          : [],
+        initialActivities: activitiesResponse.success 
+          ? (activitiesResponse.data.activities || []) 
+          : []
+      }
+    };
+  } catch (error) {
+    console.error('Server-side error fetching dashboard data:', error);
+    
+    // Return empty data on error
+    return {
+      props: {
+        initialUserData: null,
+        initialStreakData: null,
+        initialRecommendations: [],
+        initialActivities: []
+      }
+    };
+  }
+}

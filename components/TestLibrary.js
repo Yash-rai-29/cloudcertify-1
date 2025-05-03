@@ -1,5 +1,5 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { 
   FiCloud, 
@@ -172,10 +172,16 @@ const CertificationCard = ({ cert, index }) => {
 };
 
 const TestLibrary = () => {
+  const [isMounted, setIsMounted] = useState(false);
   const { scrollYProgress } = useScroll();
   const scale = useTransform(scrollYProgress, [0, 1], [0.95, 1]);
   const opacity = useTransform(scrollYProgress, [0, 0.3], [0.8, 1]);
   const lottieRef = useRef(null);
+
+  // Handle client-side only rendering to avoid document is not defined errors
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   return (
     <section id="test-library" className="py-4 md:py-8 relative overflow-hidden">
@@ -243,20 +249,22 @@ const TestLibrary = () => {
                 className="w-24 h-24 md:w-32 md:h-32 shrink-0"
               >
                 {/* Lottie animation */}
-                <Lottie
-                  lottieRef={lottieRef}
-                  animationData={GoogleCloudAnimation}
-                  loop={true}
-                  autoplay={true}
-                  style={{ width: '100%', height: '100%' }}
-                  onMouseEnter={() => {
-                    lottieRef.current?.setSpeed(1.5);
-                    lottieRef.current?.play();
-                  }}
-                  onMouseLeave={() => {
-                    lottieRef.current?.setSpeed(1);
-                  }}
-                />
+                {isMounted && (
+                  <Lottie
+                    lottieRef={lottieRef}
+                    animationData={GoogleCloudAnimation}
+                    loop={true}
+                    autoplay={true}
+                    style={{ width: '100%', height: '100%' }}
+                    onMouseEnter={() => {
+                      lottieRef.current?.setSpeed(1.5);
+                      lottieRef.current?.play();
+                    }}
+                    onMouseLeave={() => {
+                      lottieRef.current?.setSpeed(1);
+                    }}
+                  />
+                )}
               </motion.div>
             </div>
             

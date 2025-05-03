@@ -1,4 +1,22 @@
 {
+  "lib\\client\\reactQueryClient.js -> @tanstack/react-query-devtools": {
+    "id": "lib\\client\\reactQueryClient.js -> @tanstack/react-query-devtools",
+    "files": [
+      "static/chunks/_pages-dir-browser_node_modules_tanstack_react-query-devtools_build_modern_index_js.js"
+    ]
+  },
+  "node_modules\\@tanstack\\query-devtools\\build\\dev.js -> ./DevtoolsComponent/OHEVZFKG.js": {
+    "id": "node_modules\\@tanstack\\query-devtools\\build\\dev.js -> ./DevtoolsComponent/OHEVZFKG.js",
+    "files": [
+      "static/chunks/_pages-dir-browser_node_modules_tanstack_query-devtools_build_DevtoolsComponent_OHEVZFKG_js.js"
+    ]
+  },
+  "node_modules\\@tanstack\\query-devtools\\build\\dev.js -> ./DevtoolsPanelComponent/ZXCTK5ZC.js": {
+    "id": "node_modules\\@tanstack\\query-devtools\\build\\dev.js -> ./DevtoolsPanelComponent/ZXCTK5ZC.js",
+    "files": [
+      "static/chunks/_pages-dir-browser_node_modules_tanstack_query-devtools_build_DevtoolsPanelComponent_ZXCTK5ZC_js.js"
+    ]
+  },
   "node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
     "id": "node_modules\\next\\dist\\client\\index.js -> ../pages/_app",
     "files": [
@@ -9,6 +27,12 @@
     "id": "node_modules\\next\\dist\\client\\index.js -> ../pages/_error",
     "files": [
       "static/chunks/_pages-dir-browser_node_modules_next_dist_pages__error_js.js"
+    ]
+  },
+  "pages\\_app.js -> ../lib/client/reactQueryClient": {
+    "id": "pages\\_app.js -> ../lib/client/reactQueryClient",
+    "files": [
+      "static/chunks/_pages-dir-browser_lib_client_reactQueryClient_js.js"
     ]
   }
 }

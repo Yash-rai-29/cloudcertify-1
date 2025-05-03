@@ -1,9 +1,12 @@
 import HeroSection from '../components/HeroSection';
-import ValueProposition from '../components/ValueProposition';
-import TestLibrary from '../components/TestLibrary';
-import PerformanceDashboard from '../components/PerformanceDashboard';
+import dynamic from 'next/dynamic';
 import Testimonials from '../components/Testimonials';
 import { getPublicLayout } from '../components/layouts/PublicLayout';
+import PerformanceDashboard from '../components/PerformanceDashboard';
+
+// Dynamically import components that use Lottie with client-side only rendering
+const ValueProposition = dynamic(() => import('../components/ValueProposition'), { ssr: false });
+const TestLibrary = dynamic(() => import('../components/TestLibrary'), { ssr: false });
 
 export default function Home() {
   return (

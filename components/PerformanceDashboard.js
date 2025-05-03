@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FiTrendingUp,
   FiBarChart2,
@@ -16,7 +16,13 @@ import {
 } from "react-icons/fi";
 
 const PerformanceDashboard = () => {
+  const [isMounted, setIsMounted] = useState(false);
   const [activeChartTab, setActiveChartTab] = useState("score");
+
+  // Handle client-side only rendering to avoid document is not defined errors
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Generate chart paths based on active tab
   const getChartPath = () => {
@@ -48,6 +54,11 @@ const PerformanceDashboard = () => {
 
   const gradientColors = getGradientColors();
   const chartPath = getChartPath();
+
+  // Only render when client-side mounted to avoid document not defined errors
+  if (!isMounted) {
+    return null;
+  }
 
   return (
     <section
