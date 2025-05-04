@@ -145,7 +145,7 @@ export default function Settings() {
     { id: 'password', label: 'Password', icon: IconLock },
     { id: 'about', label: 'About', icon: IconInfoCircle },
     { id: 'releases', label: 'Release Notes', icon: IconRocket },
-    { id: 'team', label: 'Our Team', icon: IconHeart },
+    // { id: 'team', label: 'Our Team', icon: IconHeart },
     { id: 'tech', label: 'Technology', icon: IconCode }
   ];
 
@@ -205,10 +205,10 @@ export default function Settings() {
                 <ReleaseNotesSection />
               )}
               
-              {/* Team tab content */}
+              {/* Team tab content
               {activeTab === 'team' && (
                 <TeamSection />
-              )}
+              )} */}
               
               {/* Tech Stack tab content */}
               {activeTab === 'tech' && (

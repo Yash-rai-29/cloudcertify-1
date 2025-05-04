@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { 
   IconBook, 
   IconExternalLink, 
@@ -19,17 +19,25 @@ import Section from '../../components/dashboard/Section';
 import Button from '../../components/ui/Button';
 import ResourcesFilterPanel from '../../components/resources/ResourcesFilterPanel';
 import ResourcesGrid from '../../components/resources/ResourcesGrid';
-import { fetchResources, getCertificationOptions } from '../../utils/services/resourcesService';
+import { fetchResources } from '../../utils/services/resourcesService';
 import useToast from '../../hooks/useToast';
+import { useLoading } from '../../contexts/LoadingContext';
+import useDebounce from '../../hooks/useDebounce';
 
 /**
  * Resources page with filtering, likes, views, and infinite scroll
  */
 export default function Resources() {
   // State
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [resources, setResources] = useState([]);
-  const [certificationOptions, setCertificationOptions] = useState([]);
+  const [certificationOptions, setCertificationOptions] = useState([
+    { id: 'gcp-ace', name: 'Associate Cloud Engineer' },
+    { id: 'gcp-pde', name: 'Professional Data Engineer' },
+    { id: 'gcp-pca', name: 'Professional Cloud Architect' },
+    { id: 'gcp-psec', name: 'Professional Cloud Security Engineer' },
+    { id: 'gcp-pnw', name: 'Professional Cloud Network Engineer' }
+  ]);
   const [resourceTypes, setResourceTypes] = useState([]);
   const [tags, setTags] = useState([]);
   const [hasMore, setHasMore] = useState(true);
@@ -52,107 +60,159 @@ export default function Resources() {
   });
 
   const toast = useToast();
+  const { startLoading, stopLoading } = useLoading();
+  const observerRef = useRef();
+  const debouncedSearch = useDebounce(filters.search, 500);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+  // Watch for search term changes and reload resources
+  useEffect(() => {
+    if (initialLoadComplete) {
+      loadResources(true);
+    }
+  }, [debouncedSearch]);
 
   // Initial data fetch
   useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const certOptions = await getCertificationOptions();
-        if (certOptions.success) {
-          setCertificationOptions(certOptions.data.certifications || []);
-        }
-      } catch (error) {
-        console.error('Error fetching certification options:', error);
-      }
-    };
-
     loadInitialData();
   }, []);
 
+  // Load initial data
+  const loadInitialData = async () => {
+    startLoading();
+    try {
+      // Load resources immediately with static certification options
+      await loadResources(true);
+      setInitialLoadComplete(true);
+    } catch (error) {
+      console.error('Error during initial data loading:', error);
+      toast.error('Failed to load resources. Please try again later.');
+    } finally {
+      stopLoading();
+    }
+  };
+
   // Fetch resources when filters change
-  useEffect(() => {
-    const loadResources = async (reset = true) => {
-      setIsLoading(true);
+  const loadResources = useCallback(async (reset = true) => {
+    if (isLoading) return;
+    
+    setIsLoading(true);
+    if (reset) {
+      startLoading();
+    }
+    
+    try {
+      // Create params object from filters
+      const params = { ...filters };
       
-      try {
-        // Create params object from filters
-        const params = { ...filters };
-        
-        // Only add cursor for pagination (not on filter changes)
-        if (!reset && nextCursor) {
-          params.cursor = nextCursor;
+      // Only add cursor for pagination (not on filter changes)
+      if (!reset && nextCursor) {
+        params.cursor = nextCursor;
+      }
+      
+      // Remove empty filters
+      Object.keys(params).forEach(key => {
+        if (params[key] === '') {
+          delete params[key];
         }
+      });
+      
+      const response = await fetchResources(params);
+      
+      if (response.success) {
+        // Set resources
+        const newResources = response.data.resources || [];
         
-        // Remove empty filters
-        Object.keys(params).forEach(key => {
-          if (params[key] === '') {
-            delete params[key];
-          }
-        });
-        
-        const response = await fetchResources(params);
-        
-        if (response.success) {
-          // Set resources
-          const newResources = response.data.resources || [];
-          
-          if (reset) {
-            setResources(newResources);
-          } else {
-            setResources(prev => [...prev, ...newResources]);
-          }
-          
-          // Update cursor for next page
-          setNextCursor(response.data.next_cursor || null);
-          
-          // Check if there are more resources to load
-          setHasMore(!!response.data.next_cursor);
-          
-          // Update total counts
-          if (response.data.meta) {
-            setTotalCounts({
-              total: response.data.meta.total || 0,
-              likes: response.data.meta.total_likes || 0,
-              views: response.data.meta.total_views || 0
-            });
-          }
-          
-          // Extract and set resource types and tags
-          if (reset) {
-            // Only update these on initial load or filter reset
-            const types = [...new Set(newResources.map(r => r.resource_type).filter(Boolean))];
-            setResourceTypes(types);
-            
-            const allTags = newResources.flatMap(r => r.tags || []);
-            const uniqueTags = [...new Set(allTags)];
-            setTags(uniqueTags);
-          }
+        if (reset) {
+          setResources(newResources);
         } else {
-          toast.error('Failed to load resources');
+          setResources(prev => [...prev, ...newResources]);
         }
-      } catch (error) {
-        console.error('Error fetching resources:', error);
-        toast.error('An error occurred while fetching resources');
-      } finally {
-        setIsLoading(false);
+        
+        // Update cursor for next page
+        setNextCursor(response.data.next_cursor || null);
+        
+        // Check if there are more resources to load
+        setHasMore(!!response.data.next_cursor);
+        
+        // Update total counts
+        if (response.data.statistics) {
+          setTotalCounts({
+            total: response.data.statistics.total_resources || 0,
+            likes: response.data.statistics.total_likes || 0,
+            views: response.data.statistics.total_views || 0
+          });
+        }
+        
+        // Extract and set resource types and tags
+        if (reset) {
+          // Only update these on initial load or filter reset
+          const types = [...new Set(newResources.map(r => r.resource_type).filter(Boolean))];
+          setResourceTypes(types);
+          
+          const allTags = newResources.flatMap(r => r.tags || []);
+          const uniqueTags = [...new Set(allTags)];
+          setTags(uniqueTags);
+        }
+      } else {
+        toast.error('Failed to load resources. Please try again later.');
+      }
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+      toast.error('Failed to load resources. Please try again later.');
+    } finally {
+      setIsLoading(false);
+      if (reset) {
+        stopLoading();
+      }
+    }
+  }, [filters, nextCursor, isLoading, toast, startLoading, stopLoading]);
+
+  // Load more resources for infinite scroll
+  const loadMoreResources = useCallback(async () => {
+    if (!hasMore || isLoading) return;
+    await loadResources(false);
+  }, [hasMore, isLoading, loadResources]);
+
+  // Set up intersection observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading) {
+          loadMoreResources();
+        }
+      },
+      { threshold: 0.5 }
+    );
+    
+    const currentObserver = observerRef.current;
+    if (currentObserver) {
+      observer.observe(currentObserver);
+    }
+    
+    return () => {
+      if (currentObserver) {
+        observer.unobserve(currentObserver);
       }
     };
-    
-    loadResources(true);
-  }, [filters, toast]);
+  }, [observerRef, hasMore, isLoading, loadMoreResources]);
 
-  // Handle filter changes
-  const handleFilterChange = useCallback((key, value) => {
+  // Update a specific filter field
+  const handleFilterChange = (field, value) => {
     setFilters(prev => ({
       ...prev,
-      [key]: value
+      [field]: value
     }));
-    // Reset cursor for new filter
-    setNextCursor(null);
-  }, []);
+
+    // Reset cursor when changing filters (except for search which is debounced)
+    if (field !== 'search') {
+      setNextCursor(null);
+      loadResources(true);
+    }
+  };
 
   // Reset all filters
-  const handleResetFilters = useCallback(() => {
+  const handleResetFilters = () => {
     setFilters({
       certification: '',
       resource_type: '',
@@ -163,286 +223,245 @@ export default function Resources() {
       limit: 9
     });
     setNextCursor(null);
-  }, []);
+    loadResources(true);
+  };
 
-  // Load more resources (infinite scroll)
-  const handleLoadMore = useCallback(() => {
-    if (isLoading || !hasMore) return;
-    
-    const loadMoreResources = async () => {
-      setIsLoading(true);
-      
-      try {
-        // Create params object from filters
-        const params = { ...filters };
-        
-        // Add cursor for pagination
-        if (nextCursor) {
-          params.cursor = nextCursor;
-        }
-        
-        // Remove empty filters
-        Object.keys(params).forEach(key => {
-          if (params[key] === '') {
-            delete params[key];
-          }
-        });
-        
-        const response = await fetchResources(params);
-        
-        if (response.success) {
-          // Add new resources
-          const newResources = response.data.resources || [];
-          setResources(prev => [...prev, ...newResources]);
-          
-          // Update cursor for next page
-          setNextCursor(response.data.next_cursor || null);
-          
-          // Check if there are more resources to load
-          setHasMore(!!response.data.next_cursor);
-        } else {
-          toast.error('Failed to load more resources');
-        }
-      } catch (error) {
-        console.error('Error fetching more resources:', error);
-        toast.error('An error occurred while fetching more resources');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    loadMoreResources();
-  }, [filters, nextCursor, isLoading, hasMore, toast]);
+  // Toggle the visibility of the filter panel
+  const toggleFilterPanel = () => {
+    setShowFilters(prev => !prev);
+  };
 
-  // Handle like toggle
-  const handleLikeToggle = useCallback((resourceId, isLiked, likesCount) => {
-    // Update resource in state
-    setResources(prev => 
-      prev.map(resource => 
-        resource.id === resourceId 
-          ? { ...resource, is_liked: isLiked, likes: likesCount }
-          : resource
-      )
-    );
-  }, []);
+  // Toggle the view mode between grid and list
+  const toggleViewMode = () => {
+    setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
+  };
 
-  // Get active filter count for badge
+  // Compute active filter count for UI
   const activeFilterCount = useMemo(() => {
-    return Object.entries(filters).filter(([key, value]) => {
-      return value && key !== 'limit' && key !== 'sort_by' && key !== 'sort_order';
-    }).length;
+    let count = 0;
+    if (filters.certification) count++;
+    if (filters.resource_type) count++;
+    if (filters.tag) count++;
+    if (filters.search) count++;
+    if (filters.sort_by !== 'created_at' || filters.sort_order !== 'desc') count++;
+    return count;
   }, [filters]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-      {/* Page Header */}
-      <div className="py-6 md:py-8 border-b border-gray-200">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+    <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <div className="flex flex-col space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center">
-              <IconBook className="mr-2 text-blue-600" size={24} />
-              Learning Resources
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-900">Learning Resources</h1>
             <p className="mt-1 text-sm text-gray-500">
-              Study materials for your GCP certification preparation
+              Browse curated resources to help you prepare for your cloud certification
             </p>
-            <div className="flex flex-wrap items-center mt-2 text-sm text-gray-500 gap-4">
-              <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {totalCounts.total} resources
-              </div>
-              <div className="flex items-center">
-                <IconEye size={16} className="mr-1 text-gray-400" />
-                <span>{totalCounts.views} views</span>
-              </div>
-              <div className="flex items-center">
-                <IconHeart size={16} className="mr-1 text-gray-400" />
-                <span>{totalCounts.likes} likes</span>
-              </div>
-            </div>
           </div>
           
-          <div className="mt-4 md:mt-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            <div className="relative flex-grow max-w-sm">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <IconSearch size={16} className="text-gray-400" />
+          {/* Resource stats */}
+          <div className="mt-4 sm:mt-0 flex items-center space-x-4 text-sm text-gray-600">
+            <div className="flex items-center">
+              <IconBook className="h-5 w-5 text-blue-500 mr-1.5" />
+              <span>{totalCounts.total} Resources</span>
+            </div>
+            <div className="flex items-center">
+              <IconHeart className="h-5 w-5 text-red-500 mr-1.5" />
+              <span>{totalCounts.likes} Likes</span>
+            </div>
+            <div className="flex items-center">
+              <IconEye className="h-5 w-5 text-gray-500 mr-1.5" />
+              <span>{totalCounts.views} Views</span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Filters and controls */}
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm">
+          <div className="p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              {/* Search */}
+              <div className="relative flex-1 max-w-lg">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                  <IconSearch className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search resources..."
+                  className="block w-full rounded-md border-gray-300 pl-10 py-2.5 text-sm focus:border-blue-500 focus:ring-blue-500"
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange('search', e.target.value)}
+                />
+                {filters.search && (
+                  <button 
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
+                    onClick={() => handleFilterChange('search', '')}
+                  >
+                    <IconX size={16} />
+                  </button>
+                )}
               </div>
-              <input
-                type="text"
-                placeholder="Search resources..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                value={filters.search}
-                onChange={(e) => handleFilterChange('search', e.target.value)}
-              />
+              
+              {/* Controls */}
+              <div className="flex items-center space-x-2">
+                {/* Filter toggle */}
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleFilterPanel}
+                  className={showFilters ? 'bg-blue-50 text-blue-600 border-blue-200' : ''}
+                >
+                  <IconFilter size={16} className="mr-1" />
+                  <span>{showFilters ? 'Hide' : 'Show'} Filters</span>
+                  {activeFilterCount > 0 && (
+                    <span className="ml-1.5 bg-blue-100 text-blue-800 py-0.5 px-1.5 rounded-full text-xs">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </Button>
+                
+                {/* Sort button */}
+                <div className="relative">
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newOrder = filters.sort_order === 'desc' ? 'asc' : 'desc';
+                      handleFilterChange('sort_order', newOrder);
+                    }}
+                  >
+                    <IconArrowsSort size={16} className="mr-1" />
+                    <span>{filters.sort_order === 'desc' ? 'Newest' : 'Oldest'}</span>
+                  </Button>
+                </div>
+                
+                {/* View mode toggle */}
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleViewMode}
+                >
+                  {viewMode === 'grid' ? (
+                    <IconLayoutList size={16} />
+                  ) : (
+                    <IconLayoutGrid size={16} />
+                  )}
+                </Button>
+              </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Button
-                variant={showFilters ? "primary" : "outline"}
-                onClick={() => setShowFilters(!showFilters)}
-                className="relative"
-              >
-                <IconAdjustments size={16} className="mr-2" />
-                Filters
+            {/* Filter Panel */}
+            {showFilters && (
+              <div className="mt-6 border-t border-gray-200 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Certification filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Certification
+                    </label>
+                    <select
+                      className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:ring-blue-500"
+                      value={filters.certification}
+                      onChange={(e) => handleFilterChange('certification', e.target.value)}
+                    >
+                      <option value="">All Certifications</option>
+                      {certificationOptions.map((cert) => (
+                        <option key={cert.id} value={cert.id}>
+                          {cert.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* Resource type filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Resource Type
+                    </label>
+                    <select
+                      className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:ring-blue-500"
+                      value={filters.resource_type}
+                      onChange={(e) => handleFilterChange('resource_type', e.target.value)}
+                    >
+                      <option value="">All Types</option>
+                      {resourceTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  {/* Tag filter */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Tag
+                    </label>
+                    <select
+                      className="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:ring-blue-500"
+                      value={filters.tag}
+                      onChange={(e) => handleFilterChange('tag', e.target.value)}
+                    >
+                      <option value="">All Tags</option>
+                      {tags.map((tag) => (
+                        <option key={tag} value={tag}>
+                          {tag}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                {/* Reset filters button */}
                 {activeFilterCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex items-center justify-center h-5 w-5 rounded-full bg-red-500 text-white text-xs font-bold">
-                    {activeFilterCount}
-                  </span>
+                  <div className="mt-4 flex justify-end">
+                    <Button 
+                      variant="text"
+                      size="sm"
+                      onClick={handleResetFilters}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <IconX size={16} className="mr-1" />
+                      Reset Filters
+                    </Button>
+                  </div>
                 )}
-              </Button>
-              
-              <div className="hidden sm:flex items-center border border-gray-300 rounded-md overflow-hidden">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-2 ${viewMode === 'grid' ? 'bg-blue-50 text-blue-600' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
-                  title="Grid view"
-                >
-                  <IconLayoutGrid size={18} />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-2 ${viewMode === 'list' ? 'bg-blue-50 text-blue-600' : 'bg-white text-gray-500 hover:bg-gray-50'}`}
-                  title="List view"
-                >
-                  <IconLayoutList size={18} />
-                </button>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="mt-8 grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Filters Panel (desktop) */}
-        <div className={`hidden lg:block`}>
-          <div className="sticky top-8">
-            <ResourcesFilterPanel
-              filters={filters}
-              onFilterChange={handleFilterChange}
-              certificationOptions={certificationOptions}
-              resourceTypes={resourceTypes}
-              tags={tags}
-              onResetFilters={handleResetFilters}
-            />
+            )}
           </div>
         </div>
         
-        {/* Filters Panel (mobile) */}
-        {showFilters && (
-          <div className="lg:hidden col-span-1 mb-6">
-            <ResourcesFilterPanel
-              filters={filters}
-              onFilterChange={handleFilterChange}
-              certificationOptions={certificationOptions}
-              resourceTypes={resourceTypes}
-              tags={tags}
-              onResetFilters={handleResetFilters}
-            />
-          </div>
-        )}
-        
-        {/* Resources Grid */}
-        <div className="lg:col-span-3">
-          {/* Active filters display */}
-          {activeFilterCount > 0 && (
-            <div className="mb-4 flex flex-wrap items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-              <span className="text-sm font-medium text-gray-700">Active filters:</span>
+        {/* Results */}
+        <div>
+          {resources.length > 0 ? (
+            <div className="space-y-6">
+              <ResourcesGrid resources={resources} viewMode={viewMode} />
               
-              {filters.certification && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {filters.certification}
-                  <button 
-                    onClick={() => handleFilterChange('certification', '')} 
-                    className="ml-1 text-blue-500 hover:text-blue-700"
-                  >
-                    <IconX size={14} />
-                  </button>
-                </span>
-              )}
-              
-              {filters.resource_type && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  {filters.resource_type}
-                  <button 
-                    onClick={() => handleFilterChange('resource_type', '')} 
-                    className="ml-1 text-green-500 hover:text-green-700"
-                  >
-                    <IconX size={14} />
-                  </button>
-                </span>
-              )}
-              
-              {filters.tag && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                  Tag: {filters.tag}
-                  <button 
-                    onClick={() => handleFilterChange('tag', '')} 
-                    className="ml-1 text-purple-500 hover:text-purple-700"
-                  >
-                    <IconX size={14} />
-                  </button>
-                </span>
-              )}
-              
-              {filters.search && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                  Search: "{filters.search}"
-                  <button 
-                    onClick={() => handleFilterChange('search', '')} 
-                    className="ml-1 text-gray-500 hover:text-gray-700"
-                  >
-                    <IconX size={14} />
-                  </button>
-                </span>
-              )}
-              
-              <button
-                onClick={handleResetFilters}
-                className="ml-auto text-sm text-red-600 hover:text-red-800 font-medium"
-              >
-                Clear all
-              </button>
-            </div>
-          )}
-          
-          {/* Sort options - only visible for list view */}
-          {viewMode === 'list' && (
-            <div className="mb-4 flex items-center justify-end">
-              <div className="flex items-center">
-                <span className="text-sm text-gray-500 mr-2">Sort by:</span>
-                <select
-                  className="pl-3 pr-8 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  value={`${filters.sort_by}-${filters.sort_order}`}
-                  onChange={(e) => {
-                    const [sortBy, sortOrder] = e.target.value.split('-');
-                    handleFilterChange('sort_by', sortBy);
-                    handleFilterChange('sort_order', sortOrder);
-                  }}
+              {/* Loading indicator / Load more */}
+              {hasMore && (
+                <div 
+                  ref={observerRef}
+                  className="flex justify-center py-8"
                 >
-                  <option value="created_at-desc">Newest first</option>
-                  <option value="created_at-asc">Oldest first</option>
-                  <option value="likes-desc">Most liked</option>
-                  <option value="views-desc">Most viewed</option>
-                </select>
-              </div>
+                  {isLoading ? (
+                    <div className="flex flex-col items-center">
+                      <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+                      <p className="mt-2 text-sm text-gray-500">Loading more resources...</p>
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      onClick={loadMoreResources}
+                    >
+                      Load More Resources
+                    </Button>
+                  )}
+                </div>
+              )}
             </div>
-          )}
-          
-          {/* Resources display */}
-          <ResourcesGrid
-            resources={resources}
-            isLoading={isLoading}
-            hasMore={hasMore}
-            onLoadMore={handleLoadMore}
-            onLikeToggle={handleLikeToggle}
-            viewMode={viewMode}
-          />
-          
-          {/* No results */}
-          {!isLoading && resources.length === 0 && (
-            <div className="py-12 text-center bg-white rounded-lg border border-gray-200 shadow-sm">
-              <div className="mx-auto flex items-center justify-center h-24 w-24 rounded-full bg-gray-100">
-                <IconCategory size={32} className="text-gray-400" />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="bg-gray-100 p-4 rounded-full">
+                <IconCategory className="h-8 w-8 text-gray-400" />
               </div>
               <h3 className="mt-4 text-lg font-medium text-gray-900">No resources found</h3>
               <p className="mt-2 text-base text-gray-500 max-w-md mx-auto">
@@ -530,9 +549,13 @@ export default function Resources() {
             </div>
             <div className="hidden md:block">
               <img 
-                src="/google-cloud-logo.svg" 
+                src="/images/google-cloud-logo.svg" 
                 alt="Google Cloud"
                 className="h-24 w-auto"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.style.display = 'none';
+                }}
               />
             </div>
           </div>

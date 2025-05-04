@@ -61,7 +61,7 @@ export async function uploadProfileImage(file) {
  */
 export async function updatePassword(newPassword) {
   try {
-    const response = await apiClient.post(API.UPDATE_PASSWORD, {
+    const response = await apiClient.put(API.UPDATE_PASSWORD, {
       new_password: newPassword
     });
     
@@ -74,18 +74,18 @@ export async function updatePassword(newPassword) {
   }
 }
 
-/**
- * Get available certification options
- * @returns {Promise<Object>} API response with certification options
- */
-export async function getCertificationOptions() {
-  try {
-    const response = await apiClient.get(API.CERTIFICATION_OPTIONS);
-    return {
-      success: true,
-      data: response.data
-    };
-  } catch (error) {
-    return handleApiError(error);
-  }
-}
+// /**
+//  * Get available certification options
+//  * @returns {Promise<Object>} API response with certification options
+//  */
+// export async function getCertificationOptions() {
+//   try {
+//     const response = await apiClient.get(API.CERTIFICATION_OPTIONS);
+//     return {
+//       success: true,
+//       data: response.data
+//     };
+//   } catch (error) {
+//     return handleApiError(error);
+//   }
+// }

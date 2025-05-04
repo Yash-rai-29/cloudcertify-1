@@ -1,6 +1,29 @@
 import apiClient from './apiClient';
 import { API } from '../constants';
 import { handleApiError } from '../helpers';
+import { useLoading } from '../../contexts/LoadingContext';
+
+/**
+ * Get the loading controller if available in the current context
+ * This function is used in non-React contexts where hooks can't be used directly
+ */
+let _loadingController = null;
+export const setTestLibraryLoadingController = (controller) => {
+  _loadingController = controller;
+};
+
+export const getLoadingController = () => {
+  try {
+    // Try using the hook first (if in a React component)
+    return useLoading();
+  } catch (e) {
+    // Fall back to cached controller if available
+    return _loadingController || {
+      startLoading: () => {},
+      stopLoading: () => {}
+    };
+  }
+};
 
 /**
  * Fetch tests with filters, sorting and pagination
@@ -18,7 +41,11 @@ import { handleApiError } from '../helpers';
  * @returns {Promise<Object>} API response
  */
 export async function fetchTests(params = {}) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(`${API.BASE_URL}/b/test_library/tests`, {
       params
     });
@@ -29,6 +56,8 @@ export async function fetchTests(params = {}) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -40,7 +69,11 @@ export async function fetchTests(params = {}) {
  * @returns {Promise<Object>} API response
  */
 export async function startTestAttempt(testId, mode) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.post(
       `${API.BASE_URL}/b/test_library/tests/${testId}/start`,
       { mode }
@@ -52,6 +85,8 @@ export async function startTestAttempt(testId, mode) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -62,7 +97,11 @@ export async function startTestAttempt(testId, mode) {
  * @returns {Promise<Object>} API response
  */
 export async function getTestDetails(testId) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(
       `${API.BASE_URL}/b/test_library/tests/${testId}`
     );
@@ -73,6 +112,8 @@ export async function getTestDetails(testId) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -87,7 +128,11 @@ export async function getTestDetails(testId) {
  * @returns {Promise<Object>} API response
  */
 export async function submitAnswer(attemptId, answerData) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     // Format the payload according to API expectations
     const payload = {
       question_id: answerData.question_id,
@@ -108,6 +153,8 @@ export async function submitAnswer(attemptId, answerData) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -118,7 +165,11 @@ export async function submitAnswer(attemptId, answerData) {
  * @returns {Promise<Object>} API response
  */
 export async function finishTestAttempt(attemptId) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.post(
       `${API.BASE_URL}/b/test_library/attempts/${attemptId}/finish`
     );
@@ -129,6 +180,8 @@ export async function finishTestAttempt(attemptId) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -139,7 +192,11 @@ export async function finishTestAttempt(attemptId) {
  * @returns {Promise<Object>} API response
  */
 export async function getTestAttempt(attemptId) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(
       `${API.BASE_URL}/b/test_library/attempts/${attemptId}`
     );
@@ -150,6 +207,8 @@ export async function getTestAttempt(attemptId) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -167,7 +226,11 @@ export async function getTestAttempt(attemptId) {
  * @returns {Promise<Object>} API response
  */
 export async function getTestHistory(params = {}) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(
       `${API.BASE_URL}/b/test_library/history`,
       { params }
@@ -179,6 +242,8 @@ export async function getTestHistory(params = {}) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -195,7 +260,11 @@ export async function getTestHistory(params = {}) {
  * @returns {Promise<Object>} API response
  */
 export async function getUserTestAttempts(params = {}) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(
       `${API.BASE_URL}/b/test_library/attempts`,
       { params }
@@ -207,6 +276,8 @@ export async function getUserTestAttempts(params = {}) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -217,7 +288,11 @@ export async function getUserTestAttempts(params = {}) {
  * @returns {Promise<Object>} API response
  */
 export async function getTestAttemptDetails(attemptId) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(
       `${API.BASE_URL}/b/test_library/history/attempts/${attemptId}`
     );
@@ -228,6 +303,8 @@ export async function getTestAttemptDetails(attemptId) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -239,7 +316,11 @@ export async function getTestAttemptDetails(attemptId) {
  * @returns {Promise<Object>} API response
  */
 export async function getTestPerformanceAnalytics(params = {}) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(
       `${API.BASE_URL}/b/test_library/analytics/performance`,
       { params }
@@ -251,6 +332,8 @@ export async function getTestPerformanceAnalytics(params = {}) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -261,7 +344,11 @@ export async function getTestPerformanceAnalytics(params = {}) {
  * @returns {Promise<Object>} API response
  */
 export async function resumeTestAttempt(attemptId) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(
       `${API.BASE_URL}/b/test_library/attempts/${attemptId}`
     );
@@ -272,6 +359,8 @@ export async function resumeTestAttempt(attemptId) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -281,7 +370,11 @@ export async function resumeTestAttempt(attemptId) {
  * @returns {Promise<Object>} API response with user statistics
  */
 export async function getUserStatistics() {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(
       `${API.BASE_URL}${API.USER_STATISTICS}`
     );
@@ -292,5 +385,7 @@ export async function getUserStatistics() {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }

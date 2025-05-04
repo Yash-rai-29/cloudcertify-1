@@ -90,7 +90,7 @@ export const ResourceCard = ({ resource, onLikeToggle }) => {
             className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             onError={(e) => {
               e.target.onerror = null;
-              e.target.src = '/placeholder-resource.jpg';
+              e.target.src = '/images/placeholder-resource.jpg';
             }}
           />
           {resource.certification && (

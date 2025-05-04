@@ -68,6 +68,7 @@ export default function ProfileSection({
       lastName: userData?.last_name || '',
       certificationTarget: userData?.certification_target || '',
       bio: userData?.bio || '',
+      jobTitle: userData?.job_title || '',
     },
     mode: 'onBlur' // Validate on blur for better UX
   });
@@ -355,7 +356,8 @@ export default function ProfileSection({
                   </div>
                   <p className="mt-1.5 text-xs text-gray-500">Email address is associated with your account and cannot be changed.</p>
                 </div>
-                
+
+               
                 {/* Certification Target */}
                 <div>
                   <label htmlFor="certificationTarget" className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -424,16 +426,16 @@ export default function ProfileSection({
           {/* Footer with Save Button */}
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
             <p className="text-sm text-gray-500">
-              {isDirty ? "You have unsaved changes" : ""}
+              {isDirty || photoPreview !== userData?.photo_url ? "You have unsaved changes" : ""}
             </p>
             
             <motion.button
               type="submit"
-              disabled={isSaving || !isDirty}
+              disabled={isSaving || (!isDirty && photoPreview === userData?.photo_url)}
               whileTap={{ scale: 0.98 }}
               transition={{ duration: 0.1 }}
               className={`inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors ${
-                (isSaving || !isDirty) ? 'opacity-60 cursor-not-allowed' : ''
+                (isSaving || (!isDirty && photoPreview === userData?.photo_url)) ? 'opacity-60 cursor-not-allowed' : ''
               }`}
             >
               {isSaving ? (

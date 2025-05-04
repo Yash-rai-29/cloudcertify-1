@@ -64,7 +64,7 @@ export function QuestionContent({
           {question.topic && question.topic.split(',').map((topic, index) => (
   <span
     key={index}
-    className="inline-block bg-gray-100 text-gray-800 text-sm font-medium ml-2 px-2.5 py-0.5 rounded mb-2"
+    className="inline-block bg-orange-100 text-gray-800 text-sm font-medium ml-2 px-2.5 py-0.5 rounded mb-2"
   >
     {topic.trim()}
   </span>
@@ -91,7 +91,10 @@ export function QuestionContent({
       
       {/* Question Text */}
       <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-2">{question.question}</h3>
+      <h3
+  className="text-lg font-medium text-gray-900 mb-2"
+  dangerouslySetInnerHTML={{ __html: question.question }}
+></h3>
         {question.context && (
           <div className="bg-gray-50 p-3 rounded-md text-sm text-gray-700 mb-4">
             {question.context}

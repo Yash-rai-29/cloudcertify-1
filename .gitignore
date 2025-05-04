@@ -10,7 +10,7 @@
 # === Next.js specific ===
 # Ignore the build output directory.
 .next/
-
+.out/
 # Ignore the static export directory (if using `next export`).
 # Uncomment if you use static exports and don't need the output in git.
 # out/
@@ -107,3 +107,6 @@ $RECYCLE.BIN/
 *.bak
 *.orig
 .next/cache/*
+.next/server/*
+out/_next/static/chunks/framework-2f335d22a7318891.js
+out/

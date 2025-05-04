@@ -12,7 +12,7 @@ export const API = {
   CHECK_USER_EXISTS: '/b/manage_user/users/check-exists',
   UPLOAD_USER_IMAGE: '/b/manage_user/users/upload-image',
   UPDATE_PASSWORD: '/b/manage_user/users/password',
-  CERTIFICATION_OPTIONS: '/b/manage_user/certification-options',
+  // CERTIFICATION_OPTIONS: '/b/resources/certification-options',
   
   // Dashboard endpoints
   USER_STATISTICS: '/b/user_statistics/user-statistics',

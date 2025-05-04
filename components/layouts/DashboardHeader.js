@@ -1,0 +1,259 @@
+import { useState, memo, useEffect } from 'react';
+import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
+import { useUserProfile } from '../../contexts/UserProfileContext';
+import Avatar from '../ui/Avatar';
+import { 
+  IconBell, 
+  IconChevronDown,
+  IconSettings,
+  IconLogout,
+  IconMenu2,
+  IconCloud,
+  IconFlame
+} from '@tabler/icons-react';
+
+/**
+ * Dashboard header component with profile dropdown and notifications
+ * Memoized to prevent unnecessary re-renders during page transitions
+ */
+const DashboardHeader = memo(({ toggleSidebar, streakData = { current_streak: 0 }, onToggleDailyQuiz }) => {
+  const { signOut } = useAuth();
+  const { userInfo, loading } = useUserProfile();
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileDropdownOpen) {
+        setProfileDropdownOpen(false);
+      }
+    };
+
+    // Attach the event listener
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    // Clean up
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [profileDropdownOpen]);
+
+  // Handle profile dropdown toggle
+  const toggleProfileDropdown = (e) => {
+    e.stopPropagation(); // Prevent event from bubbling to document
+    setProfileDropdownOpen(!profileDropdownOpen);
+  };
+
+  // Handle sign out
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  // Support Next.js image loading optimization
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
+
+  return (
+    <>
+      {/* Combined Header for both mobile and desktop */}
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 w-full">
+        {/* Mobile Header */}
+        <div className="lg:hidden flex items-center justify-between px-4 py-2 sm:px-6">
+          <button
+            type="button"
+            className="p-2 rounded-md text-gray-500 hover:text-gray-900 focus:outline-none"
+            onClick={toggleSidebar}
+          >
+            <span className="sr-only">Open sidebar</span>
+            <IconMenu2 className="h-6 w-6" />
+          </button>
+          <div className="flex items-center">
+            <IconCloud className="h-6 w-6 text-blue-600 mr-2" />
+            <span className="text-lg font-bold text-blue-600 relative">
+              Cloud Certify
+            </span>
+          </div>
+          
+          {/* Mobile Header Actions */}
+          <div className="flex items-center space-x-2">
+            {/* Streak Counter */}
+            {onToggleDailyQuiz && (
+              <div className="flex items-center text-orange-500 mr-1" onClick={onToggleDailyQuiz}>
+                <IconFlame className="h-5 w-5" />
+                <span className="text-sm font-medium ml-1">{streakData.current_streak}</span>
+              </div>
+            )}
+            
+            {/* Notifications */}
+            <button className="p-2 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200">
+              <IconBell size={20} />
+            </button>
+
+            {/* User profile photo on click open dropdown - Mobile */}
+            <div className="relative">
+              <button
+                className="flex items-center bg-gray-50 rounded-full overflow-hidden border border-gray-200 focus:outline-none"
+                onClick={toggleProfileDropdown}
+              >
+                {!loading && userInfo?.photo_url ? (
+                  <div className="h-8 w-8 rounded-full overflow-hidden">
+                    <img
+                      src={userInfo.photo_url}
+                      alt="User Profile"
+                      className={`h-full w-full object-cover transition-opacity duration-200 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      onLoad={handleImageLoad}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '';
+                        e.target.style.display = 'none';
+                        e.target.parentNode.innerHTML = `<div class="h-full w-full flex items-center justify-center bg-blue-100 text-blue-600 font-medium">
+                          ${userInfo?.first_name?.charAt(0) || userInfo?.email?.charAt(0)?.toUpperCase() || 'U'}
+                        </div>`;
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <Avatar
+                    initials={
+                      userInfo?.first_name?.charAt(0) ||
+                      userInfo?.email?.charAt(0)?.toUpperCase() || 'U'
+                    }
+                    size="sm"
+                  />
+                )}
+              </button>
+              
+              {/* Dropdown Menu - Mobile */}
+              {profileDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-700">{userInfo?.first_name || "User"}</p>
+                    <p className="text-xs text-gray-500 truncate">{userInfo?.email}</p>
+                  </div>
+                  <Link
+                    href="/dashboard/settings"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setProfileDropdownOpen(false)}
+                  >
+                    <IconSettings size={16} className="mr-2" />
+                    Settings
+                  </Link>
+                  <button
+                    className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={handleSignOut}
+                  >
+                    <IconLogout size={16} className="mr-2" />
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+
+        {/* Desktop Header */}
+        <div className="hidden lg:flex items-center justify-between h-16 px-4 sm:px-6">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-medium leading-6 text-gray-900 sm:truncate">
+              {/* Placeholder for page title if needed */}
+            </h1>
+          </div>
+
+          {/* Right side actions */}
+          <div className="flex items-center space-x-4">
+            {/* Streak Counter for Desktop */}
+            {onToggleDailyQuiz && (
+              <div 
+                className="flex items-center text-orange-500 cursor-pointer hover:bg-orange-50 px-3 py-1.5 rounded-full"
+                onClick={onToggleDailyQuiz}
+              >
+                <IconFlame className="h-5 w-5" />
+                <span className="text-sm font-medium ml-1">{streakData.current_streak}</span>
+              </div>
+            )}
+            
+            {/* Notification Button */}
+            <button className="p-2 text-gray-500 hover:text-gray-700 relative">
+              <IconBell className="h-5 w-5" />
+              {/* Notification indicator dot */}
+              <span className="absolute top-1 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            
+            {/* User Profile Dropdown */}
+            <div className="relative">
+              <button
+                className="flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-full focus:outline-none"
+                onClick={toggleProfileDropdown}
+              >
+                {!loading && userInfo?.photo_url ? (
+                  <div className="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
+                    <img
+                      src={userInfo.photo_url}
+                      alt="User Profile"
+                      className={`h-full w-full object-cover transition-opacity duration-200 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                      onLoad={handleImageLoad}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = '';
+                        e.target.style.display = 'none';
+                        e.target.parentNode.innerHTML = `<div class="h-full w-full flex items-center justify-center bg-blue-100 text-blue-600 font-medium">
+                          ${userInfo?.first_name?.charAt(0) || userInfo?.email?.charAt(0)?.toUpperCase() || 'U'}
+                        </div>`;
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <Avatar
+                    initials={
+                      userInfo?.first_name?.charAt(0) ||
+                      userInfo?.email?.charAt(0)?.toUpperCase() || 'U'
+                    }
+                    size="sm"
+                  />
+                )}
+                <span className="text-sm font-medium text-gray-700 hidden sm:block">
+                  {userInfo?.first_name || userInfo?.email || 'User'}
+                </span>
+                <IconChevronDown size={16} className="text-gray-500" />
+              </button>
+              
+              {/* Dropdown Menu */}
+              {profileDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-700">{userInfo?.first_name || "User"}</p>
+                    <p className="text-xs text-gray-500 truncate">{userInfo?.email}</p>
+                  </div>
+                  <Link
+                    href="/dashboard/settings"
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={() => setProfileDropdownOpen(false)}
+                  >
+                    <IconSettings size={16} className="mr-2" />
+                    Settings
+                  </Link>
+                  <button
+                    className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    onClick={handleSignOut}
+                  >
+                    <IconLogout size={16} className="mr-2" />
+                    Sign out
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+});
+
+// Set display name for debugging
+DashboardHeader.displayName = 'DashboardHeader';
+
+export default DashboardHeader;

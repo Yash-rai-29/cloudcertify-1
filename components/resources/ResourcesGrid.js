@@ -120,7 +120,7 @@ export default function ResourcesGrid({
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   e.target.onerror = null;
-                  e.target.src = '/placeholder-resource.jpg';
+                  e.target.src = '/images/placeholder-resource.jpg';
                 }}
               />
             </div>

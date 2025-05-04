@@ -341,7 +341,7 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
                           animate={{ opacity: 1 }}
                           transition={{ delay: 0.8 }}
                         >
-                          <div className="mr-3 bg-orange-100 text-orange-600 rounded-full px-3 py-1 flex items-center">
+                          {/* <div className="mr-3 bg-orange-100 text-orange-600 rounded-full px-3 py-1 flex items-center">
                             <motion.div
                               animate={{ scale: [1, 1.2, 1] }}
                               transition={{ duration: 1.5, repeat: Infinity }}
@@ -349,7 +349,7 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
                               <IconFlame className="h-5 w-5 mr-1" />
                             </motion.div>
                             <span className="font-medium">Streak: {userAttempt?.current_streak || 0}</span>
-                          </div>
+                          </div> */}
                         </motion.div>
                       )}
                     </motion.div>

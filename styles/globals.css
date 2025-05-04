@@ -6,24 +6,25 @@
 /* Global styles */
 html {
   scroll-behavior: smooth;
-  font-size: 16px;
+  font-size: 16px; /* Force consistent base font size */
 }
 
 body {
   overscroll-behavior: none;
 }
 
-/* Responsive font size adjustments */
+/* Responsive font size adjustments - make less aggressive */
 @media (max-width: 640px) {
   html {
-    font-size: 14px;
+    font-size: 15px; /* Less reduction for mobile */
   }
 }
 
 body {
-  font-family: var(--font-poppins), 'Roboto', 'system-ui', sans-serif;
+  font-family: var(--font-poppins), 'Poppins', 'Roboto', 'system-ui', sans-serif;
   color: #1f2937;
   overflow-x: hidden;
+  font-size: 1rem; /* Force consistent body font size */
 }
 
 /* Custom scrollbar */

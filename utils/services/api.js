@@ -13,11 +13,26 @@ export const apiClient = axios.create({
   timeout: 10000 // 10s timeout for requests
 });
 
+// Loading context will be available through the useLoading hook
+// but we need a global variable for interceptors
+let loadingController = {
+  startLoading: () => {},
+  stopLoading: () => {},
+};
+
+// Function to set loading controller from the context
+export const setLoadingController = (controller) => {
+  loadingController = controller;
+};
+
 /**
  * Request interceptor to add auth token to requests
  */
 apiClient.interceptors.request.use(
   (config) => {
+    // Start loading indicator
+    loadingController.startLoading();
+    
     // Get auth token from cookies
     const token = Cookies.get(AUTH.COOKIE_NAMES.AUTH_TOKEN);
     
@@ -28,7 +43,11 @@ apiClient.interceptors.request.use(
     
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    // Stop loading on request error
+    loadingController.stopLoading();
+    return Promise.reject(error);
+  }
 );
 
 /**
@@ -36,10 +55,17 @@ apiClient.interceptors.request.use(
  */
 apiClient.interceptors.response.use(
   // For successful responses, just return the response
-  (response) => response,
+  (response) => {
+    // Stop loading indicator on success (with small delay to prevent flickering)
+    loadingController.stopLoading(300);
+    return response;
+  },
   
   // For error responses, handle common cases
   (error) => {
+    // Stop loading indicator on error
+    loadingController.stopLoading();
+    
     if (error.response) {
       const { status } = error.response;
       

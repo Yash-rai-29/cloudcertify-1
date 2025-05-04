@@ -1,13 +1,40 @@
 import apiClient from './apiClient';
 import { API } from '../constants';
 import { handleApiError } from '../helpers';
+import { useLoading } from '../../contexts/LoadingContext';
+
+/**
+ * Get the loading controller if available in the current context
+ * This function is used in non-React contexts where hooks can't be used directly
+ */
+let _loadingController = null;
+export const setDashboardLoadingController = (controller) => {
+  _loadingController = controller;
+};
+
+export const getLoadingController = () => {
+  try {
+    // Try using the hook first (if in a React component)
+    return useLoading();
+  } catch (e) {
+    // Fall back to cached controller if available
+    return _loadingController || {
+      startLoading: () => {},
+      stopLoading: () => {}
+    };
+  }
+};
 
 /**
  * Get user information for the dashboard
  * @returns {Promise<Object>} API response
  */
 export async function getUserInfo() {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(API.USER_INFO);
     return {
       success: true,
@@ -15,6 +42,8 @@ export async function getUserInfo() {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -23,7 +52,11 @@ export async function getUserInfo() {
  * @returns {Promise<Object>} API response
  */
 export async function getDailyStreak() {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(API.DAILY_STREAK);
     return {
       success: true,
@@ -31,6 +64,8 @@ export async function getDailyStreak() {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -39,7 +74,11 @@ export async function getDailyStreak() {
  * @returns {Promise<Object>} API response
  */
 export async function getDailyQuestion() {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(API.DAILY_QUESTION);
     return {
       success: true,
@@ -47,6 +86,8 @@ export async function getDailyQuestion() {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -57,7 +98,11 @@ export async function getDailyQuestion() {
  * @returns {Promise<Object>} API response
  */
 export async function submitDailyAnswer(questionId, answer) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.post(API.SUBMIT_DAILY_ANSWER, {
       question_id: questionId,
       answer
@@ -68,18 +113,25 @@ export async function submitDailyAnswer(questionId, answer) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
 /**
  * Get test recommendations for the user
  * @param {number} limit - Number of recommendations to return
+ * @param {string} recommendation_type - Type of recommendations to fetch: "popular", "new", "in-progress", or "personalized"
  * @returns {Promise<Object>} API response
  */
-export async function getTestRecommendations(limit = 4) {
+export async function getTestRecommendations(limit = 4, recommendation_type = "personalized") {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(API.TEST_RECOMMENDATIONS, {
-      params: { limit }
+      params: { limit, recommendation_type }
     });
     return {
       success: true,
@@ -87,6 +139,8 @@ export async function getTestRecommendations(limit = 4) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -96,7 +150,11 @@ export async function getTestRecommendations(limit = 4) {
  * @returns {Promise<Object>} API response
  */
 export async function getUserActivities(limit = 10) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(API.USER_ACTIVITIES, {
       params: { limit }
     });
@@ -106,6 +164,8 @@ export async function getUserActivities(limit = 10) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -115,7 +175,11 @@ export async function getUserActivities(limit = 10) {
  * @returns {Promise<Object>} API response
  */
 export async function startTest(testId) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.post(API.START_TEST, {
       test_id: testId
     });
@@ -125,6 +189,8 @@ export async function startTest(testId) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -135,7 +201,11 @@ export async function startTest(testId) {
  * @returns {Promise<Object>} API response
  */
 export async function getTestHistory(limit = 10, page = 1) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(API.TEST_HISTORY, {
       params: { limit, page }
     });
@@ -145,6 +215,8 @@ export async function getTestHistory(limit = 10, page = 1) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -154,7 +226,11 @@ export async function getTestHistory(limit = 10, page = 1) {
  * @returns {Promise<Object>} API response
  */
 export async function getCertificationResources(category = null) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const params = category ? { category } : {};
     const response = await apiClient.get(API.CERTIFICATION_RESOURCES, {
       params
@@ -165,6 +241,8 @@ export async function getCertificationResources(category = null) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -175,7 +253,11 @@ export async function getCertificationResources(category = null) {
  * @returns {Promise<Object>} API response
  */
 export async function getLeaderboard(period = 'week', limit = 10) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.get(API.LEADERBOARD, {
       params: { period, limit }
     });
@@ -185,6 +267,8 @@ export async function getLeaderboard(period = 'week', limit = 10) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }
 
@@ -195,7 +279,11 @@ export async function getLeaderboard(period = 'week', limit = 10) {
  * @returns {Promise<Object>} API response
  */
 export async function sendAiChatMessage(message, history = []) {
+  const loadingController = getLoadingController();
+  
   try {
+    loadingController.startLoading();
+    
     const response = await apiClient.post(API.AI_CHAT, {
       message,
       history
@@ -206,5 +294,7 @@ export async function sendAiChatMessage(message, history = []) {
     };
   } catch (error) {
     return handleApiError(error);
+  } finally {
+    loadingController.stopLoading(300);
   }
 }

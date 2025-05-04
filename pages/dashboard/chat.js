@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { IconSend, IconRobot, IconUser, IconTrash, IconInfoCircle } from '@tabler/icons-react';
 import { getDashboardLayout } from '../../components/layouts/DashboardLayout';
-import { sendChatMessage } from '../../utils/services/dashboardService';
+import { sendAiChatMessage } from '../../utils/services/dashboardService';
 import Button from '../../components/ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/helpers';
@@ -48,7 +48,7 @@ export default function Chat() {
       }));
       
       // Send message to API
-      const response = await sendChatMessage(inputValue, history);
+      const response = await sendAiChatMessage(inputValue, history);
       
       if (response.success) {
         const botMessage = {
