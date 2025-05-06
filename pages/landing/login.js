@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
 import Head from 'next/head';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useRouter } from 'next/router';
 import { FiMail, FiLock, FiAlertCircle, FiEye, FiEyeOff, FiArrowLeft, FiCloud } from 'react-icons/fi';
-import { SparklesBackground } from '../components/ui/SparklesBackground';
-import { showSuccess, showError, handleErrorWithToast } from '../utils/toast';
-import { ERRORS } from '../utils/constants';
+import { SparklesBackground } from '../../components/ui/SparklesBackground';
+import { showSuccess, showError, handleErrorWithToast } from '../../utils/toast';
+import { ERRORS } from '../../utils/constants';
 
 // Create a custom layout for the login page that doesn't include header or footer
 Login.getLayout = (page) => (
@@ -37,16 +37,25 @@ export default function Login() {
       const response = await signIn(data.email, data.password);
       
       if (!response.success) {
-        // Check if this is a known authentication error
-        if (response.code === 'invalid_credentials' || response.error?.code === 'invalid_credentials') {
-          // Get the error message from the appropriate location
+        // Handle invalid credentials (including wrong password)
+        if (
+          response.code === 'invalid_credentials' || 
+          response.error?.code === 'invalid_credentials' ||
+          response.code === 'auth/wrong-password' ||
+          response.error?.code === 'auth/wrong-password' ||
+          response.code === 'auth/user-not-found' ||
+          response.error?.code === 'auth/user-not-found'
+        ) {
+          // Get appropriate error message
           const errorMessage = response.message || 
                               response.error?.message || 
-                              ERRORS.AUTH.INVALID_CREDENTIALS.message;
+                              ERRORS.AUTH.INVALID_CREDENTIALS.message || 
+                              'Invalid email or password. Please try again.';
           
           // Show a toast notification for invalid credentials
           showError(errorMessage, {
-            id: 'login-error'
+            id: 'login-error',
+            duration: 4000, // Show for 4 seconds
           });
           
           // Also set the auth error for the form display
@@ -66,6 +75,9 @@ export default function Login() {
           setAuthError(response.error || response || {
             message: 'Failed to log in. Please check your credentials.'
           });
+          
+          // Also show toast for better visibility
+          showError(response.error?.message || response.message || 'Failed to log in. Please check your credentials.');
         }
       } else {
         // If successful, show a success toast
@@ -101,14 +113,18 @@ export default function Login() {
         }
         
         // Show formatted error message in a toast
-        showError(errorMessage);
+        showError(errorMessage, {
+          id: 'login-error',
+          duration: 4000,
+        });
         
-        // Also set the auth error for the form display
+        // Also set for form display
         setAuthError({ message: errorMessage });
       } else {
-        // For other non-Firebase errors
-        showError('An unexpected error occurred. Please try again.');
-        setAuthError(error.message || 'Failed to log in. Please check your credentials.');
+        // For non-Firebase errors
+        const errorMessage = error.message || 'An unexpected error occurred';
+        showError(errorMessage);
+        setAuthError({ message: errorMessage });
       }
     }
   };

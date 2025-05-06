@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   IconFlame, 
@@ -8,13 +8,16 @@ import {
   IconCalendarEvent, 
   IconCheck 
 } from '@tabler/icons-react';
-import { getDailyQuestion } from '../../utils/services/dashboardService';
+import { getDailyQuestion, getDailyStreak } from '../../utils/services/dashboardService';
 
-export default function DailyQuizCard({ onStartQuiz, streakData }) {
+const DailyQuizCard = forwardRef(({ onStartQuiz, streakData: initialStreakData }, ref) => {
   const [hasAttempted, setHasAttempted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [todayDate, setTodayDate] = useState('');
+  const [streakData, setStreakData] = useState(initialStreakData || { current_streak: 0 });
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  // Format date once on component mount
   useEffect(() => {
     const today = new Date();
     const formattedApiDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
@@ -28,6 +31,53 @@ export default function DailyQuizCard({ onStartQuiz, streakData }) {
     setTodayDate(formattedDisplayDate);
     checkDailyQuizStatus(formattedApiDate);
   }, []);
+
+  // Update local streak data when props change
+  useEffect(() => {
+    if (initialStreakData) {
+      setStreakData(initialStreakData);
+    }
+  }, [initialStreakData]);
+
+  // Refresh data when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      const fetchData = async () => {
+        try {
+          const today = new Date();
+          const formattedApiDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+          
+          // Fetch both daily question status and streak data
+          const [quizResponse, streakResponse] = await Promise.all([
+            getDailyQuestion(formattedApiDate),
+            getDailyStreak()
+          ]);
+          
+          if (quizResponse.success && quizResponse.data) {
+            setHasAttempted(quizResponse.data.user_attempt.attempted);
+          }
+          
+          if (streakResponse.success) {
+            setStreakData(streakResponse.data);
+          }
+        } catch (error) {
+          console.error('Error refreshing daily quiz data:', error);
+        }
+      };
+      
+      fetchData();
+    }
+  }, [refreshTrigger]);
+
+  // Public method to refresh the card data
+  const refreshCardData = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
+
+  // Expose refresh method to parent components
+  useImperativeHandle(ref, () => ({
+    refreshCardData
+  }), [refreshCardData]);
 
   const checkDailyQuizStatus = async (date) => {
     setIsLoading(true);
@@ -229,4 +279,6 @@ export default function DailyQuizCard({ onStartQuiz, streakData }) {
       </AnimatePresence>
     </motion.div>
   );
-}
+});
+
+export default DailyQuizCard;

@@ -52,7 +52,7 @@ const Header = () => {
             </div>
           }
           buttonContent={
-            user ? (
+            user ? (  
               <Link
                 href="/dashboard"
                 className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-full font-medium text-sm shadow-md flex items-center gap-2"

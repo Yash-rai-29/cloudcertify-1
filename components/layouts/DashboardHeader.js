@@ -1,7 +1,9 @@
-import { useState, memo, useEffect } from 'react';
+import { useState, memo, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUserProfile } from '../../contexts/UserProfileContext';
+import { useLoading } from '../../contexts/LoadingContext';
+import { getDailyStreak } from '../../utils/services/dashboardService';
 import Avatar from '../ui/Avatar';
 import { 
   IconBell, 
@@ -17,16 +19,47 @@ import {
  * Dashboard header component with profile dropdown and notifications
  * Memoized to prevent unnecessary re-renders during page transitions
  */
-const DashboardHeader = memo(({ toggleSidebar, streakData = { current_streak: 0 }, onToggleDailyQuiz }) => {
+const DashboardHeader = memo(forwardRef(({ toggleSidebar, onToggleDailyQuiz }, ref) => {
   const { signOut } = useAuth();
+  const { startLoading, stopLoading } = useLoading();
   const { userInfo, loading } = useUserProfile();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [streakData, setStreakData] = useState({ current_streak: 0 });
+  const [fetchTrigger, setFetchTrigger] = useState(0);
+
+  // Fetch streak data directly within the header
+  const fetchStreakData = useCallback(async () => {
+    try {
+      const response = await getDailyStreak();
+      if (response.success) {
+        setStreakData(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch streak data:", error);
+    }
+  }, []);
+
+  // Fetch streak data on mount and whenever the fetchTrigger changes
+  useEffect(() => {
+    fetchStreakData();
+  }, [fetchStreakData, fetchTrigger]);
+
+  // Public method to trigger a streak data refresh
+  const refreshStreakData = useCallback(() => {
+    setFetchTrigger(prev => prev + 1);
+  }, []);
+
+  // Expose refreshStreakData method to parent components
+  useImperativeHandle(ref, () => ({
+    refreshStreakData
+  }), [refreshStreakData]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (profileDropdownOpen) {
+      // Only close if clicking outside the dropdown
+      if (profileDropdownOpen && !event.target.closest('.profile-dropdown-container')) {
         setProfileDropdownOpen(false);
       }
     };
@@ -47,8 +80,22 @@ const DashboardHeader = memo(({ toggleSidebar, streakData = { current_streak: 0 
   };
 
   // Handle sign out
-  const handleSignOut = async () => {
-    await signOut();
+  const handleSignOut = async (e) => {
+    // Prevent default action and stop propagation
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    try {
+      setProfileDropdownOpen(false); // Close dropdown before starting the sign out process
+      startLoading(); // Show loading indicator while signing out
+      await signOut();
+      // No need to handle redirects here as it's handled in the auth context
+    } catch (error) {
+      console.error("Sign out failed:", error);
+      stopLoading();
+    }
   };
 
   // Support Next.js image loading optimization
@@ -81,7 +128,10 @@ const DashboardHeader = memo(({ toggleSidebar, streakData = { current_streak: 0 
           <div className="flex items-center space-x-2">
             {/* Streak Counter */}
             {onToggleDailyQuiz && (
-              <div className="flex items-center text-orange-500 mr-1" onClick={onToggleDailyQuiz}>
+              <div className="flex items-center text-orange-500 mr-1" onClick={() => {
+                refreshStreakData(); // Refresh streak data when clicked
+                onToggleDailyQuiz();
+              }}>
                 <IconFlame className="h-5 w-5" />
                 <span className="text-sm font-medium ml-1">{streakData.current_streak}</span>
               </div>
@@ -93,7 +143,7 @@ const DashboardHeader = memo(({ toggleSidebar, streakData = { current_streak: 0 
             </button>
 
             {/* User profile photo on click open dropdown - Mobile */}
-            <div className="relative">
+            <div className="relative profile-dropdown-container">
               <button
                 className="flex items-center bg-gray-50 rounded-full overflow-hidden border border-gray-200 focus:outline-none"
                 onClick={toggleProfileDropdown}
@@ -128,7 +178,7 @@ const DashboardHeader = memo(({ toggleSidebar, streakData = { current_streak: 0 
               
               {/* Dropdown Menu - Mobile */}
               {profileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200" onClick={(e) => e.stopPropagation()}>
                   <div className="px-4 py-2 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-700">{userInfo?.first_name || "User"}</p>
                     <p className="text-xs text-gray-500 truncate">{userInfo?.email}</p>
@@ -136,14 +186,17 @@ const DashboardHeader = memo(({ toggleSidebar, streakData = { current_streak: 0 
                   <Link
                     href="/dashboard/settings"
                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => setProfileDropdownOpen(false)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProfileDropdownOpen(false);
+                    }}
                   >
                     <IconSettings size={16} className="mr-2" />
                     Settings
                   </Link>
                   <button
                     className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={handleSignOut}
+                    onClick={(e) => handleSignOut(e)}
                   >
                     <IconLogout size={16} className="mr-2" />
                     Sign out
@@ -167,9 +220,11 @@ const DashboardHeader = memo(({ toggleSidebar, streakData = { current_streak: 0 
           <div className="flex items-center space-x-4">
             {/* Streak Counter for Desktop */}
             {onToggleDailyQuiz && (
-              <div 
-                className="flex items-center text-orange-500 cursor-pointer hover:bg-orange-50 px-3 py-1.5 rounded-full"
-                onClick={onToggleDailyQuiz}
+              <div className="flex items-center text-orange-500 cursor-pointer mr-4" 
+                onClick={() => {
+                  refreshStreakData(); // Refresh streak data when clicked
+                  onToggleDailyQuiz();
+                }}
               >
                 <IconFlame className="h-5 w-5" />
                 <span className="text-sm font-medium ml-1">{streakData.current_streak}</span>
@@ -184,7 +239,7 @@ const DashboardHeader = memo(({ toggleSidebar, streakData = { current_streak: 0 
             </button>
             
             {/* User Profile Dropdown */}
-            <div className="relative">
+            <div className="relative profile-dropdown-container">
               <button
                 className="flex items-center space-x-2 bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-full focus:outline-none"
                 onClick={toggleProfileDropdown}
@@ -223,7 +278,7 @@ const DashboardHeader = memo(({ toggleSidebar, streakData = { current_streak: 0 
               
               {/* Dropdown Menu */}
               {profileDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200">
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-200" onClick={(e) => e.stopPropagation()}>
                   <div className="px-4 py-2 border-b border-gray-100">
                     <p className="text-sm font-medium text-gray-700">{userInfo?.first_name || "User"}</p>
                     <p className="text-xs text-gray-500 truncate">{userInfo?.email}</p>
@@ -231,14 +286,17 @@ const DashboardHeader = memo(({ toggleSidebar, streakData = { current_streak: 0 
                   <Link
                     href="/dashboard/settings"
                     className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => setProfileDropdownOpen(false)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setProfileDropdownOpen(false);
+                    }}
                   >
                     <IconSettings size={16} className="mr-2" />
                     Settings
                   </Link>
                   <button
                     className="w-full text-left flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={handleSignOut}
+                    onClick={(e) => handleSignOut(e)}
                   >
                     <IconLogout size={16} className="mr-2" />
                     Sign out
@@ -251,7 +309,7 @@ const DashboardHeader = memo(({ toggleSidebar, streakData = { current_streak: 0 
       </div>
     </>
   );
-});
+}));
 
 // Set display name for debugging
 DashboardHeader.displayName = 'DashboardHeader';

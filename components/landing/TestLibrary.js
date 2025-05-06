@@ -9,14 +9,14 @@ import {
   FiLock, 
   FiShare2 
 } from "react-icons/fi";
-import { GlowingBackground } from "./ui/GlowingBackground";
-import { Sparkles } from "./ui/SparklesBackground";
-import { TracingBeam } from "./ui/TracingBeam";
+import { GlowingBackground } from "../ui/GlowingBackground";
+import { Sparkles } from "../ui/SparklesBackground";
+import { TracingBeam } from "../ui/TracingBeam";
 import dynamic from 'next/dynamic';
-import GoogleCloudAnimation from "../assets/GoogleCloudAnimation.json";
+import GoogleCloudAnimation from "../../assets/GoogleCloudAnimation.json";
 
 // Import Lottie as a client-side only component
-const ClientLottie = dynamic(() => import('./ui/ClientLottie'), { 
+const ClientLottie = dynamic(() => import('../ui/ClientLottie'), { 
   ssr: false,
   loading: () => <div className="w-24 h-24 md:w-32 md:h-32 bg-gray-100 rounded-lg animate-pulse" />
 });

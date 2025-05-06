@@ -1,8 +1,8 @@
-import HeroSection from '../components/HeroSection';
-import ValueProposition from '../components/ValueProposition';
-import TestLibrary from '../components/TestLibrary';
-import PerformanceDashboard from '../components/PerformanceDashboard';
-import Testimonials from '../components/Testimonials';
+import HeroSection from '../components/landing/HeroSection';
+import ValueProposition from '../components/landing/ValueProposition';
+import TestLibrary from '../components/landing/TestLibrary';
+import PerformanceDashboard from '../components/landing/PerformanceDashboard';
+import Testimonials from '../components/landing/Testimonials';
 import { getPublicLayout } from '../components/layouts/PublicLayout';
 
 export default function Home() {

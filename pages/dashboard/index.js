@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { 
   IconCalendarStats, 
@@ -26,6 +26,7 @@ import { useLoading } from '../../contexts/LoadingContext';
 import { showError, showSuccess } from '../../utils/toast';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { formatDate } from '../../utils/helpers';
 
 // Animation variants
 const fadeIn = {
@@ -46,18 +47,7 @@ export default function Dashboard() {
   const [activities, setActivities] = useState([]);
   const [showDailyQuiz, setShowDailyQuiz] = useState(false);
   const [activeTab, setActiveTab] = useState('personalized');
-  
-  // Format timestamp to human-readable date
-  const formatDate = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  const dailyQuizCardRef = useRef(null);
 
   useEffect(() => {
     if (authUser) {
@@ -136,9 +126,25 @@ export default function Dashboard() {
     setShowDailyQuiz(!showDailyQuiz);
   };
 
-  const handleQuizSubmit = (newStreakData) => {
-    setStreakData(newStreakData);
-    refreshActivities();
+  // Refresh streak data after quiz submission
+  const handleQuizSubmit = async () => {
+    try {
+      // Fetch fresh streak data
+      const streakResponse = await getDailyStreak();
+      if (streakResponse.success) {
+        setStreakData(streakResponse.data);
+      }
+      
+      // Refresh the daily quiz card
+      if (dailyQuizCardRef.current && typeof dailyQuizCardRef.current.refreshCardData === 'function') {
+        dailyQuizCardRef.current.refreshCardData();
+      }
+      
+      // Refresh activities to show the quiz attempt
+      refreshActivities();
+    } catch (error) {
+      console.error('Error updating streak data:', error);
+    }
   };
   
   const refreshActivities = async () => {
@@ -240,7 +246,11 @@ export default function Dashboard() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            <DailyQuizCard onStartQuiz={toggleDailyQuiz} streakData={streakData} />
+            <DailyQuizCard 
+              ref={dailyQuizCardRef}
+              onStartQuiz={toggleDailyQuiz} 
+              streakData={streakData} 
+            />
           </motion.div>
 
           {/* Stats Cards Grid */}

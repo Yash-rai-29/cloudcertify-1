@@ -75,8 +75,14 @@ export default function Sidebar({ isOpen, onClose }) {
     { name: "Test History", href: "/dashboard/history", icon: IconCertificate },
     { name: "Resources", href: "/dashboard/resources", icon: IconBookmarks },
     { name: "Leaderboard", href: "/dashboard/leaderboard", icon: IconTrophy },
-    { name: "AI Chatbot", href: "/dashboard/chat", icon: IconRobot },
-    { name: "Settings", href: "/dashboard/settings", icon: IconSettings },
+    { 
+      name: "AI Chatbot", 
+      href: "#", 
+      icon: IconRobot,
+      disabled: true,
+      comingSoon: true 
+    },
+    // { name: "Settings", href: "/dashboard/settings", icon: IconSettings },
   ];
 
   return (
@@ -119,6 +125,32 @@ export default function Sidebar({ isOpen, onClose }) {
                       : router.pathname === item.href ||
                         router.pathname.startsWith(`${item.href}/`);
                         
+                    if (item.disabled) {
+                      return (
+                        <div
+                          key={item.name}
+                          className={`group flex items-center px-3 py-2 text-base font-medium rounded-md cursor-not-allowed ${
+                            isActive
+                              ? "bg-blue-50 text-blue-700 opacity-60"
+                              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          }`}
+                          title={item.comingSoon ? "Coming Soon" : ""}
+                        >
+                          <item.icon
+                            className={`mr-4 flex-shrink-0 h-6 w-6 ${
+                              isActive
+                                ? "text-blue-600"
+                                : "text-gray-400"
+                            }`}
+                          />
+                          <span>{item.name}</span>
+                          {item.comingSoon && (
+                            <span className="ml-2 text-xs text-blue-600">Coming Soon</span>
+                          )}
+                        </div>
+                      );
+                    }
+                    
                     return (
                       <Link
                         key={item.name}
@@ -178,6 +210,39 @@ export default function Sidebar({ isOpen, onClose }) {
                 ? router.pathname === item.href
                 : router.pathname === item.href ||
                   router.pathname.startsWith(`${item.href}/`);
+              
+              if (item.disabled) {
+                return (
+                  <div
+                    key={item.name}
+                    className={`group flex items-center relative ${
+                      expanded ? 'px-4 py-2 justify-start' : 'p-3 justify-center'
+                    } text-sm font-medium rounded-md transition-all duration-200 cursor-not-allowed ${
+                      isActive
+                        ? "bg-blue-50 text-blue-700 opacity-60"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                    }`}
+                    title={item.comingSoon ? "Coming Soon" : ""}
+                  >
+                    <item.icon
+                      className={`flex-shrink-0 h-5 w-5 ${
+                        isActive
+                          ? "text-blue-600"
+                          : "text-gray-400"
+                      }`}
+                    />
+                    {expanded && (
+                      <span className="ml-3 transition-opacity duration-200 whitespace-nowrap overflow-hidden">
+                        {item.name}
+                        {/* coming soon text more smaller 0.5rem */}
+                        {item.comingSoon && (
+                          <span className="ml-2 text-[0.6rem] text-blue-600">Coming Soon</span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+                );
+              }
                 
               return (
                 <Link

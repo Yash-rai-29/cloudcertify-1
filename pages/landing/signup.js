@@ -3,11 +3,11 @@ import { useForm } from 'react-hook-form';
 import Link from 'next/link';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { FiMail, FiLock, FiUser, FiAlertCircle, FiEye, FiEyeOff, FiArrowLeft, FiCloud, FiAward } from 'react-icons/fi';
-import { SparklesBackground } from '../components/ui/SparklesBackground';
-import { showSuccess, showError, handleErrorWithToast } from '../utils/toast';
-import { ERRORS } from '../utils/constants';
+import { SparklesBackground } from '../../components/ui/SparklesBackground';
+import { showSuccess, showError, handleErrorWithToast } from '../../utils/toast';
+import { ERRORS } from '../../utils/constants';
 
 // Create a custom layout for the signup page that doesn't include header or footer
 Signup.getLayout = (page) => (

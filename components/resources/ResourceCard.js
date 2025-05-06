@@ -147,8 +147,9 @@ export const ResourceCard = ({ resource, onLikeToggle }) => {
           
           <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
             <span className="text-xs text-gray-500">{formattedDate}</span>
+            {/* in href link i want if resource.resource_type = pdf then check for first file_url else link */}
             <Link
-              href={resource.file_url || resource.url || '#'}
+              href={ resource.resource_type === 'pdf' ? resource.file_url : resource.link || '#'}
               target="_blank"
               rel="noopener noreferrer"
               onClick={handleResourceOpen}

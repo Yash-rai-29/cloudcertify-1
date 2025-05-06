@@ -113,7 +113,7 @@ export default function ResourcesGrid({
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow p-4">
         <div className="flex flex-col sm:flex-row">
           {resource.thumbnail && (
-            <div className="sm:w-48 h-32 sm:h-auto bg-gray-100 rounded-md overflow-hidden mr-0 sm:mr-4 mb-4 sm:mb-0 flex-shrink-0">
+            <div className="sm:w-48 h-32 md:h-32 sm:h-auto bg-gray-100 rounded-md overflow-hidden mr-0 sm:mr-4 mb-4 sm:mb-0 flex-shrink-0">
               <img 
                 src={resource.thumbnail} 
                 alt={resource.title}
@@ -171,14 +171,13 @@ export default function ResourcesGrid({
                   {formatDate(resource.created_at)}
                 </span>
               </div>
-              
               <a
-                href={resource.file_url || resource.url || '#'}
+                href={resource.resource_type === 'pdf' ? resource.file_url : resource.link || '#'}
                 target="_blank" 
                 rel="noopener noreferrer"
                 onClick={handleResourceOpen}
                 className="inline-flex items-center py-1.5 px-3 text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors"
-              >
+                >
                 View Resource
                 <IconExternalLink size={14} className="ml-1" />
               </a>

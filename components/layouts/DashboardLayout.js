@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import { useAuth } from "../../contexts/AuthContext";
 import ProtectedRoute from "../common/ProtectedRoute";
-import { getDailyStreak } from "../../utils/services/dashboardService";
 import DailyQuizModal from "../dashboard/DailyQuizModal";
 import Sidebar from "./Sidebar";
 import DashboardHeader from "./DashboardHeader";
@@ -17,27 +16,17 @@ import { UserProfileProvider } from "../../contexts/UserProfileContext";
 export default function DashboardLayout({ children, title = "Dashboard" }) {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [streakData, setStreakData] = useState({ current_streak: 0 });
   const [showDailyQuiz, setShowDailyQuiz] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const headerRef = useRef(null);
 
-  // Fetch user streak data only once when component mounts
-  useEffect(() => {
-    async function fetchStreakData() {
-      try {
-        const response = await getDailyStreak();
-        if (response.success) {
-          setStreakData(response.data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch streak data:", error);
-      }
+  // Function to refresh streak data - can be called after quiz submission
+  const refreshHeaderStreakData = () => {
+    // Call the header's refreshStreakData method if available
+    if (headerRef.current && typeof headerRef.current.refreshStreakData === 'function') {
+      headerRef.current.refreshStreakData();
     }
-
-    if (user) {
-      fetchStreakData();
-    }
-  }, [user]);
+  };
 
   useEffect(() => {
     // Get sidebar expanded state from localStorage on component mount
@@ -75,8 +64,9 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
   };
 
   // Update streak data after daily quiz submission
-  const onQuizSubmit = (newStreakData) => {
-    setStreakData(newStreakData);
+  const onQuizSubmit = () => {
+    // Just refresh the header streak data
+    refreshHeaderStreakData();
   };
 
   // Handle sidebar toggle
@@ -100,9 +90,9 @@ export default function DashboardLayout({ children, title = "Dashboard" }) {
             sidebarExpanded ? 'lg:pl-64' : 'lg:pl-20'
           }`}>
             {/* Header Component */}
-            <DashboardHeader 
-              toggleSidebar={toggleSidebar} 
-              streakData={streakData}
+            <DashboardHeader
+              ref={headerRef}
+              toggleSidebar={toggleSidebar}
               onToggleDailyQuiz={toggleDailyQuiz}
             />
 

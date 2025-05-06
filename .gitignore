@@ -110,3 +110,5 @@ $RECYCLE.BIN/
 .next/server/*
 out/_next/static/chunks/framework-2f335d22a7318891.js
 out/
+.firebase/
+.firebase/*

@@ -3,6 +3,7 @@ import { getDailyQuestion, submitDailyAnswer } from '../../utils/services/dashbo
 import { IconX, IconFlame, IconCheck, IconX as IconClose, IconBrain, IconConfetti } from '@tabler/icons-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
+import { useLoading } from '../../contexts/LoadingContext';
 
 const CORRECT_QUOTES = [
   "Brilliant work! Your knowledge is expanding every day.",
@@ -65,6 +66,7 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
   const [hasResult, setHasResult] = useState(false);
   const [motivationalQuote, setMotivationalQuote] = useState('');
   const [animation, setAnimation] = useState(false);
+  const { startLoading, stopLoading } = useLoading();
 
   useEffect(() => {
     if (isOpen) {
@@ -80,6 +82,7 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
   const fetchDailyQuestion = async () => {
     setIsLoading(true);
     setError(null);
+    startLoading();
     
     try {
       const date = getCurrentDate();
@@ -103,6 +106,7 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
       console.error('Error fetching daily question:', err);
     } finally {
       setIsLoading(false);
+      stopLoading();
     }
   };
 
@@ -118,28 +122,33 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
     if (!selectedAnswer || isSubmitting) return;
     
     setIsSubmitting(true);
+    startLoading();
     
     try {
       const response = await submitDailyAnswer(question.id, selectedAnswer);
       
       if (response.success) {
-        const isCorrect = question.correct_answer === selectedAnswer;
-        
-        setUserAttempt({
-          attempted: true,
-          answer: selectedAnswer,
-          is_correct: isCorrect
-        });
-        
+        setUserAttempt(response.data);
         setHasResult(true);
+        
+        // Set motivational quote based on whether answer was correct
+        const isCorrect = selectedAnswer === question.correct_answer;
         setMotivationalQuote(getRandomQuote(isCorrect ? CORRECT_QUOTES : INCORRECT_QUOTES));
         
+        // If correct, trigger confetti animation
         if (isCorrect) {
           setTimeout(() => triggerConfetti(), 300);
         }
         
-        if (onSubmit) {
-          onSubmit(response.data);
+        // Pass the updated streak data back to parent component
+        if (onSubmit && typeof onSubmit === 'function') {
+          onSubmit();
+        }
+
+        // Create a notification about streak achievement
+        if (response.data && response.data.current_streak > 1) {
+          // We could add a toast notification here
+          console.log(`Great job! You're on a ${response.data.current_streak} day streak!`);
         }
       } else {
         setError('Failed to submit answer');
@@ -149,17 +158,21 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
       console.error('Error submitting answer:', err);
     } finally {
       setIsSubmitting(false);
+      stopLoading();
     }
   };
-
+  
   const handleClose = () => {
-    if (!userAttempt?.attempted && selectedAnswer) {
-      if (confirm('You haven\'t submitted your answer yet. Are you sure you want to close?')) {
-        onClose();
-      }
-    } else {
-      onClose();
+    // Re-fetch streak data when closing the modal to ensure it's updated
+    if (hasResult && onSubmit && typeof onSubmit === 'function') {
+      onSubmit();
     }
+    
+    onClose();
+    
+    // Reset states 
+    setSelectedAnswer('');
+    setError(null);
   };
 
   const isCorrect = hasResult && question?.correct_answer === selectedAnswer;
@@ -341,7 +354,7 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
                           animate={{ opacity: 1 }}
                           transition={{ delay: 0.8 }}
                         >
-                          {/* <div className="mr-3 bg-orange-100 text-orange-600 rounded-full px-3 py-1 flex items-center">
+                          <div className="mr-3 bg-orange-100 text-orange-600 rounded-full px-3 py-1 flex items-center">
                             <motion.div
                               animate={{ scale: [1, 1.2, 1] }}
                               transition={{ duration: 1.5, repeat: Infinity }}
@@ -349,7 +362,7 @@ export default function DailyQuizModal({ isOpen, onClose, onSubmit }) {
                               <IconFlame className="h-5 w-5 mr-1" />
                             </motion.div>
                             <span className="font-medium">Streak: {userAttempt?.current_streak || 0}</span>
-                          </div> */}
+                          </div>
                         </motion.div>
                       )}
                     </motion.div>
