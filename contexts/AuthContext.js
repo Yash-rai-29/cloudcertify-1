@@ -124,8 +124,9 @@ export function AuthProvider({ children }) {
       switch (errorResponse.code) {
         case 'auth/user-not-found':
         case 'auth/wrong-password':
+        case 'auth/invalid-credential': 
           formattedError = { 
-            message: 'Invalid email or password. Please try again.',
+            message: 'Invalid email or password. Please check your credentials and try again.',
             code: 'invalid_credentials',
             shouldShowToast: true
           };

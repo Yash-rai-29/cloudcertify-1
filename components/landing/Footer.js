@@ -9,6 +9,8 @@ import {
   FiPhone, 
   FiArrowUp,
   FiCloud,
+  FiCheckCircle,
+  FiAlertCircle,
 } from 'react-icons/fi';
 import { useEffect, useState } from 'react';
 
@@ -18,6 +20,10 @@ import { useEffect, useState } from 'react';
 const Footer = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState(null); // 'success', 'error', or null
+  const [statusMessage, setStatusMessage] = useState('');
   
   useEffect(() => {
     setIsClient(true);
@@ -33,6 +39,60 @@ const Footer = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
+  // Handle newsletter subscription
+  const handleSubscribe = async (e) => {
+    e.preventDefault();
+    
+    // Basic email validation
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      setSubscriptionStatus('error');
+      setStatusMessage('Please enter a valid email address');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    setSubscriptionStatus(null);
+    
+    try {
+      const response = await fetch('https://base-service-6070296894.us-central1.run.app/b/newsletter/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        setSubscriptionStatus('success');
+        setStatusMessage(data.message || 'Successfully subscribed to newsletter!');
+        setEmail(''); // Clear the input on success
+      } else {
+        setSubscriptionStatus('error');
+        setStatusMessage(data.message || 'Failed to subscribe. Please try again.');
+      }
+    } catch (error) {
+      console.error('Newsletter subscription error:', error);
+      setSubscriptionStatus('error');
+      setStatusMessage('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  // Clear status message after 5 seconds
+  useEffect(() => {
+    if (subscriptionStatus) {
+      const timer = setTimeout(() => {
+        setSubscriptionStatus(null);
+        setStatusMessage('');
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [subscriptionStatus]);
   
   // Animation variants
   const containerVariants = {
@@ -99,17 +159,17 @@ const Footer = () => {
             
             <div className="text-blue-200 space-y-3">
               <motion.a 
-                href="mailto:support@cloudcertify.com"
+                href="mailto:cloudcertify@hotmail.com"
                 whileHover={{ x: 5 }}
                 className="flex items-center group"
               >
                 <div className="w-8 h-8 rounded-full bg-blue-800/50 flex items-center justify-center mr-3 group-hover:bg-blue-700 transition-colors">
                   <FiMail className="text-blue-300 group-hover:text-white transition-colors" />
                 </div>
-                <span className="group-hover:text-white transition-colors">support@cloudcertify.com</span>
+                <span className="group-hover:text-white transition-colors">cloudcertify@hotmail.com</span>
               </motion.a>
               
-              <motion.a 
+              {/* <motion.a 
                 href="tel:+18881234567"
                 whileHover={{ x: 5 }}
                 className="flex items-center group"
@@ -118,7 +178,7 @@ const Footer = () => {
                   <FiPhone className="text-blue-300 group-hover:text-white transition-colors" />
                 </div>
                 <span className="group-hover:text-white transition-colors">+1 (888) 123-4567</span>
-              </motion.a>
+              </motion.a> */}
             </div>
             
             <div className="flex space-x-4 mt-8">
@@ -126,14 +186,10 @@ const Footer = () => {
                 <motion.a
                   key={index}
                   href="#"
-                  whileHover={{ 
-                    y: -5, 
-                    scale: 1.1,
-                    transition: { type: "spring", stiffness: 300 }
-                  }}
-                  className="w-10 h-10 rounded-full bg-blue-800/50 flex items-center justify-center text-blue-300 hover:bg-blue-700 hover:text-white transition-all"
+                  whileHover={{ y: -5 }}
+                  className="w-10 h-10 rounded-full bg-blue-800/40 flex items-center justify-center hover:bg-blue-700 transition-colors"
                 >
-                  <Icon size={18} />
+                  <Icon className="text-blue-300 hover:text-white transition-colors" />
                 </motion.a>
               ))}
             </div>
@@ -147,13 +203,9 @@ const Footer = () => {
               </span>
               Quick Links
             </h4>
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               {quickLinks.map((item, index) => (
-                <motion.li 
-                  key={index}
-                  whileHover={{ x: 5 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
+                <motion.li key={index} whileHover={{ x: 5 }}>
                   <a href={item.href} className="text-blue-200 hover:text-white transition-colors flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
@@ -174,24 +226,52 @@ const Footer = () => {
               Stay Updated
             </h4>
             <p className="text-blue-200 mb-6">Subscribe to our newsletter for the latest exam tips and updates.</p>
-            <form className="space-y-3">
+            <form onSubmit={handleSubscribe} className="space-y-3">
               <div className="relative">
                 <input 
                   type="email" 
                   placeholder="Your email address" 
                   className="w-full px-4 py-3 rounded-xl bg-blue-800/40 border border-blue-700/50 text-white placeholder-blue-300 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isSubmitting}
+                  required
                 />
               </div>
+              
+              {/* Status message */}
+              {subscriptionStatus && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`text-sm rounded-md p-2 flex items-center ${
+                    subscriptionStatus === 'success' ? 'bg-green-900/30 text-green-300' : 'bg-red-900/30 text-red-300'
+                  }`}
+                >
+                  {subscriptionStatus === 'success' ? (
+                    <FiCheckCircle className="mr-2 flex-shrink-0" />
+                  ) : (
+                    <FiAlertCircle className="mr-2 flex-shrink-0" />
+                  )}
+                  <span>{statusMessage}</span>
+                </motion.div>
+              )}
+              
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 px-6 rounded-xl font-medium shadow-md transition-all flex items-center justify-center"
+                disabled={isSubmitting}
+                className={`w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-3 px-6 rounded-xl font-medium shadow-md transition-all flex items-center justify-center ${
+                  isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
               >
-                Subscribe
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
+                {isSubmitting ? 'Subscribing...' : 'Subscribe'}
+                {!isSubmitting && (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                )}
               </motion.button>
             </form>
           </motion.div>
@@ -207,7 +287,7 @@ const Footer = () => {
         >
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-blue-300 text-sm mb-4 md:mb-0">
-              © {new Date().getFullYear()} Cloud Certify. All rights reserved.
+              &copy; {new Date().getFullYear()} Cloud Certify. All rights reserved.
             </p>
             
             <div className="flex flex-wrap justify-center gap-x-8 gap-y-2">

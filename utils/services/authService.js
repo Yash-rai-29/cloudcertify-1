@@ -169,8 +169,8 @@ const createErrorResponse = (error, operation) => {
   let code = error.code || 'unknown';
   
   // Map Firebase auth error codes to user-friendly messages
-  if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-    message = 'Invalid email or password. Please try again.';
+  if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+    message = 'Invalid email or password. Please check your credentials and try again.';
     code = 'invalid_credentials';
   } else if (error.code === 'auth/email-already-in-use') {
     message = 'This email is already in use. Please try logging in instead.';
@@ -248,12 +248,10 @@ export const signUp = async (userData) => {
  */
 export const signIn = async (email, password) => {
   try {
-    // Authenticate with Firebase
     const firebaseResponse = await signInWithEmailAndPassword(auth, email, password);
-    
-    // Set auth cookies
+
     await setAuthCookies(firebaseResponse.user);
-    
+
     return {
       success: true,
       data: {
@@ -261,14 +259,29 @@ export const signIn = async (email, password) => {
           uid: firebaseResponse.user.uid,
           email: firebaseResponse.user.email,
           emailVerified: firebaseResponse.user.emailVerified,
-        }
-      }
+        },
+      },
     };
   } catch (error) {
-    return createErrorResponse(error, 'signIn');
+    let message = "An error occurred during sign-in.";
+
+    if (error.code === "auth/invalid-credential") {
+      message = "Invalid email or password.";
+    } else if (error.code === "auth/user-disabled") {
+      message = "This user account has been disabled.";
+    } else if (error.code === "auth/too-many-requests") {
+      message = "Too many unsuccessful login attempts. Please try again later.";
+    }
+
+    return {
+      success: false,
+      error: {
+        code: error.code,
+        message,
+      },
+    };
   }
 };
-
 /**
  * Sign out current user
  * 

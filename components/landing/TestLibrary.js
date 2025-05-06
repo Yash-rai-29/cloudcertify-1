@@ -11,7 +11,7 @@ import {
 } from "react-icons/fi";
 import { GlowingBackground } from "../ui/GlowingBackground";
 import { Sparkles } from "../ui/SparklesBackground";
-import { TracingBeam } from "../ui/TracingBeam";
+// import { TracingBeam } from "../ui/TracingBeam";
 import dynamic from 'next/dynamic';
 import GoogleCloudAnimation from "../../assets/GoogleCloudAnimation.json";
 
@@ -214,7 +214,7 @@ const TestLibrary = () => {
         />
       </div>
 
-      <TracingBeam>
+      {/* <TracingBeam> */}
         <motion.div
           className="container mx-auto px-4 relative z-10"
           style={{ scale, opacity }}
@@ -291,7 +291,7 @@ const TestLibrary = () => {
             </div>
           </GlowingBackground>
         </motion.div>
-      </TracingBeam>
+      {/* </TracingBeam> */}
     </section>
   );
 };

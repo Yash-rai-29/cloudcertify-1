@@ -104,7 +104,7 @@ const PerformanceDashboard = () => {
                   <FiActivity className="mr-1 text-green-500" /> Last updated:
                   Today
                 </span>
-                <div className="relative">
+                {/* <div className="relative">
                   <select className="appearance-none bg-white border border-gray-200 rounded-lg py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm">
                     <option>Last 30 days</option>
                     <option>Last 60 days</option>
@@ -126,7 +126,7 @@ const PerformanceDashboard = () => {
                       />
                     </svg>
                   </div>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
